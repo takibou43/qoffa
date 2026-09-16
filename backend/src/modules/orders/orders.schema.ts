@@ -1,0 +1,73 @@
+import { z } from 'zod';
+import { paginationSchema } from '../../lib/pagination.js';
+
+export const ORDER_STATUSES = [
+  'PENDING',
+  'SHOP_ACCEPTED',
+  'PREPARING',
+  'READY_FOR_PICKUP',
+  'DRIVER_ASSIGNED',
+  'PICKED_UP',
+  'OUT_FOR_DELIVERY',
+  'DELIVERED',
+  'REJECTED',
+  'CANCELLED',
+  'NO_DRIVER',
+  'FAILED_DELIVERY',
+] as const;
+
+const manualAddress = z.object({
+  addressLine: z.string().trim().min(5).max(200),
+  city: z.string().trim().min(2).max(60),
+  latitude: z.number().min(-90).max(90),
+  longitude: z.number().min(-180).max(180),
+});
+
+export const createOrderSchema = z
+  .object({
+    shopId: z.string().min(1),
+    items: z
+      .array(
+        z.object({
+          productId: z.string().min(1),
+          quantity: z.number().int().min(1).max(99),
+        }),
+      )
+      .min(1, 'السلة فارغة')
+      .max(50),
+    // إما عنوان محفوظ أو عنوان يدوي (لمن رفض مشاركة الموقع أو لم يحفظ عنوانًا)
+    addressId: z.string().min(1).optional(),
+    address: manualAddress.optional(),
+    customerNote: z.string().trim().max(300).nullable().optional(),
+    paymentMethod: z.literal('CASH_ON_DELIVERY').default('CASH_ON_DELIVERY'),
+  })
+  .refine((v) => Boolean(v.addressId) || Boolean(v.address), {
+    message: 'يجب اختيار عنوان تسليم أو إدخاله يدويًا',
+    path: ['addressId'],
+  });
+
+export type CreateOrderInput = z.infer<typeof createOrderSchema>;
+
+export const listOrdersQuery = paginationSchema.extend({
+  status: z.enum(ORDER_STATUSES).optional(),
+  /** مجموعات جاهزة للوحة المحل */
+  bucket: z.enum(['new', 'active', 'ready', 'completed', 'cancelled']).optional(),
+});
+export type ListOrdersQuery = z.infer<typeof listOrdersQuery>;
+
+export const cancelOrderSchema = z.object({
+  reason: z.string().trim().max(200).optional(),
+});
+
+export const rejectOrderSchema = z.object({
+  reason: z.string().trim().min(2, 'يرجى ذكر سبب الرفض').max(200),
+});
+
+export const failDeliverySchema = z.object({
+  reason: z.string().trim().min(2, 'يرجى ذكر سبب تعذّر التسليم').max(200),
+});
+
+export const adminForceStatusSchema = z.object({
+  status: z.enum(ORDER_STATUSES),
+  note: z.string().trim().max(200).optional(),
+});
