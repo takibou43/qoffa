@@ -10,3 +10,6 @@ coverage/
 .vite/
 .turbo/
 *.tsbuildinfo
+
+# نسخة احتياطية محلية على سطح المكتب
+_backup/

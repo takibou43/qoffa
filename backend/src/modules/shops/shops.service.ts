@@ -1,5 +1,6 @@
 import { forbidden, notFound } from '../../lib/errors.js';
 import { boundingBox, haversineMeters } from '../../lib/geo.js';
+import { computeIsOpenNow } from '../../lib/hours.js';
 import { paginated, type Pagination } from '../../lib/pagination.js';
 import { prisma } from '../../lib/prisma.js';
 import { env } from '../../config/env.js';
@@ -24,6 +25,26 @@ export const publicShopSelect = {
   ratingCount: true,
   category: { select: { id: true, name: true, slug: true } },
 } as const;
+
+type ShopRow = {
+  isOpen: boolean;
+  openingTime: string;
+  closingTime: string;
+  latitude: number;
+  longitude: number;
+};
+
+/** يضيف isOpenNow (يجمع بين مفتاح المالك وساعات العمل) والمسافة إن توفر الموقع */
+function decorate<T extends ShopRow>(shop: T, lat?: number, lon?: number) {
+  return {
+    ...shop,
+    isOpenNow: computeIsOpenNow(shop),
+    distanceMeters:
+      typeof lat === 'number' && typeof lon === 'number'
+        ? haversineMeters(lat, lon, shop.latitude, shop.longitude)
+        : null,
+  };
+}
 
 /**
  * المحلات القريبة.
@@ -61,7 +82,7 @@ export async function listNearbyShops(query: NearbyShopsQuery) {
       prisma.shop.count({ where }),
     ]);
     return paginated(
-      items.map((s) => ({ ...s, distanceMeters: null })),
+      items.map((s) => decorate(s)),
       total,
       { page, limit },
     );
@@ -76,14 +97,12 @@ export async function listNearbyShops(query: NearbyShopsQuery) {
 
   const radiusM = radiusKm * 1000;
   const withDistance = candidates
-    .map((s) => ({
-      ...s,
-      distanceMeters: haversineMeters(lat, lon, s.latitude, s.longitude),
-    }))
-    .filter((s) => s.distanceMeters <= radiusM)
+    .map((s) => decorate(s, lat, lon))
+    .filter((s) => (s.distanceMeters as number) <= radiusM)
+    .filter((s) => (openOnly ? s.isOpenNow : true))
     .sort((a, b) => {
-      if (a.isOpen !== b.isOpen) return a.isOpen ? -1 : 1;
-      return a.distanceMeters - b.distanceMeters;
+      if (a.isOpenNow !== b.isOpenNow) return a.isOpenNow ? -1 : 1;
+      return (a.distanceMeters as number) - (b.distanceMeters as number);
     });
 
   const start = (page - 1) * limit;
@@ -100,13 +119,7 @@ export async function getPublicShop(shopId: string, lat?: number, lon?: number) 
   });
   if (!shop) throw notFound('المحل غير موجود أو غير متاح');
 
-  return {
-    ...shop,
-    distanceMeters:
-      typeof lat === 'number' && typeof lon === 'number'
-        ? haversineMeters(lat, lon, shop.latitude, shop.longitude)
-        : null,
-  };
+  return decorate(shop, lat, lon);
 }
 
 /** يتحقق أن المستخدم يملك هذا المحل فعلًا — أساس كل عمليات لوحة المحل */

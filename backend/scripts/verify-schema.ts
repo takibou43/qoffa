@@ -58,12 +58,12 @@ function parseSchema(src: string) {
 
     const fields: Field[] = [];
     for (const line of lines) {
-      const fm = /^(\w+)\s+([\w\[\]?]+)(\s+.*)?$/.exec(line);
+      const fm = /^(\w+)\s+([\w[\]?]+)(\s+.*)?$/.exec(line);
       if (!fm) continue;
       const rawType = fm[2]!;
       fields.push({
         name: fm[1]!,
-        type: rawType.replace(/[\[\]?]/g, ''),
+        type: rawType.replace(/[[\]?]/g, ''),
         optional: rawType.includes('?'),
         isList: rawType.includes('[]'),
       });

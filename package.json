@@ -19,11 +19,20 @@
     "dev:admin": "npm run dev -w frontend-admin",
     "build": "npm run build -w backend && npm run build -w frontend-customer && npm run build -w frontend-shop && npm run build -w frontend-driver && npm run build -w frontend-admin",
     "typecheck": "npm run typecheck --workspaces --if-present",
-    "lint": "npm run lint --workspaces --if-present",
+    "lint": "eslint .",
     "test": "npm run test -w backend",
     "db:migrate": "npm run db:migrate -w backend",
     "db:seed": "npm run db:seed -w backend",
-    "db:studio": "npm run db:studio -w backend"
+    "db:studio": "npm run db:studio -w backend",
+    "lint:fix": "eslint . --fix"
   },
-  "engines": { "node": ">=20" }
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "eslint": "^9.39.5",
+    "globals": "^17.12.0",
+    "typescript-eslint": "^8.70.0"
+  }
 }

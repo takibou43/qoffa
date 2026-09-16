@@ -6,6 +6,8 @@ generator client {
   output       = "../src/generated/prisma"
   runtime      = "nodejs"
   moduleFormat = "esm"
+  // ضروري ليعمل الكود المبني (dist) على Node ESM بدون bundler
+  importFileExtension = "js"
 }
 
 datasource db {
