@@ -1,0 +1,29 @@
+{
+  "name": "qoffa",
+  "private": true,
+  "version": "0.1.0",
+  "description": "قُفّة — من حانوتك إلى بابك",
+  "workspaces": [
+    "packages/*",
+    "backend",
+    "frontend-customer",
+    "frontend-shop",
+    "frontend-driver",
+    "frontend-admin"
+  ],
+  "scripts": {
+    "dev:backend": "npm run dev -w backend",
+    "dev:customer": "npm run dev -w frontend-customer",
+    "dev:shop": "npm run dev -w frontend-shop",
+    "dev:driver": "npm run dev -w frontend-driver",
+    "dev:admin": "npm run dev -w frontend-admin",
+    "build": "npm run build -w backend && npm run build -w frontend-customer && npm run build -w frontend-shop && npm run build -w frontend-driver && npm run build -w frontend-admin",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "test": "npm run test -w backend",
+    "db:migrate": "npm run db:migrate -w backend",
+    "db:seed": "npm run db:seed -w backend",
+    "db:studio": "npm run db:studio -w backend"
+  },
+  "engines": { "node": ">=20" }
+}

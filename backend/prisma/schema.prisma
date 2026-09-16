@@ -1,0 +1,622 @@
+// قُفّة — مخطط قاعدة البيانات
+// كل المبالغ المالية أعداد صحيحة بالدينار الجزائري (DZD). لا floating point.
+
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  runtime      = "nodejs"
+  moduleFormat = "esm"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─────────────────────────────  Enums  ─────────────────────────────
+
+enum Role {
+  CUSTOMER
+  SHOP_OWNER
+  DRIVER
+  ADMIN
+  /// مالك المنصة — أعلى صلاحية. لا يُنشأ أبدًا من واجهة التسجيل العامة.
+  SUPER_ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+/// حالة تسجيل المحل لدى الإدارة
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  SUSPENDED
+}
+
+enum OrderStatus {
+  PENDING
+  SHOP_ACCEPTED
+  PREPARING
+  READY_FOR_PICKUP
+  DRIVER_ASSIGNED
+  PICKED_UP
+  OUT_FOR_DELIVERY
+  DELIVERED
+  REJECTED
+  CANCELLED
+  NO_DRIVER
+  FAILED_DELIVERY
+}
+
+enum PaymentMethod {
+  CASH_ON_DELIVERY
+}
+
+enum ActorType {
+  CUSTOMER
+  SHOP
+  DRIVER
+  ADMIN
+  SYSTEM
+}
+
+/// أنواع العمليات الإدارية المسجَّلة في سجل العمليات
+enum AdminAction {
+  USER_SUSPENDED
+  USER_REACTIVATED
+  USER_ROLE_CHANGED
+  ADMIN_CREATED
+  ADMIN_REMOVED
+  SHOP_APPROVED
+  SHOP_REJECTED
+  SHOP_SUSPENDED
+  SHOP_REACTIVATED
+  SHOP_COMMISSION_CHANGED
+  DRIVER_APPROVED
+  DRIVER_REJECTED
+  DRIVER_SUSPENDED
+  DRIVER_REACTIVATED
+  ORDER_FORCE_STATUS
+  ORDER_REASSIGN_DRIVER
+  CATEGORY_CREATED
+  CATEGORY_UPDATED
+  CATEGORY_DELETED
+  PRODUCT_UPDATED
+  PRODUCT_DELETED
+  WALLET_ADJUSTED
+  WALLET_PAYOUT
+  SETTING_CHANGED
+}
+
+enum DeliveryOfferStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  EXPIRED
+  CANCELLED
+}
+
+enum CategoryKind {
+  SHOP
+  PRODUCT
+}
+
+enum ReviewTargetType {
+  SHOP
+  DRIVER
+}
+
+enum WalletOwnerType {
+  SHOP
+  DRIVER
+  PLATFORM
+}
+
+enum WalletTransactionType {
+  ORDER_EARNING
+  PLATFORM_COMMISSION
+  DELIVERY_EARNING
+  PAYOUT
+  ADJUSTMENT
+}
+
+enum NotificationType {
+  ORDER_CREATED
+  ORDER_ACCEPTED
+  ORDER_REJECTED
+  ORDER_PREPARING
+  ORDER_READY
+  DRIVER_ASSIGNED
+  ORDER_PICKED_UP
+  ORDER_OUT_FOR_DELIVERY
+  ORDER_DELIVERED
+  ORDER_CANCELLED
+  NO_DRIVER_FOUND
+  NEW_DELIVERY_OFFER
+  ACCOUNT_APPROVED
+  ACCOUNT_REJECTED
+}
+
+// ─────────────────────────────  Users  ─────────────────────────────
+
+model User {
+  id           String     @id @default(cuid())
+  phone        String     @unique
+  email        String?    @unique
+  passwordHash String
+  fullName     String
+  role         Role
+  status       UserStatus @default(ACTIVE)
+  /// يُجبَر المستخدم على تغيير كلمة المرور عند أول دخول (يُستعمل لحساب المالك المُنشأ آليًا)
+  mustChangePassword Boolean @default(false)
+  lastLoginAt        DateTime?
+
+  customerProfile CustomerProfile?
+  driverProfile   DriverProfile?
+  shop            Shop?
+  addresses       Address[]
+  orders          Order[]          @relation("CustomerOrders")
+  reviews         Review[]
+  notifications   Notification[]
+  statusEvents    OrderStatusEvent[]
+  adminAuditLogs  AdminAuditLog[]  @relation("AdminActor")
+  settingsChanged PlatformSetting[] @relation("SettingUpdatedBy")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([role, status])
+  @@index([createdAt])
+}
+
+model CustomerProfile {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  defaultAddressId String?  @unique
+  defaultAddress   Address? @relation("DefaultAddress", fields: [defaultAddressId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Address {
+  id          String  @id @default(cuid())
+  userId      String
+  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  label       String  @default("المنزل")
+  addressLine String
+  city        String
+  latitude    Float
+  longitude   Float
+  notes       String?
+
+  defaultFor CustomerProfile? @relation("DefaultAddress")
+  orders     Order[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+// ─────────────────────────────  Shops  ─────────────────────────────
+
+model Shop {
+  id          String  @id @default(cuid())
+  ownerId     String  @unique
+  owner       User    @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  imageUrl    String?
+  phone       String
+  addressLine String
+  city        String
+  latitude    Float
+  longitude   Float
+
+  status ApprovalStatus @default(PENDING)
+  /// هل المحل مفتوح الآن (تبديل يدوي من صاحب المحل)
+  isOpen Boolean        @default(false)
+  /// "08:00"
+  openingTime String     @default("08:00")
+  /// "22:00"
+  closingTime String     @default("22:00")
+
+  /// رسوم التوصيل بالدينار
+  deliveryFee Int @default(150)
+  /// عمولة المنصة بالنقاط الأساسية (1000 = 10%)
+  commissionBps Int @default(1000)
+
+  ratingAvg   Float @default(0)
+  ratingCount Int   @default(0)
+
+  categoryId String?
+  category   Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  products ShopProduct[]
+  orders   Order[]
+  reviews  Review[]
+  wallet   Wallet?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, isOpen])
+  @@index([latitude, longitude])
+  @@index([createdAt])
+}
+
+model Category {
+  id        String       @id @default(cuid())
+  name      String
+  slug      String       @unique
+  kind      CategoryKind @default(PRODUCT)
+  iconKey   String?
+  sortOrder Int          @default(0)
+
+  products ShopProduct[]
+  shops    Shop[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([kind, sortOrder])
+}
+
+model ShopProduct {
+  id          String  @id @default(cuid())
+  shopId      String
+  shop        Shop    @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  categoryId  String?
+  category    Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  name        String
+  description String?
+  imageUrl    String?
+  /// السعر بالدينار (عدد صحيح)
+  price       Int
+  /// الوحدة: قطعة، كغ، لتر...
+  unit        String  @default("قطعة")
+  isAvailable Boolean @default(true)
+  /// مخفي = لا يظهر للزبون إطلاقًا
+  isHidden    Boolean @default(false)
+
+  orderItems OrderItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([shopId, isHidden, isAvailable])
+  @@index([shopId, categoryId])
+  @@index([name])
+}
+
+// ─────────────────────────────  Drivers  ─────────────────────────────
+
+model DriverProfile {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  status      ApprovalStatus @default(PENDING)
+  vehicleType String         @default("دراجة نارية")
+  plateNumber String?
+
+  isAvailable    Boolean   @default(false)
+  latitude       Float?
+  longitude      Float?
+  lastLocationAt DateTime?
+
+  /// الطلب الجاري حاليًا — يضمن ألا يحمل الموصل أكثر من طلب
+  currentOrderId String? @unique
+
+  ratingAvg   Float @default(0)
+  ratingCount Int   @default(0)
+
+  orders    Order[]         @relation("DriverOrders")
+  offers    DeliveryOffer[]
+  reviews   Review[]
+  deliveries Delivery[]
+  wallet    Wallet?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, isAvailable])
+  @@index([latitude, longitude])
+}
+
+// ─────────────────────────────  Orders  ─────────────────────────────
+
+model Order {
+  id   String @id @default(cuid())
+  /// رقم قصير يقرأه البشر: QF-XXXXXX
+  code String @unique
+
+  customerId String
+  customer   User   @relation("CustomerOrders", fields: [customerId], references: [id])
+
+  shopId String
+  shop   Shop   @relation(fields: [shopId], references: [id])
+
+  driverId String?
+  driver   DriverProfile? @relation("DriverOrders", fields: [driverId], references: [id])
+
+  status OrderStatus @default(PENDING)
+
+  /// مجموع المنتجات بالدينار
+  subtotal      Int
+  deliveryFee   Int
+  total         Int
+  /// عمولة المنصة المحسوبة عند التسليم
+  commissionAmount Int @default(0)
+  /// نصيب الموصل من رسوم التوصيل
+  driverEarning    Int @default(0)
+
+  paymentMethod PaymentMethod @default(CASH_ON_DELIVERY)
+  customerNote  String?
+
+  // لقطة عنوان التسليم وقت الطلب (لا تتغير إن عدّل الزبون عنوانه لاحقًا)
+  addressId          String?
+  address            Address? @relation(fields: [addressId], references: [id], onDelete: SetNull)
+  deliveryAddressLine String
+  deliveryCity        String
+  deliveryLatitude    Float
+  deliveryLongitude   Float
+  customerPhone       String
+
+  /// المسافة التقريبية بين المحل والزبون بالأمتار (Haversine)
+  distanceMeters Int?
+
+  rejectionReason String?
+  cancelReason    String?
+  cancelledBy     ActorType?
+
+  /// عدد العروض المرسلة للموصلين لهذا الطلب
+  offerAttempts Int @default(0)
+
+  acceptedAt       DateTime?
+  preparingAt      DateTime?
+  readyAt          DateTime?
+  assignedAt       DateTime?
+  pickedUpAt       DateTime?
+  outForDeliveryAt DateTime?
+  deliveredAt      DateTime?
+  closedAt         DateTime?
+
+  items         OrderItem[]
+  delivery      Delivery?
+  offers        DeliveryOffer[]
+  reviews       Review[]
+  notifications Notification[]
+  statusEvents  OrderStatusEvent[]
+  walletTxs     WalletTransaction[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([customerId, createdAt])
+  @@index([shopId, status, createdAt])
+  @@index([driverId, status])
+  @@index([status, createdAt])
+  @@index([createdAt])
+}
+
+model OrderItem {
+  id      String @id @default(cuid())
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  productId String?
+  product   ShopProduct? @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  // لقطة بيانات المنتج وقت الطلب
+  nameSnapshot String
+  unitSnapshot String
+  unitPrice    Int
+  quantity     Int
+  lineTotal    Int
+
+  @@index([orderId])
+}
+
+model OrderStatusEvent {
+  id      String @id @default(cuid())
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  fromStatus OrderStatus?
+  toStatus   OrderStatus
+  actorType  ActorType
+  actorId    String?
+  actor      User?   @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  note       String?
+
+  createdAt DateTime @default(now())
+
+  @@index([orderId, createdAt])
+}
+
+// ─────────────────────────────  Delivery  ─────────────────────────────
+
+model Delivery {
+  id      String @id @default(cuid())
+  orderId String @unique
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  driverId String
+  driver   DriverProfile @relation(fields: [driverId], references: [id])
+
+  acceptedAt  DateTime  @default(now())
+  pickedUpAt  DateTime?
+  deliveredAt DateTime?
+  failedAt    DateTime?
+  failReason  String?
+
+  distanceMeters Int?
+  earning        Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([driverId, createdAt])
+}
+
+model DeliveryOffer {
+  id      String @id @default(cuid())
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  driverId String
+  driver   DriverProfile @relation(fields: [driverId], references: [id], onDelete: Cascade)
+
+  status         DeliveryOfferStatus @default(PENDING)
+  distanceMeters Int?
+  expiresAt      DateTime
+  respondedAt    DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@unique([orderId, driverId])
+  @@index([driverId, status, expiresAt])
+  @@index([status, expiresAt])
+}
+
+// ─────────────────────────────  Reviews  ─────────────────────────────
+
+model Review {
+  id      String @id @default(cuid())
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  authorId String
+  author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  targetType ReviewTargetType
+
+  shopId String?
+  shop   Shop?   @relation(fields: [shopId], references: [id], onDelete: Cascade)
+
+  driverId String?
+  driver   DriverProfile? @relation(fields: [driverId], references: [id], onDelete: Cascade)
+
+  /// من 1 إلى 5
+  rating  Int
+  comment String?
+
+  createdAt DateTime @default(now())
+
+  @@unique([orderId, targetType])
+  @@index([shopId, createdAt])
+  @@index([driverId, createdAt])
+}
+
+// ─────────────────────────────  Wallet  ─────────────────────────────
+
+model Wallet {
+  id        String          @id @default(cuid())
+  ownerType WalletOwnerType
+
+  shopId String? @unique
+  shop   Shop?   @relation(fields: [shopId], references: [id], onDelete: Cascade)
+
+  driverId String?        @unique
+  driver   DriverProfile? @relation(fields: [driverId], references: [id], onDelete: Cascade)
+
+  /// رصيد بالدينار (عدد صحيح)
+  balance Int @default(0)
+
+  transactions WalletTransaction[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([ownerType])
+}
+
+model WalletTransaction {
+  id       String @id @default(cuid())
+  walletId String
+  wallet   Wallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+
+  orderId String?
+  order   Order?  @relation(fields: [orderId], references: [id], onDelete: SetNull)
+
+  type        WalletTransactionType
+  /// موجب = دخل، سالب = خصم — بالدينار
+  amount      Int
+  description String
+
+  createdAt DateTime @default(now())
+
+  @@index([walletId, createdAt])
+  @@index([orderId])
+}
+
+// ─────────────────────────────  Notifications  ─────────────────────────────
+
+model Notification {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type  NotificationType
+  title String
+  body  String
+
+  orderId String?
+  order   Order?  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  isRead Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, isRead, createdAt])
+}
+
+
+// ─────────────────────────────  Admin / Platform  ─────────────────────────────
+
+/// سجل كل عملية إدارية حساسة. يُكتب من الخادم فقط.
+model AdminAuditLog {
+  id      String @id @default(cuid())
+  actorId String
+  actor   User   @relation("AdminActor", fields: [actorId], references: [id], onDelete: Cascade)
+
+  action AdminAction
+
+  /// نوع الكيان المتأثر: user | shop | driver | order | category | product | wallet | setting
+  targetType String
+  targetId   String?
+
+  /// تفاصيل إضافية (قيم قبل/بعد) — بدون أي أسرار
+  metadata Json?
+
+  ipAddress String?
+
+  createdAt DateTime @default(now())
+
+  @@index([actorId, createdAt])
+  @@index([targetType, targetId])
+  @@index([createdAt])
+}
+
+/// إعدادات المنصة القابلة للتغيير من لوحة الإدارة (لا تحتوي أسرارًا)
+model PlatformSetting {
+  key   String @id
+  value Json
+  label String
+  group String @default("general")
+
+  updatedById String?
+  updatedBy   User?   @relation("SettingUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([group])
+}
