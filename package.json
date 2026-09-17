@@ -4,7 +4,6 @@
   "version": "0.1.0",
   "description": "قُفّة — من حانوتك إلى بابك",
   "workspaces": [
-    "packages/*",
     "backend",
     "frontend-customer",
     "frontend-shop",
@@ -32,6 +31,8 @@
   "devDependencies": {
     "@eslint/js": "^9.39.5",
     "eslint": "^9.39.5",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.7",
     "globals": "^17.12.0",
     "typescript-eslint": "^8.70.0"
   }

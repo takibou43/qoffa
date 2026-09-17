@@ -1,0 +1,38 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'Cairo', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  --color-brand-50: #f0fdf4;
+  --color-brand-100: #dcfce7;
+  --color-brand-200: #bbf7d0;
+  --color-brand-500: #22c55e;
+  --color-brand-600: #16a34a;
+  --color-brand-700: #15803d;
+  --color-brand-800: #166534;
+}
+
+html {
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: #f8fafc;
+  color: #0f172a;
+  overscroll-behavior-y: none;
+}
+
+/* إخفاء شريط التمرير الأفقي في القوائم المنزلقة */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* مساحة آمنة أسفل الشاشة لأجهزة iPhone */
+.pb-safe {
+  padding-bottom: calc(env(safe-area-inset-bottom) + 0.5rem);
+}
