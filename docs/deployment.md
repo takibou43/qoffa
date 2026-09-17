@@ -1,0 +1,101 @@
+# النشر — قُفّة
+
+المشروع خمسة أجزاء تُنشر منفصلة: **خادم API** + **أربع واجهات ثابتة**، وقاعدة بيانات PostgreSQL مُدارة.
+
+---
+
+## 1) قاعدة البيانات
+
+أي PostgreSQL 14+ مُدار: Neon · Supabase · Railway · RDS · VPS.
+
+```bash
+# قبل تشغيل النسخة الجديدة من الخادم
+DATABASE_URL="postgresql://…" npx prisma migrate deploy --schema backend/prisma/schema.prisma
+```
+
+> في بيئة تمنع تنزيل محرّك Prisma استعمل البديل:
+> `DATABASE_URL="…" node backend/scripts/migrate-apply.mjs`
+> يطبّق نفس ملفات الهجرة ويسجّلها بنفس صيغة Prisma.
+
+بعد النشر تحقّق من عدم وجود انحراف:
+
+```bash
+DATABASE_URL="…" npm run db:verify -w backend
+```
+
+إنشاء حساب مالك المنصة مرة واحدة (اقرأ قسم SUPER_ADMIN في README):
+
+```bash
+npm run db:seed:owner -w backend
+```
+
+**لا تشغّل `db:seed` في الإنتاج** — يرفض العمل عندما `NODE_ENV=production`.
+
+---
+
+## 2) خادم API
+
+يحتاج **عملية طويلة الأمد** لأن مؤقّت مطابقة الموصّلين يعمل داخل الخادم.
+لذلك Render / Railway / Fly.io / VPS مناسبة، و**Vercel Serverless غير مناسب للـbackend** كما هو.
+
+```bash
+npm install
+npm run build -w backend
+node backend/dist/index.js
+```
+
+متغيرات البيئة المطلوبة في الإنتاج:
+
+```
+NODE_ENV=production
+PORT=4000
+DATABASE_URL=postgresql://…
+JWT_SECRET=<openssl rand -base64 48>
+CORS_ORIGINS=https://app.example.com,https://shop.example.com,https://driver.example.com,https://admin.example.com
+PLATFORM_OWNER_EMAIL=…
+PLATFORM_OWNER_PHONE=…
+```
+
+نقطة الفحص الصحي: `GET /health` → `{"ok":true,...}`
+
+### إن استُعمل Vercel للـbackend
+
+يحتاج تحويل نقاط النهاية إلى Serverless Functions وإخراج مؤقّت المطابقة إلى Cron خارجي يستدعي دورة المطابقة.
+هذا تغيير معماري **لم يُنفَّذ في هذه النسخة**.
+
+---
+
+## 3) الواجهات الأربع
+
+كل واجهة موقع ثابت مستقل. على Vercel: مشروع لكل مجلد.
+
+| الإعداد | القيمة |
+|---|---|
+| Root Directory | `frontend-customer` (أو `-shop` / `-driver` / `-admin`) |
+| Install Command | `npm install` |
+| Build Command | `npm run build` |
+| Output Directory | `dist` |
+| Environment | `VITE_API_URL=https://api.example.com/api` |
+
+`vercel.json` جاهز داخل كل مجلد واجهة ويتضمّن إعادة توجيه SPA (كل المسارات → `index.html`)،
+وهو ضروري لأن التطبيقات تستعمل توجيهًا من جهة العميل.
+
+### قائمة تحقّق بعد النشر
+
+- [ ] `GET /health` يستجيب.
+- [ ] الصفحة الرئيسية للزبون تعرض المحلات (لا 404 ولا CORS).
+- [ ] تسجيل الدخول يعمل في الواجهات الأربع.
+- [ ] `CORS_ORIGINS` يحتوي نطاقات الواجهات الأربعة بالضبط (بدون `/` في النهاية).
+- [ ] طلب تجريبي كامل: زبون → محل → موصّل → تسليم.
+- [ ] لوحة الإدارة تعرض الإحصائيات وسجل العمليات.
+- [ ] لا أخطاء في Console المتصفح.
+- [ ] `manifest.webmanifest` و`sw.js` يُخدَمان على الواجهات الثلاث (PWA).
+
+---
+
+## 4) ملاحظات تشغيلية
+
+- **الرموز**: JWT في `Authorization` (لا cookies)، فلا حاجة لإعدادات `SameSite`، وCORS البسيط يكفي.
+- **HTTPS مطلوب** لتشغيل تحديد الموقع (Geolocation) وتثبيت PWA.
+- **`trust proxy`** مضبوط في الخادم ليعمل تحديد المعدّل خلف موازن تحميل.
+- **النسخ الاحتياطي**: فعّل نسخًا يوميًا لقاعدة البيانات — كل الطلبات والمحافظ فيها.
