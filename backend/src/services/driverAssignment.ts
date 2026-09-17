@@ -260,6 +260,23 @@ export async function runDispatchTick(now = new Date()) {
   return { expired: expired.length, offered };
 }
 
+let lastOpportunisticTick = 0;
+
+/**
+ * تشغيل انتهازي لدورة المطابقة، للبيئات التي لا تسمح بمؤقّت دائم (Serverless).
+ * يُستدعى من مسارات يزورها الموصّلون والمحلات بانتظام، ويُنفَّذ مرة واحدة كل فترة.
+ */
+export async function maybeRunDispatchTick(minIntervalMs = 8_000) {
+  const now = Date.now();
+  if (now - lastOpportunisticTick < minIntervalMs) return;
+  lastOpportunisticTick = now;
+  try {
+    await runDispatchTick();
+  } catch (err) {
+    console.error('[dispatch] فشل التشغيل الانتهازي', err);
+  }
+}
+
 let timer: NodeJS.Timeout | null = null;
 
 /** يشغّل مؤقّت المطابقة — يُستدعى من index.ts فقط */

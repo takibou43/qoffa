@@ -6,6 +6,7 @@ import { validate } from '../../middleware/validate.js';
 import {
   acceptDeliveryOffer,
   declineDeliveryOffer,
+  maybeRunDispatchTick,
 } from '../../services/driverAssignment.js';
 import { availabilitySchema, locationSchema } from './drivers.schema.js';
 import * as service from './drivers.service.js';
@@ -33,6 +34,8 @@ driversRouter.patch('/me/location', validate(locationSchema), async (req, res) =
 
 driversRouter.get('/me/offers', async (req, res) => {
   const profile = await service.getDriverProfileOrThrow(req.auth!.userId);
+  // يضمن تقدّم المطابقة حتى في بيئة بلا مؤقّت دائم
+  await maybeRunDispatchTick();
   res.json({ items: await service.listPendingOffers(profile.id) });
 });
 

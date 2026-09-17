@@ -4,7 +4,7 @@ import { requireAuth, requireRole } from '../../middleware/auth.js';
 import { writeLimiter } from '../../middleware/rateLimit.js';
 import { validate, validated } from '../../middleware/validate.js';
 import { assertDriverOrder, getDriverProfileOrThrow } from '../drivers/drivers.service.js';
-import { offerToNextDriver } from '../../services/driverAssignment.js';
+import { maybeRunDispatchTick, offerToNextDriver } from '../../services/driverAssignment.js';
 import { getOwnedShopOrThrow } from '../shops/shops.service.js';
 import {
   cancelOrderSchema,
@@ -71,6 +71,7 @@ ordersRouter.get(
   async (req, res) => {
     const shop = await getOwnedShopOrThrow(req.auth!.userId);
     const query = validated<ListOrdersQuery>(res, 'query');
+    await maybeRunDispatchTick();
     res.json(await service.listShopOrders(shop.id, query));
   },
 );
