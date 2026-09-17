@@ -1,0 +1,44 @@
+# قُفّة — مخطط نشر Render (Blueprint)
+# الاستعمال: ارفع المستودع إلى GitHub ثم New → Blueprint واختر هذا الملف.
+# القيم السرّية (DATABASE_URL, JWT_SECRET, …) تُضبط من لوحة Render ولا تُكتب هنا.
+services:
+  - type: web
+    name: qoffa-api
+    runtime: node
+    plan: free
+    region: frankfurt
+    # الهجرات تُطبَّق قبل تشغيل النسخة الجديدة
+    buildCommand: npm install && npm run db:generate -w backend && npm run build -w backend
+    preDeployCommand: npx prisma migrate deploy --schema backend/prisma/schema.prisma
+    startCommand: node backend/dist/index.js
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 4000
+      # تُضبط يدويًا من لوحة Render — لا تضعها في Git
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CORS_ORIGINS
+        sync: false
+      - key: PLATFORM_OWNER_EMAIL
+        sync: false
+      - key: PLATFORM_OWNER_PHONE
+        sync: false
+      - key: PLATFORM_OWNER_NAME
+        value: مالك المنصة
+      - key: PLATFORM_COMMISSION_BPS
+        value: 1000
+      - key: DEFAULT_DELIVERY_FEE
+        value: 150
+      - key: DRIVER_FEE_SHARE_BPS
+        value: 8000
+      - key: SEARCH_RADIUS_KM
+        value: 10
+      - key: DRIVER_OFFER_TIMEOUT_SECONDS
+        value: 45
+      - key: MAX_DRIVER_OFFERS
+        value: 6
