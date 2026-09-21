@@ -16,17 +16,23 @@ let loading: Promise<void> | null = null;
 
 /**
  * يحمّل مفتاح التوقيع مرة واحدة لكل عملية.
- * الأولوية لمتغير البيئة JWT_SECRET؛ وإلا يُقرأ من إعداد دور قاعدة البيانات
- * qoffa.jwt_secret (مولَّد داخل PostgreSQL بـ gen_random_bytes ولا يمر عبر أي ملف أو واجهة).
+ * الأولوية لمتغير البيئة JWT_SECRET؛ وإلا يُقرأ من الجدول الخاص qoffa_private.app_secret
+ * (قيمة مولَّدة داخل PostgreSQL بـ gen_random_bytes، لا تمر عبر أي ملف أو طرفية أو واجهة،
+ * والمخطط غير مكشوف لواجهات Supabase العامة، وصلاحية الخادم عليه قراءة فقط).
  */
 export function ensureJwtSecret(): Promise<void> {
   if (secret) return Promise.resolve();
   loading ??= (async () => {
-    const rows = await prisma.$queryRaw<{ s: string | null }[]>`
-      SELECT current_setting('qoffa.jwt_secret', true) AS s`;
-    const value = rows[0]?.s ?? '';
+    let value = '';
+    try {
+      const rows = await prisma.$queryRaw<{ s: string }[]>`
+        SELECT value AS s FROM qoffa_private.app_secret WHERE key = 'jwt_secret'`;
+      value = rows[0]?.s ?? '';
+    } catch {
+      value = ''; // المخطط/الجدول غير موجود
+    }
     if (value.length < MIN_SECRET_LENGTH) {
-      throw new Error('مفتاح توقيع JWT غير مهيأ: اضبط JWT_SECRET أو qoffa.jwt_secret');
+      throw new Error('مفتاح توقيع JWT غير مهيأ: اضبط JWT_SECRET أو qoffa_private.app_secret');
     }
     secret = value;
   })().catch((err: unknown) => {

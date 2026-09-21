@@ -127,17 +127,25 @@ PLATFORM_OWNER_PHONE=…
 
 ## مفتاح JWT بدون نسخ أي سر يدويًا
 
-الأولوية لمتغير البيئة `JWT_SECRET` (32 حرفًا على الأقل). إن غاب، يقرأ الخادم المفتاح من إعداد دور
-قاعدة البيانات `qoffa.jwt_secret`، ويُولَّد داخل PostgreSQL نفسه فلا يظهر في أي ملف أو طرفية أو واجهة:
+الأولوية لمتغير البيئة `JWT_SECRET` (32 حرفًا على الأقل). إن غاب، يقرأ الخادم المفتاح من الجدول الخاص
+`qoffa_private.app_secret`، وتُولَّد قيمته داخل PostgreSQL نفسه فلا تظهر في أي ملف أو طرفية أو واجهة.
+المخطط `qoffa_private` خارج جداول التطبيق الـ18، غير مكشوف لواجهات Supabase العامة، وصلاحية `qoffa_app` عليه قراءة فقط.
 
 ```sql
-DO $$ BEGIN
-  EXECUTE format('ALTER ROLE qoffa_app SET qoffa.jwt_secret = %L',
-                 encode(extensions.gen_random_bytes(48), 'hex'));
-END $$;
+CREATE SCHEMA IF NOT EXISTS qoffa_private;
+REVOKE ALL ON SCHEMA qoffa_private FROM PUBLIC, anon, authenticated;
+CREATE TABLE IF NOT EXISTS qoffa_private.app_secret (
+  key text PRIMARY KEY, value text NOT NULL CHECK (length(value) >= 32),
+  created_at timestamptz NOT NULL DEFAULT now());
+REVOKE ALL ON qoffa_private.app_secret FROM PUBLIC, anon, authenticated;
+GRANT USAGE ON SCHEMA qoffa_private TO qoffa_app;
+GRANT SELECT ON qoffa_private.app_secret TO qoffa_app;
+INSERT INTO qoffa_private.app_secret (key, value)
+SELECT 'jwt_secret', encode(extensions.gen_random_bytes(48), 'hex') ON CONFLICT (key) DO NOTHING;
 ```
 
-تدوير المفتاح = إعادة تنفيذ الأمر (يُسجَّل خروج جميع المستخدمين). ضبط `JWT_SECRET` في الاستضافة يتجاوز هذا الإعداد.
+تدوير المفتاح: `UPDATE qoffa_private.app_secret SET value = encode(extensions.gen_random_bytes(48), 'hex') WHERE key = 'jwt_secret';`
+ثم إعادة النشر (يُسجَّل خروج جميع المستخدمين). ضبط `JWT_SECRET` في الاستضافة يتجاوز هذا الجدول.
 
 ## TLS مع التحقق من الشهادة
 

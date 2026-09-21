@@ -15,8 +15,8 @@ const schema = z.object({
   /** شهادة CA العامة لخادم قاعدة البيانات (PEM) — تُفعّل TLS مع تحقق كامل من الشهادة */
   DATABASE_CA_CERT: z.string().optional(),
   /**
-   * مفتاح توقيع JWT. إن غاب يُقرأ من إعداد الدور في PostgreSQL (qoffa.jwt_secret)
-   * الذي تولّده قاعدة البيانات بنفسها — انظر lib/jwt.ts و docs/deployment.md.
+   * مفتاح توقيع JWT. إن غاب يُقرأ من الجدول الخاص qoffa_private.app_secret
+   * الذي تولّد قاعدة البيانات قيمته بنفسها — انظر lib/jwt.ts و docs/deployment.md.
    */
   JWT_SECRET: z.string().min(32, 'JWT_SECRET يجب أن يكون 32 حرفًا على الأقل').optional().or(z.literal('')),
   JWT_EXPIRES_IN: z.string().default('7d'),
