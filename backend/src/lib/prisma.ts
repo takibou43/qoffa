@@ -1,17 +1,23 @@
 import { PrismaPg } from '@prisma/adapter-pg';
+import type { PoolConfig } from 'pg';
 import { PrismaClient } from '../generated/prisma/client.js';
 import { env } from '../config/env.js';
+import { parseDatabaseUrl } from './dbConfig.js';
 
-// عند توفر شهادة CA: اتصال مشفّر مع تحقق كامل من الشهادة واسم الخادم.
-// sslmode في الرابط يتجاوز إعداد ssl في pg، لذلك يُزال حين نمرّر الشهادة صراحة.
-function poolConfig() {
-  if (!env.databaseCaCert) return { connectionString: env.DATABASE_URL };
-  const url = new URL(env.DATABASE_URL);
-  url.searchParams.delete('sslmode');
-  return {
-    connectionString: url.toString(),
-    ssl: { ca: env.databaseCaCert, rejectUnauthorized: true },
-  };
+// يُحلَّل الرابط بأنفسنا (لا نمرّر connectionString) كي:
+//  - تعمل كلمات المرور ذات الرموز الخاصة غير المرمَّزة؛
+//  - لا يتجاوز sslmode في الرابط إعداد ssl الصريح.
+// عند توفر DATABASE_CA_CERT: اتصال مشفّر مع تحقق كامل من الشهادة واسم الخادم.
+function poolConfig(): PoolConfig {
+  const { params, ...conn } = parseDatabaseUrl(env.DATABASE_URL);
+  const schema = params.get('schema');
+  const options = schema ? `-c search_path=${schema}` : undefined;
+  if (env.databaseCaCert) {
+    return { ...conn, options, ssl: { ca: env.databaseCaCert, rejectUnauthorized: true, servername: conn.host } };
+  }
+  const sslmode = params.get('sslmode');
+  if (sslmode && sslmode !== 'disable') return { ...conn, options, ssl: true };
+  return { ...conn, options };
 }
 
 const adapter = new PrismaPg(poolConfig());
