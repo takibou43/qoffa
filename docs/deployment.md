@@ -151,3 +151,9 @@ SELECT 'jwt_secret', encode(extensions.gen_random_bytes(48), 'hex') ON CONFLICT 
 
 `DATABASE_CA_CERT` يحمل شهادة CA العامة (Supabase Root 2021 CA) فيُفعَّل اتصال مشفّر مع تحقق كامل من
 الشهادة واسم الخادم. لا تستعمل `sslmode=no-verify`.
+
+## حفظ كلمة مرور قاعدة البيانات وحدها
+
+يمكن أن يحمل `DATABASE_URL` كلمة المرور وحدها (دون `postgresql://`) إذا ضُبطت أجزاء الاتصال غير السرية
+بأسماء libpq القياسية: `PGHOST` و`PGPORT` و`PGUSER` و`PGDATABASE`. هكذا يبقى السر الوحيد في لوحة الاستضافة
+هو كلمة المرور، ولا يلزم ترميز رموزها الخاصة. رسائل الخطأ تصف شكل القيمة فقط ولا تطبعها أبدًا.

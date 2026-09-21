@@ -26,8 +26,28 @@ export function describeShape(raw: string): string {
   });
 }
 
-export function parseDatabaseUrl(input: string): PoolConfig & { params: URLSearchParams } {
+type PgParts = { PGHOST?: string; PGPORT?: string; PGUSER?: string; PGDATABASE?: string };
+
+/**
+ * DATABASE_URL إمّا رابط كامل، وإمّا — إن خلا من البادئة postgres:// وكانت أجزاء الاتصال
+ * غير السرية مضبوطة بأسماء libpq القياسية (PGHOST, PGPORT, PGUSER, PGDATABASE) —
+ * كلمة المرور وحدها. هذا يسمح بحفظ السر وحده في لوحة الاستضافة وبقية الأجزاء علنًا.
+ */
+export function parseDatabaseUrl(
+  input: string,
+  parts: PgParts = process.env,
+): PoolConfig & { params: URLSearchParams } {
   const raw = input.trim().replace(/^["']|["']$/g, '');
+  if (!/^postgres(ql)?:\/\//.test(raw) && parts.PGHOST && parts.PGUSER) {
+    return {
+      user: parts.PGUSER,
+      password: raw,
+      host: parts.PGHOST,
+      port: parts.PGPORT ? Number(parts.PGPORT) : 5432,
+      database: parts.PGDATABASE || 'postgres',
+      params: new URLSearchParams(),
+    };
+  }
   const m = URL_RE.exec(raw);
   if (!m) {
     throw new Error(`DATABASE_URL بصيغة غير صالحة (الشكل: ${describeShape(raw)})`);

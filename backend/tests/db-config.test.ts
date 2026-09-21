@@ -19,11 +19,21 @@ describe('parseDatabaseUrl', () => {
     expect(c.params.get('schema')).toBe('public');
   });
 
+  it('يقبل كلمة المرور وحدها مع أجزاء PG* غير السرية', () => {
+    const c = parseDatabaseUrl('s3cr#t@pw', {
+      PGHOST: 'db.example.com',
+      PGPORT: '6543',
+      PGUSER: 'u.ref',
+      PGDATABASE: 'postgres',
+    });
+    expect(c).toMatchObject({ user: 'u.ref', password: 's3cr#t@pw', host: 'db.example.com', port: 6543, database: 'postgres' });
+  });
+
   it('يرفض القيمة غير الصالحة دون كشفها', () => {
     const secret = 'onlyAPasswordValue';
-    expect(() => parseDatabaseUrl(secret)).toThrow(/الشكل/);
+    expect(() => parseDatabaseUrl(secret, {})).toThrow(/الشكل/);
     try {
-      parseDatabaseUrl(secret);
+      parseDatabaseUrl(secret, {});
     } catch (e) {
       expect(String(e)).not.toContain(secret);
     }
