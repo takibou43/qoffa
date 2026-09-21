@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "prisma generate && mkdir -p public",
+  "buildCommand": "prisma generate && mkdir -p public && echo ok > public/robots.txt",
   "outputDirectory": "public",
   "functions": {
     "api/index.ts": {
