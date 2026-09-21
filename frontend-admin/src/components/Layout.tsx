@@ -9,6 +9,7 @@ const NAV = [
   { to: '/shops', label: 'المحلات', icon: '🏪', end: false },
   { to: '/drivers', label: 'الموصّلون', icon: '🛵', end: false },
   { to: '/users', label: 'المستخدمون', icon: '👥', end: false },
+  { to: '/delivery-pricing', label: 'أسعار التوصيل', icon: '💰', end: false },
   { to: '/audit-log', label: 'سجل العمليات', icon: '📜', end: false },
 ];
 

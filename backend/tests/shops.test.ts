@@ -146,10 +146,9 @@ describe('صلاحيات لوحة المحل', () => {
     const update = await request(app)
       .patch('/api/shops/me')
       .set(bearer(nearShop.token))
-      .send({ name: 'محل محدَّث', deliveryFee: 180, openingTime: '09:00' });
+      .send({ name: 'محل محدَّث', openingTime: '09:00' });
     expect(update.status).toBe(200);
     expect(update.body.shop.name).toBe('محل محدَّث');
-    expect(update.body.shop.deliveryFee).toBe(180);
 
     const toggle = await request(app)
       .patch('/api/shops/me/open')

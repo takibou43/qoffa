@@ -11,8 +11,10 @@ import {
   createOrderSchema,
   failDeliverySchema,
   listOrdersQuery,
+  quoteQuery,
   rejectOrderSchema,
   type ListOrdersQuery,
+  type QuoteQuery,
 } from './orders.schema.js';
 import * as service from './orders.service.js';
 
@@ -30,6 +32,17 @@ ordersRouter.post(
   async (req, res) => {
     const order = await service.createOrder(req.auth!.userId, req.body);
     res.status(201).json({ order });
+  },
+);
+
+/** سعر التوصيل التقديري لعنوان معيّن (يحسبه الخادم بمعاملات الإدارة) */
+ordersRouter.get(
+  '/quote',
+  requireRole('CUSTOMER'),
+  validate(quoteQuery, 'query'),
+  async (req, res) => {
+    const { shopId, lat, lon } = validated<QuoteQuery>(res, 'query');
+    res.json({ quote: await service.quoteDelivery(shopId, lat, lon) });
   },
 );
 

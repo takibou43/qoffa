@@ -23,6 +23,13 @@ export default function Checkout() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [quote, setQuote] = useState<{
+    distanceKm: number;
+    fee: number;
+    withinRange: boolean;
+    maxKm: number;
+  } | null>(null);
+  const [quoteError, setQuoteError] = useState<string | null>(null);
 
   useEffect(() => {
     api
@@ -40,12 +47,54 @@ export default function Checkout() {
     if (cart.lines.length === 0) navigate('/cart', { replace: true });
   }, [cart.lines.length, navigate]);
 
+  // إحداثيات العنوان المختار (محفوظ أو موقع الجهاز عند الإدخال اليدوي)
+  const target = manual
+    ? coords
+      ? { lat: coords.lat, lon: coords.lon }
+      : null
+    : (() => {
+        const a = addresses.find((x) => x.id === selectedId);
+        return a ? { lat: a.latitude, lon: a.longitude } : null;
+      })();
+  const targetLat = target?.lat;
+  const targetLon = target?.lon;
+  const shopId = cart.shopId;
+
+  // سعر التوصيل يحسبه الخادم حسب المسافة — نعرضه كما يعود منه
+  useEffect(() => {
+    if (!shopId || targetLat === undefined || targetLon === undefined) {
+      setQuote(null);
+      return;
+    }
+    let cancelled = false;
+    setQuoteError(null);
+    api
+      .quoteDelivery(shopId, targetLat, targetLon)
+      .then((r) => {
+        if (!cancelled) setQuote(r.quote);
+      })
+      .catch((e) => {
+        if (cancelled) return;
+        setQuote(null);
+        setQuoteError(e instanceof ApiError ? e.message : 'تعذّر حساب سعر التوصيل.');
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [shopId, targetLat, targetLon]);
+
   if (loading) return <LoadingBlock />;
 
-  const total = cart.subtotal + cart.deliveryFee;
+  const outOfRange = quote !== null && !quote.withinRange;
+  const total = cart.subtotal + (quote?.fee ?? 0);
 
   async function submit() {
     setError(null);
+
+    if (outOfRange) {
+      setError(`عنوانك خارج نطاق التوصيل (الحد الأقصى ${quote!.maxKm} كم).`);
+      return;
+    }
 
     if (manual) {
       if (form.addressLine.trim().length < 5) {
@@ -206,8 +255,23 @@ export default function Checkout() {
               <dd>{formatDzd(cart.subtotal)}</dd>
             </div>
             <div className="flex justify-between text-slate-600">
-              <dt>التوصيل</dt>
-              <dd>{formatDzd(cart.deliveryFee)}</dd>
+              <dt>
+                التوصيل
+                {quote && quote.withinRange && (
+                  <span className="text-xs text-slate-400"> · {quote.distanceKm} كم</span>
+                )}
+              </dt>
+              <dd>
+                {quote ? (
+                  quote.withinRange ? (
+                    formatDzd(quote.fee)
+                  ) : (
+                    <span className="text-red-600">خارج النطاق</span>
+                  )
+                ) : (
+                  <span className="text-xs">يظهر بعد اختيار العنوان</span>
+                )}
+              </dd>
             </div>
             <div className="flex justify-between text-base font-bold text-slate-900">
               <dt>الإجمالي</dt>
@@ -234,11 +298,15 @@ export default function Checkout() {
           </div>
         </section>
 
+        {outOfRange && (
+          <Alert>عنوانك خارج نطاق التوصيل لهذا المحل (الحد الأقصى {quote!.maxKm} كم).</Alert>
+        )}
+        {quoteError && <Alert>{quoteError}</Alert>}
         {error && <Alert>{error}</Alert>}
       </div>
 
       <div className="pb-safe fixed inset-x-0 bottom-16 z-20 mx-auto w-full max-w-2xl border-t border-slate-200 bg-white px-4 pt-3">
-        <Button className="w-full" onClick={submit} loading={submitting}>
+        <Button className="w-full" onClick={submit} loading={submitting} disabled={outOfRange}>
           تأكيد الطلب · {formatDzd(total)}
         </Button>
       </div>

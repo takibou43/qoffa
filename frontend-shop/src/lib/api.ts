@@ -1,5 +1,6 @@
 import { request } from './apiCore';
 import type {
+  BarcodeLookup,
   Category,
   Notification,
   Order,
@@ -74,8 +75,15 @@ export const api = {
     limit?: number;
   }) => request<Paginated<Product>>('/products', { query: params }),
 
+  /** مسح باركود: NEW / AVAILABLE_TO_ADD / ALREADY_LISTED */
+  lookupBarcode: (code: string) =>
+    request<BarcodeLookup>(`/products/barcode/${encodeURIComponent(code)}`),
+
   createProduct: (data: Record<string, unknown>) =>
-    request<{ product: Product }>('/products', { method: 'POST', body: data }),
+    request<{ product: Product; createdGlobalProduct: boolean }>('/products', {
+      method: 'POST',
+      body: data,
+    }),
 
   updateProduct: (id: string, data: Record<string, unknown>) =>
     request<{ product: Product }>(`/products/${id}`, { method: 'PATCH', body: data }),

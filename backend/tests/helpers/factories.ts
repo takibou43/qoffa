@@ -20,7 +20,7 @@ export async function resetDb() {
     TRUNCATE TABLE
       "WalletTransaction", "Wallet", "Notification", "Review",
       "DeliveryOffer", "Delivery", "OrderStatusEvent", "OrderItem", "Order",
-      "ShopProduct", "Shop", "DriverProfile", "Address", "CustomerProfile",
+      "ShopProduct", "Product", "Shop", "DriverProfile", "Address", "CustomerProfile",
       "AdminAuditLog", "PlatformSetting", "Category", "User"
     RESTART IDENTITY CASCADE;
   `);
@@ -73,6 +73,9 @@ export async function createShop(
           longitude: ALGIERS.lon,
           status: options.status ?? 'APPROVED',
           isOpen: options.isOpen ?? true,
+          // مفتوح 24 ساعة: الاختبارات لا يجب أن تتعلق بساعة تشغيلها (مساوٍ لـ open===close)
+          openingTime: '00:00',
+          closingTime: '00:00',
           deliveryFee: options.deliveryFee ?? 150,
           wallet: { create: { ownerType: 'SHOP' } },
         },
@@ -88,22 +91,54 @@ export async function createShop(
   };
 }
 
+/**
+ * ينشئ عرض منتج داخل محل (ShopProduct) مرتبطًا بمنتج عالمي (Product).
+ * - بدون productId/barcode: منتج عالمي جديد خاص بهذا المحل (بلا باركود).
+ * - مع barcode: يعيد استعمال المنتج العالمي إن وُجد (كما يفعل النظام)، وإلا ينشئه.
+ * - مع productId: يربط المحل بمنتج عالمي موجود.
+ */
 export async function createProduct(
   shopId: string,
-  overrides: { name?: string; price?: number; isAvailable?: boolean; isHidden?: boolean } = {},
+  overrides: {
+    name?: string;
+    price?: number;
+    stock?: number | null;
+    isAvailable?: boolean;
+    isHidden?: boolean;
+    barcode?: string;
+    productId?: string;
+  } = {},
 ) {
-  return prisma.shopProduct.create({
+  let productId = overrides.productId;
+  if (!productId) {
+    if (overrides.barcode) {
+      const existing = await prisma.product.findUnique({ where: { barcode: overrides.barcode } });
+      productId = existing?.id;
+    }
+    if (!productId) {
+      const created = await prisma.product.create({
+        data: {
+          barcode: overrides.barcode ?? null,
+          name: overrides.name ?? 'منتج اختبار',
+          unit: 'قطعة',
+        },
+      });
+      productId = created.id;
+    }
+  }
+  const listing = await prisma.shopProduct.create({
     data: {
       shopId,
-      name: overrides.name ?? 'منتج اختبار',
+      productId,
       price: overrides.price ?? 100,
-      unit: 'قطعة',
+      stock: overrides.stock ?? null,
       isAvailable: overrides.isAvailable ?? true,
       isHidden: overrides.isHidden ?? false,
     },
+    include: { product: true },
   });
+  return { ...listing, name: listing.product.name, unit: listing.product.unit };
 }
-
 export async function createDriver(
   options: { status?: ApprovalStatus; isAvailable?: boolean; lat?: number; lon?: number } = {},
 ) {

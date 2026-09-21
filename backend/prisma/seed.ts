@@ -130,6 +130,7 @@ async function main() {
   await prisma.orderItem.deleteMany();
   await prisma.order.deleteMany();
   await prisma.shopProduct.deleteMany();
+  await prisma.product.deleteMany();
   await prisma.wallet.deleteMany();
   await prisma.shop.deleteMany();
   await prisma.driverProfile.deleteMany();
@@ -162,7 +163,22 @@ async function main() {
     },
   });
 
-  // 5) المحلات + المنتجات
+  // 5) المنتجات العالمية (مرة واحدة، بباركود فريد) ثم المحلات وعروضها
+  const globalProducts = new Map<string, string>();
+  for (const [idx, p] of PRODUCTS.entries()) {
+    const created = await prisma.product.create({
+      data: {
+        barcode: `613000000${String(idx + 1).padStart(4, '0')}`,
+        name: p.name,
+        unit: p.unit,
+        categoryId: catBySlug.get(p.cat),
+      },
+      select: { id: true },
+    });
+    globalProducts.set(p.name, created.id);
+  }
+  console.log(`✔ ${globalProducts.size} منتج عالمي`);
+
   const shopIds: string[] = [];
   for (const [i, s] of SHOPS.entries()) {
     const lat = jitter(CENTER.lat, 6);
@@ -209,10 +225,8 @@ async function main() {
     await prisma.shopProduct.createMany({
       data: list.map((p, idx) => ({
         shopId,
-        categoryId: catBySlug.get(p.cat),
-        name: p.name,
+        productId: globalProducts.get(p.name)!,
         price: p.price + i * 5,
-        unit: p.unit,
         isAvailable: idx % 11 !== 0, // بعض المنتجات غير متوفرة لاختبار الحالة
         isHidden: false,
       })),
@@ -299,12 +313,16 @@ async function main() {
     const shop = await prisma.shop.findUniqueOrThrow({ where: { id: shopId } });
     const address = await prisma.address.findFirstOrThrow({ where: { userId: customerId } });
     const customer = await prisma.user.findUniqueOrThrow({ where: { id: customerId } });
-    const products = await prisma.shopProduct.findMany({ where: { shopId }, take: 3 });
+    const products = await prisma.shopProduct.findMany({
+      where: { shopId },
+      take: 3,
+      include: { product: { select: { name: true, unit: true } } },
+    });
 
     const items = products.map((p, idx) => ({
       productId: p.id,
-      nameSnapshot: p.name,
-      unitSnapshot: p.unit,
+      nameSnapshot: p.product.name,
+      unitSnapshot: p.product.unit,
       unitPrice: p.price,
       quantity: idx + 1,
       lineTotal: p.price * (idx + 1),

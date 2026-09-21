@@ -30,7 +30,6 @@ export interface Shop {
   isOpen: boolean;
   openingTime: string;
   closingTime: string;
-  deliveryFee: number;
   commissionBps: number;
   ratingAvg: number;
   ratingCount: number;
@@ -45,7 +44,14 @@ export interface Category {
 }
 
 export interface Product {
+  /** معرّف عرض المنتج في هذا المحل (ShopProduct) */
   id: string;
+  /** معرّف المنتج العالمي (Product) */
+  productId: string;
+  barcode: string | null;
+  brand: string | null;
+  /** الكمية الخاصة بهذا المحل؛ null = غير متتبَّعة */
+  stock: number | null;
   name: string;
   description: string | null;
   imageUrl: string | null;
@@ -57,6 +63,24 @@ export interface Product {
   category: { id: string; name: string; slug: string } | null;
   updatedAt: string;
 }
+
+/** بيانات المنتج العالمي (مشتركة بين كل المحلات، بلا سعر) */
+export interface GlobalProduct {
+  id: string;
+  barcode: string | null;
+  name: string;
+  brand: string | null;
+  description: string | null;
+  imageUrl: string | null;
+  unit: string;
+  categoryId: string | null;
+  category: { id: string; name: string; slug: string } | null;
+}
+
+export type BarcodeLookup =
+  | { status: 'NEW'; barcode: string }
+  | { status: 'AVAILABLE_TO_ADD'; product: GlobalProduct }
+  | { status: 'ALREADY_LISTED'; product: GlobalProduct; listing: Product };
 
 export interface OrderItem {
   id: string;

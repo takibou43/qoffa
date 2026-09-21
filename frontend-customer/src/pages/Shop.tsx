@@ -30,10 +30,7 @@ function ProductRow({
   const quantity = cart.shopId === shop.id ? (line?.quantity ?? 0) : 0;
 
   const add = () => {
-    const { replaced } = cart.add(
-      { id: shop.id, name: shop.name, deliveryFee: shop.deliveryFee },
-      product,
-    );
+    const { replaced } = cart.add({ id: shop.id, name: shop.name }, product);
     if (replaced) onReplaced();
   };
 
@@ -172,7 +169,7 @@ export default function ShopPage() {
         <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-600">
           <Rating value={shop.ratingAvg} count={shop.ratingCount} />
           {distance && <span>📍 {distance}</span>}
-          <span>🛵 التوصيل {formatDzd(shop.deliveryFee)}</span>
+          <span>🛵 التوصيل حسب المسافة (يظهر السعر عند إتمام الطلب)</span>
           <span>
             🕐 {shop.openingTime} — {shop.closingTime}
           </span>

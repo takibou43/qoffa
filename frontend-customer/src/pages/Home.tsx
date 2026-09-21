@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ApiError, api } from '../lib/api';
-import { formatDistance, formatDzd } from '../lib/format';
+import { formatDistance } from '../lib/format';
 import { useLocation as useGeo } from '../lib/location';
 import type { Category, Shop } from '../lib/types';
 import {
@@ -47,7 +47,7 @@ function ShopCard({ shop }: { shop: Shop }) {
         <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-600">
           <Rating value={shop.ratingAvg} count={shop.ratingCount} />
           {distance && <span>📍 {distance}</span>}
-          <span>🛵 {formatDzd(shop.deliveryFee)}</span>
+          <span>🛵 التوصيل حسب المسافة</span>
         </div>
       </div>
     </Link>

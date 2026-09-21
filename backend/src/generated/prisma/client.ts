@@ -67,8 +67,15 @@ export type Shop = Prisma.ShopModel
  */
 export type Category = Prisma.CategoryModel
 /**
+ * Model Product
+ * المنتج العالمي: يُعرَّف بالباركود ويُنشأ مرة واحدة فقط على مستوى المنصة.
+ * لا يحوي أي سعر أو كمية — هذه خاصة بكل محل في ShopProduct.
+ */
+export type Product = Prisma.ProductModel
+/**
  * Model ShopProduct
- * 
+ * عرض المنتج داخل محل معيّن: السعر والكمية والتوفر خاصة بالمحل وحده.
+ * معرّفه هو ما يُستعمل في السلة والطلبات (OrderItem.productId).
  */
 export type ShopProduct = Prisma.ShopProductModel
 /**

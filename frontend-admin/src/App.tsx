@@ -4,6 +4,7 @@ import RequireAuth from './components/RequireAuth';
 import { AuthProvider } from './lib/auth';
 import AuditLogPage from './pages/AuditLog';
 import Dashboard from './pages/Dashboard';
+import DeliveryPricingPage from './pages/DeliveryPricing';
 import Drivers from './pages/Drivers';
 import Login from './pages/Login';
 import Orders from './pages/Orders';
@@ -28,6 +29,7 @@ export default function App() {
             <Route path="shops" element={<Shops />} />
             <Route path="drivers" element={<Drivers />} />
             <Route path="orders" element={<Orders />} />
+            <Route path="delivery-pricing" element={<DeliveryPricingPage />} />
             <Route path="audit-log" element={<AuditLogPage />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />

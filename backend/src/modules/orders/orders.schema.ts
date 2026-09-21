@@ -48,6 +48,13 @@ export const createOrderSchema = z
 
 export type CreateOrderInput = z.infer<typeof createOrderSchema>;
 
+export const quoteQuery = z.object({
+  shopId: z.string().min(1),
+  lat: z.coerce.number().min(-90).max(90),
+  lon: z.coerce.number().min(-180).max(180),
+});
+export type QuoteQuery = z.infer<typeof quoteQuery>;
+
 export const listOrdersQuery = paginationSchema.extend({
   status: z.enum(ORDER_STATUSES).optional(),
   /** مجموعات جاهزة للوحة المحل */

@@ -32,7 +32,6 @@ export const updateMyShopSchema = z.object({
   longitude: z.number().min(-180).max(180).optional(),
   openingTime: z.string().regex(/^\d{2}:\d{2}$/, 'الوقت بصيغة HH:MM').optional(),
   closingTime: z.string().regex(/^\d{2}:\d{2}$/, 'الوقت بصيغة HH:MM').optional(),
-  deliveryFee: z.number().int().min(0).max(5000).optional(),
   categoryId: z.string().nullable().optional(),
 });
 

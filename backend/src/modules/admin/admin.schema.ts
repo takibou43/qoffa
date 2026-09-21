@@ -61,6 +61,15 @@ export const walletAdjustSchema = z.object({
   description: z.string().trim().min(3, 'يجب توضيح سبب التعديل').max(200),
 });
 
+/** معاملات تسعير التوصيل بالمسافة — تضبطها الإدارة فقط */
+export const deliveryPricingSchema = z.object({
+  baseFee: z.number().int().min(0).max(20_000),
+  baseKm: z.number().min(0).max(50),
+  perKmFee: z.number().int().min(0).max(5_000),
+  maxKm: z.number().min(1).max(100),
+  roadFactor: z.number().min(1).max(2),
+});
+
 export const settingSchema = z.object({
   value: z.union([z.number(), z.string(), z.boolean()]),
   label: z.string().trim().max(120).optional(),

@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { NavLink, Outlet, useLocation } from 'react-router-dom';
+import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { api } from '../lib/api';
 import { useAuth } from '../lib/auth';
+import { OrderAlertProvider, useOrderAlerts } from '../lib/orderAlertContext';
 
 const NAV = [
   { to: '/', label: 'اللوحة', icon: '📊', end: true },
@@ -10,8 +11,52 @@ const NAV = [
   { to: '/settings', label: 'المحل', icon: '🏪', end: false },
 ];
 
+/** تنبيه الطلبات على مستوى الـLayout: يعمل في كل الصفحات لا في صفحة الطلبات وحدها */
+function OrderAlertBanner() {
+  const { state, enableSound } = useOrderAlerts();
+  if (state.count === 0 && state.audioReady) return null;
+  return (
+    <div
+      role="alert"
+      aria-live="assertive"
+      className={`sticky top-0 z-40 flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 text-sm font-bold text-white ${
+        state.count > 0 ? 'bg-red-600' : 'bg-slate-600'
+      }`}
+    >
+      <div className="min-w-0">
+        {state.count > 0 ? (
+          <Link to="/orders" className="block truncate underline-offset-2 hover:underline">
+            🔔 {state.count === 1 ? 'لديك طلب ينتظر القبول أو الرفض' : `لديك ${state.count} طلبات تنتظر القبول أو الرفض`}
+          </Link>
+        ) : (
+          <span>الصوت غير مفعّل</span>
+        )}
+        {!state.online && <div className="text-xs font-normal">لا اتصال بالخادم — نعيد المحاولة تلقائيًا…</div>}
+      </div>
+      {!state.audioReady && (
+        <button
+          type="button"
+          onClick={() => void enableSound()}
+          className="shrink-0 rounded-lg bg-white px-3 py-1.5 text-xs font-bold text-red-700"
+        >
+          تفعيل تنبيهات الطلبات 🔔
+        </button>
+      )}
+    </div>
+  );
+}
+
 export default function Layout() {
+  return (
+    <OrderAlertProvider>
+      <LayoutInner />
+    </OrderAlertProvider>
+  );
+}
+
+function LayoutInner() {
   const { user } = useAuth();
+  const { state: alerts } = useOrderAlerts();
   const [unread, setUnread] = useState(0);
   const location = useLocation();
 
@@ -25,6 +70,7 @@ export default function Layout() {
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-3xl flex-col bg-slate-50">
+      <OrderAlertBanner />
       <main className="flex-1 pb-20">
         <Outlet />
       </main>
@@ -42,8 +88,13 @@ export default function Layout() {
                   }`
                 }
               >
-                <span className="text-xl leading-none" aria-hidden>
+                <span className="relative text-xl leading-none" aria-hidden>
                   {item.icon}
+                  {item.to === '/orders' && alerts.count > 0 && (
+                    <span className="absolute -top-1 -left-2 min-w-4 animate-pulse rounded-full bg-red-600 px-1 text-[10px] font-bold leading-4 text-white">
+                      {alerts.count}
+                    </span>
+                  )}
                 </span>
                 {item.label}
               </NavLink>

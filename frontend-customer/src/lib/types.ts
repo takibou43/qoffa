@@ -37,7 +37,6 @@ export interface Shop {
   isOpenNow: boolean;
   openingTime: string;
   closingTime: string;
-  deliveryFee: number;
   ratingAvg: number;
   ratingCount: number;
   distanceMeters: number | null;

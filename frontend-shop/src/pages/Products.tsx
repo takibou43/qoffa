@@ -31,9 +31,23 @@ interface FormState {
   description: string;
   isAvailable: boolean;
   isHidden: boolean;
+  barcode: string;
+  brand: string;
+  stock: string;
+  /** scan = إدخال الباركود أولًا، form = بيانات المنتج */
+  step: 'scan' | 'form';
+  /** بيانات المنتج العالمي للقراءة فقط (منتج موجود في المنصة) */
+  locked: boolean;
+  notice: string | null;
 }
 
 const EMPTY_FORM: FormState = {
+  barcode: '',
+  brand: '',
+  stock: '',
+  step: 'scan',
+  locked: false,
+  notice: null,
   name: '',
   price: '',
   unit: 'قطعة',
@@ -92,16 +106,33 @@ export default function Products() {
       return;
     }
 
-    const payload: Record<string, unknown> = {
-      name: form.name.trim(),
+    const stockText = form.stock.trim();
+    const stock = stockText === '' ? null : Number(stockText);
+    if (stock !== null && (!Number.isInteger(stock) || stock < 0)) {
+      setFormError('الكمية يجب أن تكون عددًا صحيحًا (أو اتركها فارغة إن لم تتتبّع الكمية).');
+      return;
+    }
+
+    // بيانات المحل فقط: السعر والكمية والتوفر — خاصة بمحلك ولا تمس المحلات الأخرى
+    const shopFields: Record<string, unknown> = {
       price,
-      unit: form.unit.trim() || 'قطعة',
+      stock,
       isAvailable: form.isAvailable,
       isHidden: form.isHidden,
-      categoryId: form.categoryId || null,
-      imageUrl: form.imageUrl.trim() || null,
-      description: form.description.trim() || null,
     };
+    // بيانات المنتج العالمي تُرسل فقط لمنتج جديد؛ المنتج الموجود في المنصة لا يغيّره المحل
+    const payload: Record<string, unknown> = form.locked
+      ? { ...shopFields, ...(form.barcode && !form.id ? { barcode: form.barcode } : {}) }
+      : {
+          ...shopFields,
+          ...(form.barcode ? { barcode: form.barcode } : {}),
+          name: form.name.trim(),
+          brand: form.brand.trim() || null,
+          unit: form.unit.trim() || 'قطعة',
+          categoryId: form.categoryId || null,
+          imageUrl: form.imageUrl.trim() || null,
+          description: form.description.trim() || null,
+        };
 
     setSaving(true);
     try {
@@ -115,6 +146,75 @@ export default function Products() {
       } else {
         setFormError(e instanceof ApiError ? e.message : 'تعذّر الحفظ.');
       }
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function editForm(product: Product): FormState {
+    return {
+      id: product.id,
+      barcode: product.barcode ?? '',
+      brand: product.brand ?? '',
+      stock: product.stock === null ? '' : String(product.stock),
+      step: 'form',
+      // منتج له باركود = منتج عالمي مشترك: بياناته العالمية للقراءة فقط
+      locked: product.barcode !== null,
+      notice:
+        product.barcode !== null
+          ? 'بيانات المنتج (الاسم، الصورة…) مشتركة بين المحلات وتعدّلها الإدارة. يمكنك تعديل سعرك وكميتك وتوفرك.'
+          : null,
+      name: product.name,
+      price: String(product.price),
+      unit: product.unit,
+      categoryId: product.categoryId ?? '',
+      imageUrl: product.imageUrl ?? '',
+      description: product.description ?? '',
+      isAvailable: product.isAvailable,
+      isHidden: product.isHidden,
+    };
+  }
+
+  /** الخطوة الأولى: البحث بالباركود ثم تحديد ما يلزم إدخاله */
+  async function lookup() {
+    if (!form) return;
+    const code = form.barcode.trim();
+    setFormError(null);
+    if (code === '') {
+      setFormError('أدخل الباركود، أو اختر «بدون باركود».');
+      return;
+    }
+    setSaving(true);
+    try {
+      const r = await api.lookupBarcode(code);
+      if (r.status === 'NEW') {
+        setForm({ ...form, barcode: r.barcode, step: 'form', locked: false, notice: 'منتج جديد في المنصة: أدخل بياناته وسعرك.' });
+      } else if (r.status === 'AVAILABLE_TO_ADD') {
+        const p = r.product;
+        setForm({
+          ...form,
+          barcode: p.barcode ?? code,
+          step: 'form',
+          locked: true,
+          notice: 'هذا المنتج موجود في المنصة — أدخل سعرك وكميتك فقط.',
+          name: p.name,
+          brand: p.brand ?? '',
+          unit: p.unit,
+          categoryId: p.categoryId ?? '',
+          imageUrl: p.imageUrl ?? '',
+          description: p.description ?? '',
+        });
+      } else {
+        setForm({ ...editForm(r.listing), notice: 'هذا المنتج موجود في محلك بالفعل — يمكنك تعديل سعره وكميته.' });
+      }
+    } catch (e) {
+      setFormError(
+        e instanceof ApiError && e.details?.length
+          ? e.details.map((d) => d.message).join(' · ')
+          : e instanceof ApiError
+            ? e.message
+            : 'تعذّر البحث بالباركود.',
+      );
     } finally {
       setSaving(false);
     }
@@ -242,19 +342,10 @@ export default function Products() {
                   </button>
                   <button
                     type="button"
-                    onClick={() =>
-                      setForm({
-                        id: product.id,
-                        name: product.name,
-                        price: String(product.price),
-                        unit: product.unit,
-                        categoryId: product.categoryId ?? '',
-                        imageUrl: product.imageUrl ?? '',
-                        description: product.description ?? '',
-                        isAvailable: product.isAvailable,
-                        isHidden: product.isHidden,
-                      })
-                    }
+                    onClick={() => {
+                      setFormError(null);
+                      setForm(editForm(product));
+                    }}
                     className="rounded-lg bg-brand-50 px-3 py-1.5 text-xs font-medium text-brand-700"
                   >
                     تعديل
@@ -281,12 +372,67 @@ export default function Products() {
               {form.id ? 'تعديل منتج' : 'منتج جديد'}
             </h2>
 
+            {form.step === 'scan' ? (
+              <div className="space-y-3">
+                <Field label="باركود المنتج" hint="امسحه بقارئ الباركود أو اكتبه — نتعرّف تلقائيًا إن كان المنتج موجودًا في المنصة">
+                  <input
+                    className={inputClass}
+                    dir="ltr"
+                    inputMode="numeric"
+                    autoFocus
+                    value={form.barcode}
+                    onChange={(e) => setForm({ ...form, barcode: e.target.value })}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        void lookup();
+                      }
+                    }}
+                    placeholder="6131234567890"
+                  />
+                </Field>
+                {formError && <Alert>{formError}</Alert>}
+                <div className="flex gap-2 pt-1">
+                  <Button className="flex-1" onClick={lookup} loading={saving}>
+                    بحث
+                  </Button>
+                  <Button variant="secondary" className="flex-1" onClick={() => setForm(null)}>
+                    إلغاء
+                  </Button>
+                </div>
+                <button
+                  type="button"
+                  className="w-full text-center text-xs text-slate-500 underline"
+                  onClick={() => setForm({ ...form, barcode: '', step: 'form', locked: false, notice: null })}
+                >
+                  منتج بدون باركود
+                </button>
+              </div>
+            ) : (
             <div className="space-y-3">
+              {form.notice && <Alert kind="info">{form.notice}</Alert>}
+
+              {form.barcode && (
+                <p className="text-xs text-slate-500" dir="ltr">
+                  Barcode: {form.barcode}
+                </p>
+              )}
+
               <Field label="اسم المنتج">
                 <input
                   className={inputClass}
                   value={form.name}
+                  disabled={form.locked}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
+                />
+              </Field>
+
+              <Field label="العلامة التجارية (اختياري)">
+                <input
+                  className={inputClass}
+                  value={form.brand}
+                  disabled={form.locked}
+                  onChange={(e) => setForm({ ...form, brand: e.target.value })}
                 />
               </Field>
 
@@ -306,16 +452,30 @@ export default function Products() {
                   <input
                     className={inputClass}
                     value={form.unit}
+                    disabled={form.locked}
                     onChange={(e) => setForm({ ...form, unit: e.target.value })}
                     placeholder="قطعة / كغ / لتر"
                   />
                 </Field>
               </div>
 
+              <Field label="الكمية المتوفرة عندك (اختياري)" hint="اتركها فارغة إن لم تتتبّع الكمية">
+                <input
+                  className={inputClass}
+                  type="number"
+                  inputMode="numeric"
+                  min={0}
+                  step={1}
+                  value={form.stock}
+                  onChange={(e) => setForm({ ...form, stock: e.target.value })}
+                />
+              </Field>
+
               <Field label="التصنيف">
                 <select
                   className={inputClass}
                   value={form.categoryId}
+                  disabled={form.locked}
                   onChange={(e) => setForm({ ...form, categoryId: e.target.value })}
                 >
                   <option value="">بدون تصنيف</option>
@@ -333,6 +493,7 @@ export default function Products() {
                   type="url"
                   dir="ltr"
                   value={form.imageUrl}
+                  disabled={form.locked}
                   onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
                   placeholder="https://…"
                 />
@@ -342,6 +503,7 @@ export default function Products() {
                 <input
                   className={inputClass}
                   value={form.description}
+                  disabled={form.locked}
                   onChange={(e) => setForm({ ...form, description: e.target.value })}
                 />
               </Field>
@@ -378,6 +540,7 @@ export default function Products() {
                 </Button>
               </div>
             </div>
+            )}
           </div>
         </div>
       )}

@@ -3,11 +3,13 @@ import { requireAuth, requireRole } from '../../middleware/auth.js';
 import { param } from '../../lib/http.js';
 import { writeLimiter } from '../../middleware/rateLimit.js';
 import { validate, validated } from '../../middleware/validate.js';
+import { badRequest } from '../../lib/errors.js';
 import { assertShopApproved, getOwnedShopOrThrow } from '../shops/shops.service.js';
 import {
-  createProductSchema,
+  addProductSchema,
+  barcodeParam,
   myProductsQuery,
-  updateProductSchema,
+  updateListingSchema,
   type MyProductsQuery,
 } from './products.schema.js';
 import * as service from './products.service.js';
@@ -23,26 +25,39 @@ productsRouter.get('/', validate(myProductsQuery, 'query'), async (req, res) => 
   res.json(await service.listMyProducts(shop.id, query));
 });
 
-productsRouter.post('/', writeLimiter, validate(createProductSchema), async (req, res) => {
+/** مسح/إدخال باركود: NEW | AVAILABLE_TO_ADD | ALREADY_LISTED */
+productsRouter.get('/barcode/:code', async (req, res) => {
+  const shop = await getOwnedShopOrThrow(req.auth!.userId);
+  const parsed = barcodeParam.safeParse({ code: param(req, 'code') });
+  if (!parsed.success) {
+    throw badRequest('كود بار غير صالح', {
+      fields: [{ field: 'barcode', message: parsed.error.issues[0]?.message ?? 'كود بار غير صالح' }],
+    });
+  }
+  res.json(await service.lookupBarcode(shop.id, parsed.data.code));
+});
+
+productsRouter.post('/', writeLimiter, validate(addProductSchema), async (req, res) => {
   const shop = await getOwnedShopOrThrow(req.auth!.userId);
   assertShopApproved(shop.status);
-  res.status(201).json({ product: await service.createProduct(shop.id, req.body) });
+  const result = await service.addProductToShop(shop.id, req.body);
+  res.status(201).json(result);
 });
 
 productsRouter.patch(
   '/:productId',
   writeLimiter,
-  validate(updateProductSchema),
+  validate(updateListingSchema),
   async (req, res) => {
     const shop = await getOwnedShopOrThrow(req.auth!.userId);
     res.json({
-      product: await service.updateProduct(shop.id, param(req, 'productId'), req.body),
+      product: await service.updateListing(shop.id, param(req, 'productId'), req.body),
     });
   },
 );
 
 productsRouter.delete('/:productId', writeLimiter, async (req, res) => {
   const shop = await getOwnedShopOrThrow(req.auth!.userId);
-  await service.deleteProduct(shop.id, param(req, 'productId'));
+  await service.deleteListing(shop.id, param(req, 'productId'));
   res.json({ ok: true });
 });

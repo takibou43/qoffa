@@ -3,11 +3,13 @@ import { Link, useParams } from 'react-router-dom';
 import { PageHeader } from '../components/Layout';
 import { Alert, Button, ErrorState, LoadingBlock, StatusBadge, inputClass } from '../components/ui';
 import { ApiError, api } from '../lib/api';
+import { useOrderAlerts } from '../lib/orderAlertContext';
 import { formatDateTime, formatDistance, formatDzd, mapsUrl, telUrl } from '../lib/format';
 import type { Order } from '../lib/types';
 
 export default function OrderDetail() {
   const { orderId = '' } = useParams();
+  const alerts = useOrderAlerts();
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -37,11 +39,21 @@ export default function OrderDetail() {
     setBusy(name);
     try {
       await fn();
+      // نجح الخادم فعلًا (لم يرمِ) → فقط الآن يُزال الطلب من قائمة الانتظار ويتوقف رنينه
+      if (name === 'accept' || name === 'reject') alerts.handled(orderId);
       await load(true);
       setRejecting(false);
     } catch (e) {
-      // 409 = انتقال غير مسموح، 403 = صلاحية — الرسالة تأتي من الخادم بالعربية
-      setActionError(e instanceof ApiError ? e.message : 'تعذّر تنفيذ العملية.');
+      // فشل القبول/الرفض: الطلب ما زال PENDING في الخادم فيستمر الرنين. نعيد المزامنة للتأكد فقط.
+      alerts.refresh();
+      const failMsg =
+        name === 'accept'
+          ? 'تعذر قبول الطلب، حاول مرة أخرى.'
+          : name === 'reject'
+            ? 'تعذر رفض الطلب، حاول مرة أخرى.'
+            : 'تعذّر تنفيذ العملية.';
+      // 4xx (انتقال غير مسموح/صلاحية) رسالته من الخادم بالعربية؛ غير ذلك (شبكة/خادم/مهلة) رسالة ثابتة
+      setActionError(e instanceof ApiError && e.status >= 400 && e.status < 500 ? e.message : failMsg);
     } finally {
       setBusy(null);
     }

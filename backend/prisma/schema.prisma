@@ -261,7 +261,7 @@ model Category {
   iconKey   String?
   sortOrder Int          @default(0)
 
-  products ShopProduct[]
+  products Product[]
   shops    Shop[]
 
   createdAt DateTime @default(now())
@@ -270,19 +270,44 @@ model Category {
   @@index([kind, sortOrder])
 }
 
-model ShopProduct {
-  id          String  @id @default(cuid())
-  shopId      String
-  shop        Shop    @relation(fields: [shopId], references: [id], onDelete: Cascade)
-  categoryId  String?
-  category    Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+/// المنتج العالمي: يُعرَّف بالباركود ويُنشأ مرة واحدة فقط على مستوى المنصة.
+/// لا يحوي أي سعر أو كمية — هذه خاصة بكل محل في ShopProduct.
+model Product {
+  id          String    @id @default(cuid())
+  /// كود البار الموحَّد (UNIQUE عالميًا). null فقط للمنتجات بلا باركود (مثل الخضر بالوزن).
+  barcode     String?   @unique
   name        String
+  brand       String?
   description String?
   imageUrl    String?
-  /// السعر بالدينار (عدد صحيح)
+  /// الوحدة/الحجم: قطعة، كغ، لتر، 1L...
+  unit        String    @default("قطعة")
+  categoryId  String?
+  category    Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  listings ShopProduct[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([name])
+  @@index([categoryId])
+}
+
+/// عرض المنتج داخل محل معيّن: السعر والكمية والتوفر خاصة بالمحل وحده.
+/// معرّفه هو ما يُستعمل في السلة والطلبات (OrderItem.productId).
+model ShopProduct {
+  id        String  @id @default(cuid())
+  shopId    String
+  shop      Shop    @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  productId String
+  /// Restrict: لا يُحذف المنتج العالمي ما دامت له عروض لدى محلات
+  product   Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  /// سعر هذا المحل بالدينار (عدد صحيح)
   price       Int
-  /// الوحدة: قطعة، كغ، لتر...
-  unit        String  @default("قطعة")
+  /// كمية هذا المحل. null = غير متتبَّعة
+  stock       Int?
   isAvailable Boolean @default(true)
   /// مخفي = لا يظهر للزبون إطلاقًا
   isHidden    Boolean @default(false)
@@ -292,9 +317,10 @@ model ShopProduct {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  /// المحل الواحد لا يملك عرضين لنفس المنتج العالمي
+  @@unique([shopId, productId])
   @@index([shopId, isHidden, isAvailable])
-  @@index([shopId, categoryId])
-  @@index([name])
+  @@index([productId])
 }
 
 // ─────────────────────────────  Drivers  ─────────────────────────────

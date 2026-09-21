@@ -8,12 +8,20 @@ import { requireAdmin, requireAuth, requireSuperAdmin } from '../../middleware/a
 import { writeLimiter } from '../../middleware/rateLimit.js';
 import { validate, validated } from '../../middleware/validate.js';
 import { audit } from '../../services/audit.js';
+import { loadPricingConfig, savePricingConfig } from '../../services/deliveryPricing.js';
 import { transitionOrder } from '../orders/orders.service.js';
+import {
+  adminUpdateGlobalProduct,
+  flattenListing,
+  listingSelect,
+} from '../products/products.service.js';
+import { adminUpdateProductSchema } from '../products/products.schema.js';
 import { adminForceStatusSchema } from '../orders/orders.schema.js';
 import {
   approvalSchema,
   commissionSchema,
   createAdminSchema,
+  deliveryPricingSchema,
   listAuditQuery,
   listDriversQuery,
   listOrdersAdminQuery,
@@ -149,13 +157,34 @@ adminRouter.get(
     const [items, total] = await Promise.all([
       prisma.shopProduct.findMany({
         where: { shopId },
+        select: listingSelect,
         orderBy: { updatedAt: 'desc' },
         skip: (pagination.page - 1) * pagination.limit,
         take: pagination.limit,
       }),
       prisma.shopProduct.count({ where: { shopId } }),
     ]);
-    res.json({ items, meta: { ...pagination, total } });
+    res.json({ items: items.map(flattenListing), meta: { ...pagination, total } });
+  },
+);
+
+/** تعديل بيانات المنتج العالمي — يؤثر على كل المحلات التي تعرضه، لذا للإدارة فقط */
+adminRouter.patch(
+  '/products/:productId',
+  writeLimiter,
+  validate(adminUpdateProductSchema),
+  async (req, res) => {
+    const productId = param(req, 'productId');
+    const { before, after } = await adminUpdateGlobalProduct(productId, req.body);
+    await audit({
+      actorId: req.auth!.userId,
+      action: 'PRODUCT_UPDATED',
+      targetType: 'product',
+      targetId: productId,
+      metadata: { barcode: before.barcode, changes: req.body },
+      ipAddress: clientIp(req),
+    });
+    res.json({ product: after });
   },
 );
 
@@ -286,6 +315,34 @@ adminRouter.post(
     });
 
     res.json({ wallet: updated });
+  },
+);
+
+/* ───────── تسعير التوصيل بالمسافة ───────── */
+
+adminRouter.get('/delivery-pricing', async (_req, res) => {
+  res.json({ pricing: await loadPricingConfig() });
+});
+
+adminRouter.put(
+  '/delivery-pricing',
+  requireSuperAdmin,
+  writeLimiter,
+  validate(deliveryPricingSchema),
+  async (req, res) => {
+    const before = await loadPricingConfig();
+    await savePricingConfig(req.body, req.auth!.userId);
+
+    await audit({
+      actorId: req.auth!.userId,
+      action: 'SETTING_CHANGED',
+      targetType: 'setting',
+      targetId: 'delivery.pricing',
+      metadata: { from: before, to: req.body },
+      ipAddress: clientIp(req),
+    });
+
+    res.json({ pricing: await loadPricingConfig() });
   },
 );
 

@@ -18,18 +18,17 @@ export interface CartLine {
 interface CartState {
   shopId: string | null;
   shopName: string | null;
-  deliveryFee: number;
   lines: CartLine[];
 }
 
-const EMPTY: CartState = { shopId: null, shopName: null, deliveryFee: 0, lines: [] };
+const EMPTY: CartState = { shopId: null, shopName: null, lines: [] };
 const STORAGE_KEY = 'qoffa.cart';
 
 interface CartValue extends CartState {
   itemCount: number;
   subtotal: number;
   add: (
-    shop: { id: string; name: string; deliveryFee: number },
+    shop: { id: string; name: string },
     product: Product,
     quantity?: number,
   ) => { replaced: boolean };
@@ -72,7 +71,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
         return {
           shopId: shop.id,
           shopName: shop.name,
-          deliveryFee: shop.deliveryFee,
           lines: [
             {
               productId: product.id,
@@ -103,7 +101,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
             },
           ];
 
-      return { shopId: shop.id, shopName: shop.name, deliveryFee: shop.deliveryFee, lines };
+      return { shopId: shop.id, shopName: shop.name, lines };
     });
     return { replaced };
   }, []);

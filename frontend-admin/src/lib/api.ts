@@ -5,6 +5,7 @@ import type {
   AdminShop,
   ApprovalStatus,
   AuditLog,
+  DeliveryPricing,
   OrderStatus,
   Paginated,
   Role,
@@ -91,6 +92,15 @@ export const api = {
 
   auditLog: (params: { targetType?: string; page?: number; limit?: number } = {}) =>
     request<Paginated<AuditLog>>('/admin/audit-log', { query: params }),
+
+  deliveryPricing: () => request<{ pricing: DeliveryPricing }>('/admin/delivery-pricing'),
+
+  /** لمالك المنصة فقط — الخادم يرفض غير ذلك */
+  setDeliveryPricing: (pricing: DeliveryPricing) =>
+    request<{ pricing: DeliveryPricing }>('/admin/delivery-pricing', {
+      method: 'PUT',
+      body: pricing,
+    }),
 
   settings: () =>
     request<{ items: { key: string; value: unknown; label: string; group: string }[] }>(

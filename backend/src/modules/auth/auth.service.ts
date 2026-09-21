@@ -210,7 +210,6 @@ export async function getMe(userId: string) {
           status: true,
           isOpen: true,
           imageUrl: true,
-          deliveryFee: true,
           ratingAvg: true,
           ratingCount: true,
         },

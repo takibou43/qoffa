@@ -102,3 +102,12 @@ export interface Paginated<T> {
   items: T[];
   meta: { page: number; limit: number; total: number; totalPages: number; hasNext: boolean };
 }
+
+/** معاملات تسعير التوصيل بالمسافة (تضبطها الإدارة، ويحسب الخادم السعر) */
+export interface DeliveryPricing {
+  baseFee: number;
+  baseKm: number;
+  perKmFee: number;
+  maxKm: number;
+  roadFactor: number;
+}

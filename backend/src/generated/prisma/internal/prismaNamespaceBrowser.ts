@@ -56,6 +56,7 @@ export const ModelName = {
   Address: 'Address',
   Shop: 'Shop',
   Category: 'Category',
+  Product: 'Product',
   ShopProduct: 'ShopProduct',
   DriverProfile: 'DriverProfile',
   Order: 'Order',
@@ -172,15 +173,28 @@ export const CategoryScalarFieldEnum = {
 export type CategoryScalarFieldEnum = (typeof CategoryScalarFieldEnum)[keyof typeof CategoryScalarFieldEnum]
 
 
+export const ProductScalarFieldEnum = {
+  id: 'id',
+  barcode: 'barcode',
+  name: 'name',
+  brand: 'brand',
+  description: 'description',
+  imageUrl: 'imageUrl',
+  unit: 'unit',
+  categoryId: 'categoryId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ProductScalarFieldEnum = (typeof ProductScalarFieldEnum)[keyof typeof ProductScalarFieldEnum]
+
+
 export const ShopProductScalarFieldEnum = {
   id: 'id',
   shopId: 'shopId',
-  categoryId: 'categoryId',
-  name: 'name',
-  description: 'description',
-  imageUrl: 'imageUrl',
+  productId: 'productId',
   price: 'price',
-  unit: 'unit',
+  stock: 'stock',
   isAvailable: 'isAvailable',
   isHidden: 'isHidden',
   createdAt: 'createdAt',

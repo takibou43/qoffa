@@ -151,6 +151,13 @@ export const api = {
     customerNote?: string | null;
   }) => request<{ order: Order }>('/orders', { method: 'POST', body: input, auth: true }),
 
+  /** سعر التوصيل التقديري — يحسبه الخادم بمعاملات الإدارة */
+  quoteDelivery: (shopId: string, lat: number, lon: number) =>
+    request<{ quote: { distanceKm: number; fee: number; withinRange: boolean; maxKm: number } }>(
+      '/orders/quote',
+      { auth: true, query: { shopId, lat, lon } },
+    ),
+
   myOrders: (params: { page?: number; limit?: number } = {}) =>
     request<Paginated<Order>>('/orders/me', { auth: true, query: params }),
 

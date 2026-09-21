@@ -28,8 +28,6 @@ export default function Cart() {
     );
   }
 
-  const total = cart.subtotal + cart.deliveryFee;
-
   return (
     <div className="pb-40">
       <PageHeader title="السلة" subtitle={cart.shopName ?? undefined} />
@@ -110,11 +108,11 @@ export default function Cart() {
           </div>
           <div className="flex justify-between text-slate-600">
             <dt>التوصيل</dt>
-            <dd>{formatDzd(cart.deliveryFee)}</dd>
+            <dd className="text-xs">يُحسب حسب المسافة عند التأكيد</dd>
           </div>
           <div className="flex justify-between border-t border-slate-200 pt-1 text-base font-bold text-slate-900">
-            <dt>الإجمالي التقريبي</dt>
-            <dd>{formatDzd(total)}</dd>
+            <dt>المجموع قبل التوصيل</dt>
+            <dd>{formatDzd(cart.subtotal)}</dd>
           </div>
         </dl>
 

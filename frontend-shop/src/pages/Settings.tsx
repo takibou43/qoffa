@@ -3,7 +3,6 @@ import { PageHeader } from '../components/Layout';
 import { Alert, Button, ErrorState, Field, LoadingBlock, inputClass } from '../components/ui';
 import { ApiError, api } from '../lib/api';
 import { useAuth } from '../lib/auth';
-import { formatDzd } from '../lib/format';
 import type { Category, Shop } from '../lib/types';
 
 const STATUS_LABEL: Record<string, string> = {
@@ -31,7 +30,6 @@ export default function Settings() {
     city: '',
     openingTime: '08:00',
     closingTime: '22:00',
-    deliveryFee: '150',
     imageUrl: '',
     categoryId: '',
     latitude: 0,
@@ -51,7 +49,6 @@ export default function Settings() {
           city: s.shop.city,
           openingTime: s.shop.openingTime,
           closingTime: s.shop.closingTime,
-          deliveryFee: String(s.shop.deliveryFee),
           imageUrl: s.shop.imageUrl ?? '',
           categoryId: s.shop.categoryId ?? '',
           latitude: s.shop.latitude,
@@ -81,12 +78,6 @@ export default function Settings() {
   async function save() {
     setError(null);
     setSaved(false);
-    const fee = Number(form.deliveryFee);
-    if (!Number.isInteger(fee) || fee < 0) {
-      setError('رسوم التوصيل يجب أن تكون عددًا صحيحًا بالدينار.');
-      return;
-    }
-
     setSaving(true);
     try {
       const r = await api.updateShop({
@@ -97,7 +88,6 @@ export default function Settings() {
         city: form.city.trim(),
         openingTime: form.openingTime,
         closingTime: form.closingTime,
-        deliveryFee: fee,
         imageUrl: form.imageUrl.trim() || null,
         categoryId: form.categoryId || null,
         latitude: form.latitude,
@@ -180,9 +170,9 @@ export default function Settings() {
           <p className="text-xs text-slate-500">
             إن تساوى الوقتان يُعتبر المحل مفتوحًا 24 ساعة (مع مفتاح الفتح).
           </p>
-          <Field label="رسوم التوصيل (دج)" hint="عدد صحيح">
-            <input className={inputClass} type="number" inputMode="numeric" min={0} step={1} value={form.deliveryFee} onChange={set('deliveryFee')} />
-          </Field>
+          <p className="text-xs text-slate-500">
+            رسوم التوصيل تحددها إدارة المنصة وتُحسب تلقائيًا حسب المسافة بين محلك والزبون.
+          </p>
           <p className="text-xs text-slate-500">
             عمولة المنصة الحالية: {(shop.commissionBps / 100).toFixed(1)}% — تُحدَّد من إدارة المنصة.
           </p>
@@ -208,8 +198,7 @@ export default function Settings() {
 
         <section className="rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-600">
           <h2 className="mb-2 text-sm font-bold text-slate-900">التقييم</h2>
-          ⭐ {shop.ratingAvg.toFixed(1)} من {shop.ratingCount} تقييم · رسوم التوصيل الحالية{' '}
-          {formatDzd(shop.deliveryFee)}
+          ⭐ {shop.ratingAvg.toFixed(1)} من {shop.ratingCount} تقييم
         </section>
 
         {error && <Alert>{error}</Alert>}

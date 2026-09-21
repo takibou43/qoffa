@@ -12,6 +12,11 @@ import {
   assertTransition,
   isTerminal,
 } from '../../services/orderStateMachine.js';
+import {
+  computeDeliveryFee,
+  loadPricingConfig,
+  type DeliveryQuote,
+} from '../../services/deliveryPricing.js';
 import { settleDeliveredOrder } from '../../services/wallet.js';
 import type { CreateOrderInput, ListOrdersQuery } from './orders.schema.js';
 
@@ -83,6 +88,25 @@ export const shopOrderSelect = {
   customer: { select: { id: true, fullName: true, phone: true } },
 } as const;
 
+/** سعر التوصيل التقديري قبل تأكيد الطلب — نفس الحساب المستعمل عند الإنشاء */
+export async function quoteDelivery(
+  shopId: string,
+  lat: number,
+  lon: number,
+): Promise<DeliveryQuote & { maxKm: number }> {
+  const shop = await prisma.shop.findFirst({
+    where: { id: shopId, status: 'APPROVED' },
+    select: { latitude: true, longitude: true },
+  });
+  if (!shop) throw notFound('المحل غير متاح');
+  const pricing = await loadPricingConfig();
+  const quote = computeDeliveryFee(
+    pricing,
+    haversineMeters(shop.latitude, shop.longitude, lat, lon),
+  );
+  return { ...quote, maxKm: pricing.maxKm };
+}
+
 export async function createOrder(customerId: string, input: CreateOrderInput) {
   const shop = await prisma.shop.findUnique({
     where: { id: input.shopId },
@@ -94,7 +118,6 @@ export async function createOrder(customerId: string, input: CreateOrderInput) {
       isOpen: true,
       openingTime: true,
       closingTime: true,
-      deliveryFee: true,
       latitude: true,
       longitude: true,
     },
@@ -122,7 +145,13 @@ export async function createOrder(customerId: string, input: CreateOrderInput) {
   const productIds = [...new Set(input.items.map((i) => i.productId))];
   const products = await prisma.shopProduct.findMany({
     where: { id: { in: productIds }, shopId: shop.id, isHidden: false },
-    select: { id: true, name: true, unit: true, price: true, isAvailable: true },
+    select: {
+      id: true,
+      price: true,
+      stock: true,
+      isAvailable: true,
+      product: { select: { name: true, unit: true } },
+    },
   });
   const byId = new Map(products.map((p) => [p.id, p]));
 
@@ -130,23 +159,26 @@ export async function createOrder(customerId: string, input: CreateOrderInput) {
   if (missing.length > 0) {
     throw badRequest('بعض المنتجات غير موجودة في هذا المحل', { productIds: missing });
   }
-  const unavailable = products.filter((p) => !p.isAvailable).map((p) => p.name);
-  if (unavailable.length > 0) {
-    throw conflict('بعض المنتجات غير متوفرة حاليًا', { products: unavailable });
-  }
-
   // دمج الكميات المكررة لنفس المنتج
   const quantities = new Map<string, number>();
   for (const item of input.items) {
     quantities.set(item.productId, (quantities.get(item.productId) ?? 0) + item.quantity);
   }
 
+  // التوفر والكمية خاصان بعرض هذا المحل (ShopProduct)
+  const unavailable = products
+    .filter((p) => !p.isAvailable || (p.stock !== null && p.stock < (quantities.get(p.id) ?? 0)))
+    .map((p) => p.product.name);
+  if (unavailable.length > 0) {
+    throw conflict('بعض المنتجات غير متوفرة حاليًا', { products: unavailable });
+  }
+
   const items = [...quantities.entries()].map(([productId, quantity]) => {
     const p = byId.get(productId)!;
     return {
       productId,
-      nameSnapshot: p.name,
-      unitSnapshot: p.unit,
+      nameSnapshot: p.product.name,
+      unitSnapshot: p.product.unit,
       unitPrice: p.price,
       quantity,
       lineTotal: p.price * quantity,
@@ -154,7 +186,23 @@ export async function createOrder(customerId: string, input: CreateOrderInput) {
   });
 
   const subtotal = items.reduce((sum, i) => sum + i.lineTotal, 0);
-  const deliveryFee = shop.deliveryFee;
+
+  // رسم التوصيل تحدده الإدارة وتحسبه الخادم حسب المسافة من المحل إلى الزبون
+  const distanceMeters = haversineMeters(
+    shop.latitude,
+    shop.longitude,
+    delivery.latitude,
+    delivery.longitude,
+  );
+  const pricing = await loadPricingConfig();
+  const quote = computeDeliveryFee(pricing, distanceMeters);
+  if (!quote.withinRange) {
+    throw conflict(`عنوانك خارج نطاق التوصيل (الحد الأقصى ${pricing.maxKm} كم)`, {
+      distanceKm: quote.distanceKm,
+      maxKm: pricing.maxKm,
+    });
+  }
+  const deliveryFee = quote.fee;
   const customer = await prisma.user.findUniqueOrThrow({
     where: { id: customerId },
     select: { phone: true },
@@ -179,12 +227,7 @@ export async function createOrder(customerId: string, input: CreateOrderInput) {
         deliveryLatitude: delivery.latitude,
         deliveryLongitude: delivery.longitude,
         customerPhone: customer.phone,
-        distanceMeters: haversineMeters(
-          shop.latitude,
-          shop.longitude,
-          delivery.latitude,
-          delivery.longitude,
-        ),
+        distanceMeters,
         items: { createMany: { data: items } },
       },
       select: { id: true, code: true, total: true },
