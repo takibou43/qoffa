@@ -14,6 +14,23 @@ const MIN_SECRET_LENGTH = 32;
 let secret: string | null = env.JWT_SECRET || null;
 let loading: Promise<void> | null = null;
 
+const MISSING_TABLE = /does not exist|42P01|3F000/;
+
+/** يقرأ المفتاح مع إعادة المحاولة (اتصالات البارد الأولى قد تفشل عابرًا). لا يطبع القيمة أبدًا. */
+async function readSecretFromDb(attempts = 3): Promise<string> {
+  for (let i = 1; ; i++) {
+    try {
+      const rows = await prisma.$queryRaw<{ s: string }[]>`
+        SELECT value AS s FROM qoffa_private.app_secret WHERE key = 'jwt_secret'`;
+      return rows[0]?.s ?? '';
+    } catch (err) {
+      if (MISSING_TABLE.test(String(err))) return '';
+      if (i >= attempts) throw err;
+      await new Promise((r) => setTimeout(r, 150 * i));
+    }
+  }
+}
+
 /**
  * يحمّل مفتاح التوقيع مرة واحدة لكل عملية.
  * الأولوية لمتغير البيئة JWT_SECRET؛ وإلا يُقرأ من الجدول الخاص qoffa_private.app_secret
@@ -23,14 +40,7 @@ let loading: Promise<void> | null = null;
 export function ensureJwtSecret(): Promise<void> {
   if (secret) return Promise.resolve();
   loading ??= (async () => {
-    let value = '';
-    try {
-      const rows = await prisma.$queryRaw<{ s: string }[]>`
-        SELECT value AS s FROM qoffa_private.app_secret WHERE key = 'jwt_secret'`;
-      value = rows[0]?.s ?? '';
-    } catch {
-      value = ''; // المخطط/الجدول غير موجود
-    }
+    const value = await readSecretFromDb();
     if (value.length < MIN_SECRET_LENGTH) {
       throw new Error('مفتاح توقيع JWT غير مهيأ: اضبط JWT_SECRET أو qoffa_private.app_secret');
     }
