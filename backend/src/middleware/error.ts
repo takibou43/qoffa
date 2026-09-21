@@ -20,8 +20,18 @@ export function errorHandler(
     });
   }
 
-  // أخطاء Prisma المعروفة
-  const anyErr = err as { code?: string; meta?: Record<string, unknown> };
+  // أخطاء Prisma المعروفة + أخطاء body-parser
+  const anyErr = err as { code?: string; meta?: Record<string, unknown>; type?: string; status?: number };
+  if (anyErr?.type === 'entity.parse.failed') {
+    return res.status(400).json({
+      error: { code: 'BAD_REQUEST', message: 'صيغة JSON غير صالحة' },
+    });
+  }
+  if (anyErr?.type === 'entity.too.large') {
+    return res.status(413).json({
+      error: { code: 'PAYLOAD_TOO_LARGE', message: 'حجم الطلب أكبر من المسموح' },
+    });
+  }
   if (anyErr?.code === 'P2002') {
     const target = (anyErr.meta?.target as string[] | undefined)?.join(', ');
     return res.status(409).json({

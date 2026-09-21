@@ -140,3 +140,14 @@ describe('المصادقة والأدوار', () => {
     expect(res.status).toBe(401);
   });
 });
+
+describe('طلبات مشوّهة', () => {
+  it('JSON غير صالح يعيد 400 لا 500', async () => {
+    const res = await request(createApp())
+      .post('/api/auth/login')
+      .set('Content-Type', 'application/json')
+      .send('{phone:0550000000,password:x}');
+    expect(res.status).toBe(400);
+    expect(res.body.error.code).toBe('BAD_REQUEST');
+  });
+});
