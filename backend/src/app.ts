@@ -5,6 +5,7 @@ import { env } from './config/env.js';
 import { errorHandler, notFoundHandler } from './middleware/error.js';
 import { generalLimiter } from './middleware/rateLimit.js';
 import { apiRouter } from './routes.js';
+import { jwtReady } from './lib/jwt.js';
 
 export function createApp() {
   const app = express();
@@ -43,7 +44,7 @@ export function createApp() {
     res.json({ ok: true, service: 'qoffa-api', time: new Date().toISOString() });
   });
 
-  app.use('/api', apiRouter);
+  app.use('/api', jwtReady, apiRouter);
 
   app.use(notFoundHandler);
   app.use(errorHandler);
