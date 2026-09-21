@@ -29,7 +29,8 @@ export function createApp() {
         if (env.corsOrigins.length === 0 || env.corsOrigins.includes(origin)) {
           return callback(null, true);
         }
-        callback(new Error('CORS: النطاق غير مسموح به'));
+        // نطاق غير مسموح: لا نُرسل ترويسات CORS فيحجبه المتصفح (بدل خطأ 500)
+        callback(null, false);
       },
       credentials: true,
       methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],

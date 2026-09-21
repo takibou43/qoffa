@@ -265,3 +265,28 @@ describe('ملكية المنتجات', () => {
     expect(await prisma.shopProduct.findUnique({ where: { id: own.id } })).toBeNull();
   });
 });
+
+describe('CORS', () => {
+  it('لا يمنح ترويسات CORS لنطاق غير مسموح ولا يعيد 500، ويسمح بالنطاق المضبوط', async () => {
+    const { vi } = await import('vitest');
+    const prev = process.env.CORS_ORIGINS;
+    process.env.CORS_ORIGINS = 'https://good.example.com';
+    vi.resetModules();
+    const { createApp: make } = await import('../src/app.js');
+    const app = make();
+    process.env.CORS_ORIGINS = prev;
+
+    const bad = await request(app)
+      .options('/api/auth/login')
+      .set('Origin', 'https://evil.example.com')
+      .set('Access-Control-Request-Method', 'POST');
+    expect(bad.status).toBeLessThan(500);
+    expect(bad.headers['access-control-allow-origin']).toBeUndefined();
+
+    const good = await request(app)
+      .options('/api/auth/login')
+      .set('Origin', 'https://good.example.com')
+      .set('Access-Control-Request-Method', 'POST');
+    expect(good.headers['access-control-allow-origin']).toBe('https://good.example.com');
+  });
+});
