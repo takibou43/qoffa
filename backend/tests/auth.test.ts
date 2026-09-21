@@ -94,6 +94,32 @@ describe('المصادقة والأدوار', () => {
     expect(missing.body.error.message).toBe(res.body.error.message);
   });
 
+  it('يسجّل الدخول بالبريد الإلكتروني (دون حساسية لحالة الأحرف)', async () => {
+    const admin = await createAdmin('SUPER_ADMIN');
+    const email = admin.user.email!;
+    const ok = await request(app)
+      .post('/api/auth/login')
+      .send({ email: email.toUpperCase(), password: TEST_PASSWORD });
+    expect(ok.status).toBe(200);
+    expect(ok.body.user.role).toBe('SUPER_ADMIN');
+
+    const wrong = await request(app).post('/api/auth/login').send({ email, password: 'WrongPass1' });
+    expect(wrong.status).toBe(401);
+    const missing = await request(app)
+      .post('/api/auth/login')
+      .send({ email: 'nobody@test.local', password: 'WrongPass1' });
+    expect(missing.status).toBe(401);
+    expect(missing.body.error.message).toBe(wrong.body.error.message);
+  });
+
+  it('يرفض الدخول دون هاتف أو بريد، أو بهما معًا', async () => {
+    expect((await request(app).post('/api/auth/login').send({ password: 'x' })).status).toBe(400);
+    expect(
+      (await request(app).post('/api/auth/login').send({ phone: '0661234567', email: 'a@b.co', password: 'x' }))
+        .status,
+    ).toBe(400);
+  });
+
   it('يرفض الطلبات بدون رمز أو برمز غير صالح', async () => {
     expect((await request(app).get('/api/auth/me')).status).toBe(401);
     expect((await request(app).get('/api/auth/me').set(bearer('abc.def.ghi'))).status).toBe(401);

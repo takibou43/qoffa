@@ -6,7 +6,7 @@ import type { User } from './types';
 interface AuthValue {
   user: User | null;
   loading: boolean;
-  login: (phone: string, password: string) => Promise<void>;
+  login: (identifier: string, password: string) => Promise<void>;
   refresh: () => Promise<void>;
   logout: () => void;
 }

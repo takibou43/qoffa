@@ -44,10 +44,17 @@ export const registerDriverSchema = z.object({
   }),
 });
 
-export const loginSchema = z.object({
-  phone: phoneSchema,
-  password: z.string().min(1, 'كلمة المرور مطلوبة'),
-});
+/** الدخول برقم الهاتف أو بالبريد الإلكتروني (أحدهما بالضبط) */
+export const loginSchema = z
+  .object({
+    phone: phoneSchema.optional(),
+    email: z.string().trim().toLowerCase().email('البريد غير صالح').optional(),
+    password: z.string().min(1, 'كلمة المرور مطلوبة'),
+  })
+  .refine((v) => Boolean(v.phone) !== Boolean(v.email), {
+    message: 'أدخل رقم الهاتف أو البريد الإلكتروني',
+    path: ['phone'],
+  });
 
 export const changePasswordSchema = z.object({
   currentPassword: z.string().min(1),

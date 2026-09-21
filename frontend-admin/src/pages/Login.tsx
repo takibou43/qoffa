@@ -43,15 +43,16 @@ export default function Login() {
       <form onSubmit={submit} className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5">
         <h2 className="text-lg font-bold text-slate-900">تسجيل الدخول</h2>
 
-        <Field label="رقم الهاتف">
+        <Field label="البريد الإلكتروني أو رقم الهاتف">
           <input
             className={inputClass}
-            type="tel"
-            inputMode="numeric"
-            autoComplete="tel"
+            type="text"
+            inputMode="email"
+            autoComplete="username"
+            dir="ltr"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
-            placeholder="0551234567"
+            placeholder="admin@example.com"
             required
           />
         </Field>

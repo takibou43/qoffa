@@ -135,13 +135,23 @@ export async function registerDriver(input: RegisterDriverInput) {
 }
 
 export async function login(input: LoginInput) {
-  const user = await prisma.user.findUnique({
-    where: { phone: input.phone },
-    select: { ...publicUserSelect, passwordHash: true },
-  });
+  const user = input.email
+    ? await prisma.user.findFirst({
+        where: { email: { equals: input.email, mode: 'insensitive' } },
+        select: { ...publicUserSelect, passwordHash: true },
+      })
+    : await prisma.user.findUnique({
+        where: { phone: input.phone! },
+        select: { ...publicUserSelect, passwordHash: true },
+      });
 
   // نفس الرسالة في الحالتين حتى لا يُستدل على وجود الحساب
-  const invalid = () => unauthorized('رقم الهاتف أو كلمة المرور غير صحيحة');
+  const invalid = () =>
+    unauthorized(
+      input.email
+        ? 'البريد الإلكتروني أو كلمة المرور غير صحيحة'
+        : 'رقم الهاتف أو كلمة المرور غير صحيحة',
+    );
   if (!user) {
     // نُنفّذ مقارنة وهمية لتقريب زمن الاستجابة
     await verifyPassword(input.password, '$2a$10$invalidinvalidinvalidinvalidinvalidinvalidinvalidinv');

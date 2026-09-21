@@ -16,10 +16,13 @@ import type {
 export { ApiError, clearToken, getToken, setToken } from './apiCore';
 
 export const api = {
-  login: (phone: string, password: string) =>
+  /** المعرّف: بريد إلكتروني (يحوي @) أو رقم هاتف */
+  login: (identifier: string, password: string) =>
     request<{ user: User; token: string }>('/auth/login', {
       method: 'POST',
-      body: { phone, password },
+      body: identifier.includes('@')
+        ? { email: identifier, password }
+        : { phone: identifier, password },
       auth: false,
     }),
 
