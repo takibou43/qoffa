@@ -12,6 +12,8 @@ const schema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   PORT: intFromEnv(4000),
   DATABASE_URL: z.string().min(1, 'DATABASE_URL مطلوب'),
+  /** شهادة CA العامة لخادم قاعدة البيانات (PEM) — تُفعّل TLS مع تحقق كامل من الشهادة */
+  DATABASE_CA_CERT: z.string().optional(),
   JWT_SECRET: z.string().min(16, 'JWT_SECRET يجب أن يكون 16 حرفًا على الأقل'),
   JWT_EXPIRES_IN: z.string().default('7d'),
   CORS_ORIGINS: z.string().default(''),
@@ -50,6 +52,8 @@ export const env = {
     .filter(Boolean),
   /** بريد مالك المنصة — لا يُعرض إلا لمدراء المنصة */
   platformOwnerEmail: raw.PLATFORM_OWNER_EMAIL || null,
+  /** PEM مع استبدال \\n الحرفية بأسطر حقيقية (بعض لوحات الاستضافة تحفظها سطرًا واحدًا) */
+  databaseCaCert: raw.DATABASE_CA_CERT ? raw.DATABASE_CA_CERT.replace(/\\n/g, '\n').trim() : null,
 };
 
 export type Env = typeof env;
