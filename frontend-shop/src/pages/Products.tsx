@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { PageHeader } from '../components/Layout';
+import { CameraScanner, isCameraScanSupported } from '../components/CameraScanner';
 import {
   Alert,
   Button,
@@ -70,6 +71,8 @@ export default function Products() {
   const [form, setForm] = useState<FormState | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [scanning, setScanning] = useState(false);
+  const cameraSupported = isCameraScanSupported();
 
   useEffect(() => {
     api.categories('PRODUCT').then((r) => setCategories(r.items)).catch(() => undefined);
@@ -175,10 +178,8 @@ export default function Products() {
     };
   }
 
-  /** الخطوة الأولى: البحث بالباركود ثم تحديد ما يلزم إدخاله */
-  async function lookup() {
-    if (!form) return;
-    const code = form.barcode.trim();
+  /** البحث بالباركود ثم تحديد ما يلزم إدخاله — يُستعمل من زر «بحث» ومن نتيجة مسح الكاميرا */
+  async function lookupCode(code: string) {
     setFormError(null);
     if (code === '') {
       setFormError('أدخل الباركود، أو اختر «بدون باركود».');
@@ -187,26 +188,29 @@ export default function Products() {
     setSaving(true);
     try {
       const r = await api.lookupBarcode(code);
-      if (r.status === 'NEW') {
-        setForm({ ...form, barcode: r.barcode, step: 'form', locked: false, notice: 'منتج جديد في المنصة: أدخل بياناته وسعرك.' });
-      } else if (r.status === 'AVAILABLE_TO_ADD') {
-        const p = r.product;
-        setForm({
-          ...form,
-          barcode: p.barcode ?? code,
-          step: 'form',
-          locked: true,
-          notice: 'هذا المنتج موجود في المنصة — أدخل سعرك وكميتك فقط.',
-          name: p.name,
-          brand: p.brand ?? '',
-          unit: p.unit,
-          categoryId: p.categoryId ?? '',
-          imageUrl: p.imageUrl ?? '',
-          description: p.description ?? '',
-        });
-      } else {
-        setForm({ ...editForm(r.listing), notice: 'هذا المنتج موجود في محلك بالفعل — يمكنك تعديل سعره وكميته.' });
-      }
+      setForm((prev) => {
+        const base = prev ?? EMPTY_FORM;
+        if (r.status === 'NEW') {
+          return { ...base, barcode: r.barcode, step: 'form', locked: false, notice: 'منتج جديد في المنصة: أدخل بياناته وسعرك.' };
+        }
+        if (r.status === 'AVAILABLE_TO_ADD') {
+          const p = r.product;
+          return {
+            ...base,
+            barcode: p.barcode ?? code,
+            step: 'form',
+            locked: true,
+            notice: 'هذا المنتج موجود في المنصة — أدخل سعرك وكميتك فقط.',
+            name: p.name,
+            brand: p.brand ?? '',
+            unit: p.unit,
+            categoryId: p.categoryId ?? '',
+            imageUrl: p.imageUrl ?? '',
+            description: p.description ?? '',
+          };
+        }
+        return { ...editForm(r.listing), notice: 'هذا المنتج موجود في محلك بالفعل — يمكنك تعديل سعره وكميته.' };
+      });
     } catch (e) {
       setFormError(
         e instanceof ApiError && e.details?.length
@@ -218,6 +222,17 @@ export default function Products() {
     } finally {
       setSaving(false);
     }
+  }
+
+  /** الخطوة الأولى: البحث بالباركود المُدخل يدويًا */
+  async function lookup() {
+    if (!form) return;
+    await lookupCode(form.barcode.trim());
+  }
+
+  function onCameraDetected(code: string) {
+    setScanning(false);
+    void lookupCode(code.trim());
   }
 
   async function quickToggle(product: Product, key: 'isAvailable' | 'isHidden') {
@@ -391,6 +406,18 @@ export default function Products() {
                     placeholder="6131234567890"
                   />
                 </Field>
+                {cameraSupported && (
+                  <Button
+                    variant="secondary"
+                    className="w-full"
+                    onClick={() => {
+                      setFormError(null);
+                      setScanning(true);
+                    }}
+                  >
+                    📷 مسح بالكاميرا
+                  </Button>
+                )}
                 {formError && <Alert>{formError}</Alert>}
                 <div className="flex gap-2 pt-1">
                   <Button className="flex-1" onClick={lookup} loading={saving}>
@@ -543,6 +570,10 @@ export default function Products() {
             )}
           </div>
         </div>
+      )}
+
+      {scanning && (
+        <CameraScanner onDetected={onCameraDetected} onClose={() => setScanning(false)} />
       )}
     </div>
   );
