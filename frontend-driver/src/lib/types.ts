@@ -64,8 +64,8 @@ export interface CurrentOrder {
   assignedAt: string | null;
   pickedUpAt: string | null;
   outForDeliveryAt: string | null;
-  /** حمولة QR الاستلام (رمز التسليم عند الزبون وحده) */
-  pickupQr: string;
+  /** الحساب المالي: ما تدفعه للمحل، ما تقبضه من الزبون، وما يبقى معك */
+  settlement: Settlement;
   pickupVerifiedAt: string | null;
   deliveryVerifiedAt: string | null;
   items: { nameSnapshot: string; quantity: number; unitSnapshot: string }[];
@@ -118,4 +118,30 @@ export interface QrVerification {
     itemsCount: number;
     items: { nameSnapshot: string; quantity: number; unitSnapshot: string }[];
   };
+}
+
+export interface Settlement {
+  productsAmount: number;
+  deliveryFee: number;
+  discount: number;
+  total: number;
+  driverPaysShop: number;
+  driverCollectsFromCustomer: number;
+  driverKeeps: number;
+}
+
+export interface PickupResult {
+  ok: true;
+  from: OrderStatus;
+  to: OrderStatus;
+  pickedUpAt: string;
+  order: { id: string; code: string };
+  settlement: Settlement;
+}
+
+export interface DeliverResult {
+  ok: true;
+  to: 'DELIVERED';
+  method: 'QR' | 'PIN';
+  settlement: Settlement;
 }

@@ -58,10 +58,39 @@ export interface AdminOrder {
   commissionAmount: number;
   driverEarning: number;
   createdAt: string;
+  acceptedAt: string | null;
+  readyAt: string | null;
+  pickedUpAt: string | null;
   deliveredAt: string | null;
   customer: { id: string; fullName: string; phone: string } | null;
   shop: { id: string; name: string } | null;
   driver: { id: string; user: { fullName: string; phone: string } } | null;
+  settlement: Settlement;
+}
+
+/** الحساب الكامل للطلب (يحسبه الخادم) */
+export interface Settlement {
+  productsAmount: number;
+  deliveryFee: number;
+  discount: number;
+  total: number;
+  driverPaysShop: number;
+  driverCollectsFromCustomer: number;
+  driverKeeps: number;
+}
+
+/** تفاصيل الطلب للإدارة: الرموز وسجل عمليات الاستلام/التسليم */
+export interface AdminOrderDetail {
+  id: string;
+  pickupQr: string;
+  deliveryQr: string;
+  deliveryPin: string;
+  scans: {
+    stage: 'PICKUP' | 'DELIVERY';
+    method: 'QR' | 'PIN';
+    createdAt: string;
+    driver: { id: string; user: { fullName: string; phone: string } };
+  }[];
 }
 
 export interface Stats {

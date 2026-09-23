@@ -109,9 +109,11 @@ export interface Order {
   id: string;
   code: string;
   status: OrderStatus;
+  /** قيمة المنتجات — المحل لا يرى رسوم التوصيل ولا الإجمالي الشامل لها */
   subtotal: number;
-  deliveryFee: number;
-  total: number;
+  productsAmount: number;
+  /** المبلغ الذي يستلمه المحل من الموصّل عند الاستلام */
+  amountFromDriver: number;
   customerNote: string | null;
   customerPhone: string;
   deliveryAddressLine: string;

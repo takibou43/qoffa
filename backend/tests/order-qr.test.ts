@@ -106,14 +106,15 @@ describe('ظهور QR حسب الطرف', () => {
 
     const s = await getOrder(order.id, shop.token);
     expect(parseQrPayload(s.body.order.pickupQr)?.kind).toBe('P');
-    expect(s.body.order.deliveryQr).toBeNull();
+    expect(s.body.order.deliveryQr ?? null).toBeNull();
 
+    // الموصّل لا يحمل أي رمز: يجب أن يمسح رمز الاستلام من المحل
     const d = await getOrder(order.id, driver.token);
-    expect(parseQrPayload(d.body.order.pickupQr)?.kind).toBe('P');
+    expect(d.body.order.pickupQr).toBeNull();
     expect(d.body.order.deliveryQr).toBeNull();
 
     const cur = await request(app).get('/api/drivers/me/current').set(bearer(driver.token));
-    expect(cur.body.order.pickupQr).toBe(d.body.order.pickupQr);
+    expect(cur.body.order.pickupQr).toBeUndefined();
     expect(cur.body.order.deliveryQr).toBeUndefined();
     // لا تُكشف الرموز الخام في أي حقل
     expect(JSON.stringify(cur.body)).not.toContain('pickupToken');
@@ -139,8 +140,8 @@ describe('ظهور QR حسب الطرف', () => {
 
 describe('التحقق من QR عند الاستلام والتسليم', () => {
   async function tokensFor(orderId: string) {
-    const [c, d] = await Promise.all([getOrder(orderId, customer.token), getOrder(orderId, driver.token)]);
-    return { pickup: d.body.order.pickupQr as string, delivery: c.body.order.deliveryQr as string };
+    const [c, s] = await Promise.all([getOrder(orderId, customer.token), getOrder(orderId, shop.token)]);
+    return { pickup: s.body.order.pickupQr as string, delivery: c.body.order.deliveryQr as string };
   }
 
   it('المسار الكامل: رمز الاستلام في المحل ثم رمز الزبون عند التسليم — دون تغيير الحالة', async () => {
@@ -165,7 +166,10 @@ describe('التحقق من QR عند الاستلام والتسليم', () => 
     expect(early.status).toBe(409);
     expect(early.body.error.code).toBe('QR_WRONG_STAGE');
 
-    const pick = await request(app).post(`/api/orders/${order.id}/pickup`).set(bearer(driver.token));
+    const pick = await request(app)
+      .post(`/api/orders/${order.id}/pickup`)
+      .set(bearer(driver.token))
+      .send({ payload: qr.pickup });
     expect(pick.status).toBe(200);
 
     // رمز الاستلام بعد الاستلام مرفوض
@@ -177,7 +181,7 @@ describe('التحقق من QR عند الاستلام والتسليم', () => 
     expect(dv.status).toBe(200);
     expect(dv.body.stage).toBe('DELIVERY');
     db = await prisma.order.findUniqueOrThrow({ where: { id: order.id } });
-    expect(db.status).toBe('PICKED_UP');
+    expect(db.status).toBe('OUT_FOR_DELIVERY');
     expect(db.deliveryVerifiedAt).not.toBeNull();
 
     // تكرار المسح آمن: لا يغيّر شيئًا ويعيد نفس وقت التحقق الأول
@@ -185,8 +189,8 @@ describe('التحقق من QR عند الاستلام والتسليم', () => 
     expect(again.status).toBe(200);
     expect(again.body.alreadyVerified).toBe(true);
     expect(new Date(again.body.verifiedAt).getTime()).toBe(db.deliveryVerifiedAt!.getTime());
-    expect((await prisma.order.findUniqueOrThrow({ where: { id: order.id } })).status).toBe('PICKED_UP');
-    expect(await prisma.orderStatusEvent.count({ where: { orderId: order.id } })).toBe(6);
+    expect((await prisma.order.findUniqueOrThrow({ where: { id: order.id } })).status).toBe('OUT_FOR_DELIVERY');
+    expect(await prisma.orderStatusEvent.count({ where: { orderId: order.id } })).toBe(7);
   });
 
   it('يرفض QR لطلب آخر', async () => {
@@ -202,7 +206,11 @@ describe('التحقق من QR عند الاستلام والتسليم', () => 
     // لا نكشف رقم الطلب الآخر
     expect(r1.body.error.message).not.toContain(other.code);
 
-    await request(app).post(`/api/orders/${mine.id}/pickup`).set(bearer(driver.token)).expect(200);
+    await request(app)
+      .post(`/api/orders/${mine.id}/pickup`)
+      .set(bearer(driver.token))
+      .send({ payload: (await getOrder(mine.id, shop.token)).body.order.pickupQr })
+      .expect(200);
     const r2 = await verify(mine.id, otherQr);
     expect(r2.status).toBe(409);
     expect(r2.body.error.code).toBe('QR_OTHER_ORDER');
@@ -247,16 +255,15 @@ describe('التحقق من QR عند الاستلام والتسليم', () => 
     const order = await placeOrder();
     await assign(order.id);
     const qr = await tokensFor(order.id);
-    await request(app).post(`/api/orders/${order.id}/pickup`).set(bearer(driver.token)).expect(200);
-    await request(app).post(`/api/orders/${order.id}/out-for-delivery`).set(bearer(driver.token)).expect(200);
-    await request(app).post(`/api/orders/${order.id}/deliver`).set(bearer(driver.token)).expect(200);
+    await request(app).post(`/api/orders/${order.id}/pickup`).set(bearer(driver.token)).send({ payload: qr.pickup }).expect(200);
+    await request(app).post(`/api/orders/${order.id}/deliver`).set(bearer(driver.token)).send({ payload: qr.delivery }).expect(200);
 
     const r = await verify(order.id, qr.delivery);
     expect(r.status).toBe(409);
     expect(r.body.error.code).toBe('QR_EXPIRED');
 
     // لا تسليم مرتين
-    const twice = await request(app).post(`/api/orders/${order.id}/deliver`).set(bearer(driver.token));
+    const twice = await request(app).post(`/api/orders/${order.id}/deliver`).set(bearer(driver.token)).send({ payload: qr.delivery });
     expect(twice.status).toBe(409);
     expect(await prisma.orderStatusEvent.count({ where: { orderId: order.id, toStatus: 'DELIVERED' } })).toBe(1);
   });

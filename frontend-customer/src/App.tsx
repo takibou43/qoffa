@@ -11,6 +11,7 @@ import ProductCompare from './pages/ProductCompare';
 import Login from './pages/Login';
 import Notifications from './pages/Notifications';
 import OrderDetail from './pages/OrderDetail';
+import InvoicePage from './pages/Invoice';
 import Orders from './pages/Orders';
 import Register from './pages/Register';
 import ShopPage from './pages/Shop';
@@ -50,6 +51,14 @@ export default function App() {
                 element={
                   <RequireAuth>
                     <OrderDetail />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="orders/:orderId/invoice"
+                element={
+                  <RequireAuth>
+                    <InvoicePage />
                   </RequireAuth>
                 }
               />

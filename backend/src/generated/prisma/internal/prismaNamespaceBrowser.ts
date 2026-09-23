@@ -62,6 +62,7 @@ export const ModelName = {
   Order: 'Order',
   OrderItem: 'OrderItem',
   OrderStatusEvent: 'OrderStatusEvent',
+  OrderScan: 'OrderScan',
   Delivery: 'Delivery',
   DeliveryOffer: 'DeliveryOffer',
   Review: 'Review',
@@ -265,6 +266,8 @@ export const OrderScalarFieldEnum = {
   deliveryToken: 'deliveryToken',
   pickupVerifiedAt: 'pickupVerifiedAt',
   deliveryVerifiedAt: 'deliveryVerifiedAt',
+  deliveryPin: 'deliveryPin',
+  deliveryPinAttempts: 'deliveryPinAttempts',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -299,6 +302,18 @@ export const OrderStatusEventScalarFieldEnum = {
 } as const
 
 export type OrderStatusEventScalarFieldEnum = (typeof OrderStatusEventScalarFieldEnum)[keyof typeof OrderStatusEventScalarFieldEnum]
+
+
+export const OrderScanScalarFieldEnum = {
+  id: 'id',
+  orderId: 'orderId',
+  stage: 'stage',
+  method: 'method',
+  driverId: 'driverId',
+  createdAt: 'createdAt'
+} as const
+
+export type OrderScanScalarFieldEnum = (typeof OrderScanScalarFieldEnum)[keyof typeof OrderScanScalarFieldEnum]
 
 
 export const DeliveryScalarFieldEnum = {

@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { PageHeader } from '../components/Layout';
-import { OrderQr } from '../components/OrderQr';
 import { QrScanner, isQrScanSupported } from '../components/QrScanner';
 import {
   Alert,
@@ -13,7 +12,7 @@ import {
 } from '../components/ui';
 import { ApiError, api } from '../lib/api';
 import { formatDistance, formatDzd, mapsUrl, telUrl } from '../lib/format';
-import type { CurrentOrder, QrVerification } from '../lib/types';
+import type { CurrentOrder, Settlement } from '../lib/types';
 
 export default function Delivery() {
   const [order, setOrder] = useState<CurrentOrder | null>(null);
@@ -22,10 +21,11 @@ export default function Delivery() {
   const [busy, setBusy] = useState<string | null>(null);
   const [failing, setFailing] = useState(false);
   const [reason, setReason] = useState('');
-  const [scanning, setScanning] = useState(false);
-  const [verifying, setVerifying] = useState(false);
-  const [verifyResult, setVerifyResult] = useState<QrVerification | null>(null);
-  const [verifyError, setVerifyError] = useState<string | null>(null);
+  /** ما الذي تمسحه الكاميرا الآن: QR الطلبية في المحل أو QR الزبون عند التسليم */
+  const [scanning, setScanning] = useState<null | 'pickup' | 'deliver'>(null);
+  const [scanError, setScanError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [pin, setPin] = useState('');
 
   const load = useCallback((silent = false) => {
     if (!silent) setLoading(true);
@@ -40,37 +40,35 @@ export default function Delivery() {
     load();
   }, [load]);
 
-  async function act(name: string, fn: () => Promise<unknown>) {
+  async function act(name: string, fn: () => Promise<unknown>, done?: string) {
     setError(null);
-    setVerifyResult(null);
-    setVerifyError(null);
+    setScanError(null);
+    setSuccess(null);
     setBusy(name);
     try {
       await fn();
+      if (done) setSuccess(done);
       await load(true);
       setFailing(false);
+      setPin('');
     } catch (e) {
-      setError(e instanceof ApiError ? e.message : 'تعذّر تنفيذ العملية.');
+      const msg = e instanceof ApiError ? e.message : 'تعذّر تنفيذ العملية.';
+      if (name === 'pickup' || name === 'deliver') setScanError(msg);
+      else setError(msg);
     } finally {
       setBusy(null);
     }
   }
 
-  /** التحقق فقط — الخادم يقرر صحة الرمز ولا يغيّر حالة الطلب */
-  async function handleScan(payload: string) {
-    setScanning(false);
-    if (!order) return;
-    setVerifyError(null);
-    setVerifyResult(null);
-    setVerifying(true);
-    try {
-      const result = await api.verifyQr(order.id, payload);
-      setVerifyResult(result);
-      await load(true);
-    } catch (e) {
-      setVerifyError(e instanceof ApiError ? e.message : 'تعذّر التحقق من الرمز. حاول مرة أخرى.');
-    } finally {
-      setVerifying(false);
+  /** الخادم يتحقق من الرمز ومن أنك الموصّل المعيَّن، ويسجّل الاستلام/التسليم مرة واحدة فقط */
+  function handleScan(payload: string) {
+    const mode = scanning;
+    setScanning(null);
+    if (!order || !mode) return;
+    if (mode === 'pickup') {
+      void act('pickup', () => api.pickup(order.id, payload), '✓ تم استلام الطلب من المحل — الطلب الآن في الطريق إلى الزبون');
+    } else {
+      void act('deliver', () => api.deliver(order.id, { payload }), '✓ تم تسليم الطلب بنجاح');
     }
   }
 
@@ -108,64 +106,42 @@ export default function Delivery() {
         </div>
 
         {error && <Alert>{error}</Alert>}
+        {success && <Alert kind="success">{success}</Alert>}
 
-        {/* التحقق بالـQR: في المحل (رمز الاستلام) ثم عند الزبون (رمز التسليم) */}
-        {(() => {
-          const verifiedAt = beforePickup ? order.pickupVerifiedAt : order.deliveryVerifiedAt;
-          return (
-            <section className="space-y-3 rounded-2xl border border-slate-200 bg-white p-4">
-              <div className="flex items-center justify-between gap-2">
-                <h2 className="text-sm font-bold text-slate-900">
-                  {beforePickup ? 'التحقق عند الاستلام' : 'التحقق عند التسليم'}
-                </h2>
-                <span dir="ltr" className="font-mono text-lg font-bold tracking-widest text-slate-900">
-                  {order.code}
-                </span>
-              </div>
-              <p className="text-xs text-slate-500">
-                {beforePickup
-                  ? 'امسح رمز QR المعروض في المحل للتأكد أنك تأخذ الطلبية الصحيحة.'
-                  : 'امسح رمز QR على هاتف الزبون للتأكد أنك تسلّم الطلبية لصاحبها.'}
-              </p>
-              {verifiedAt && (
-                <p className="rounded-lg bg-emerald-50 p-2 text-sm font-bold text-emerald-700">
-                  ✓ تم التحقق من الطلبية
-                </p>
-              )}
-              {verifyResult && (
-                <div className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-800">
-                  <p className="font-bold">
-                    ✓ الرمز صحيح — طلب {verifyResult.order.code}
-                  </p>
-                  <p className="text-xs">
-                    {verifyResult.order.itemsCount} قطعة • {formatDzd(verifyResult.order.total)}
-                  </p>
-                </div>
-              )}
-              {verifyError && <Alert>{verifyError}</Alert>}
-              {isQrScanSupported() ? (
-                <Button
-                  variant={verifiedAt ? 'secondary' : 'primary'}
-                  className="w-full"
-                  loading={verifying}
-                  onClick={() => setScanning(true)}
-                >
-                  📷 {beforePickup ? 'مسح QR المحل' : 'مسح QR الزبون'}
-                </Button>
-              ) : (
-                <p className="text-xs text-amber-700">
-                  الكاميرا غير متاحة في هذا المتصفح. طابق رقم الطلب يدويًا.
-                </p>
-              )}
-            </section>
-          );
-        })()}
+        {/* الحساب المالي — واضح في كل مرحلة حتى لا يختلط */}
+        <MoneyCard settlement={order.settlement} beforePickup={beforePickup} />
+
+        {/* الاستلام من المحل: مسح QR الطلبية إلزامي */}
+        {order.status === 'DRIVER_ASSIGNED' && (
+          <section className="space-y-3 rounded-2xl border-2 border-brand-300 bg-white p-4">
+            <div className="flex items-center justify-between gap-2">
+              <h2 className="text-sm font-bold text-slate-900">استلام الطلب من المحل</h2>
+              <span dir="ltr" className="font-mono text-lg font-bold tracking-widest text-slate-900">
+                {order.code}
+              </span>
+            </div>
+            <p className="text-xs text-slate-500">
+              اطلب من المحل عرض رمز QR الخاص بالطلب {order.code} وامسحه. ادفع للمحل{' '}
+              <b>{formatDzd(order.settlement.driverPaysShop)}</b> ثم خذ الطلبية.
+            </p>
+            {scanError && <Alert>{scanError}</Alert>}
+            {isQrScanSupported() ? (
+              <Button className="w-full" loading={busy === 'pickup'} onClick={() => setScanning('pickup')}>
+                📷 مسح QR الطلبية للاستلام
+              </Button>
+            ) : (
+              <Alert kind="info">
+                الكاميرا غير متاحة في هذا المتصفح. افتح التطبيق في Chrome أو Safari للمسح.
+              </Alert>
+            )}
+          </section>
+        )}
 
         {scanning && (
           <QrScanner
-            title={beforePickup ? 'وجّه الكاميرا نحو رمز المحل' : 'وجّه الكاميرا نحو رمز الزبون'}
+            title={scanning === 'pickup' ? 'وجّه الكاميرا نحو رمز الطلبية في المحل' : 'وجّه الكاميرا نحو رمز الزبون'}
             onDetected={handleScan}
-            onClose={() => setScanning(false)}
+            onClose={() => setScanning(null)}
           />
         )}
 
@@ -240,22 +216,6 @@ export default function Delivery() {
           )}
         </section>
 
-        {beforePickup && (
-          <details className="rounded-2xl border border-slate-200 bg-white p-4">
-            <summary className="cursor-pointer text-sm font-bold text-slate-900">
-              عرض رمز استلام الطلبية
-            </summary>
-            <div className="mt-3">
-              <OrderQr
-                payload={order.pickupQr}
-                code={order.code}
-                title="رمز استلام الطلبية"
-                hint="نفس الرمز المعروض لدى المحل — للمطابقة عند الاستلام."
-              />
-            </div>
-          </details>
-        )}
-
         {/* محتوى الطلب */}
         <section className="rounded-2xl border border-slate-200 bg-white p-4">
           <h2 className="mb-2 text-sm font-bold text-slate-900">محتوى الطلب</h2>
@@ -266,30 +226,18 @@ export default function Delivery() {
               </li>
             ))}
           </ul>
-          <div className="mt-3 rounded-xl bg-brand-50 p-3 text-sm font-bold text-brand-800">
-            💵 تحصيل نقدًا عند التسليم: {formatDzd(order.total)}
-          </div>
         </section>
 
         {/* الخطوة التالية */}
         {order.status === 'DRIVER_ASSIGNED' && (
-          <>
-            <Button
-              className="w-full"
-              loading={busy === 'pickup'}
-              onClick={() => act('pickup', () => api.pickup(order.id))}
-            >
-              استلمت الطلب من المحل
-            </Button>
-            <Button
-              variant="secondary"
-              className="w-full"
-              loading={busy === 'release'}
-              onClick={() => act('release', () => api.release(order.id))}
-            >
-              الانسحاب من الطلب
-            </Button>
-          </>
+          <Button
+            variant="secondary"
+            className="w-full"
+            loading={busy === 'release'}
+            onClick={() => act('release', () => api.release(order.id))}
+          >
+            الانسحاب من الطلب
+          </Button>
         )}
 
         {order.status === 'PICKED_UP' && (
@@ -303,18 +251,43 @@ export default function Delivery() {
         )}
 
         {order.status === 'OUT_FOR_DELIVERY' && !failing && (
-          <>
-            <Button
-              className="w-full"
-              loading={busy === 'deliver'}
-              onClick={() => act('deliver', () => api.deliver(order.id))}
-            >
-              تم التسليم
-            </Button>
+          <section className="space-y-3 rounded-2xl border-2 border-brand-300 bg-white p-4">
+            <h2 className="text-sm font-bold text-slate-900">تأكيد التسليم للزبون</h2>
+            <p className="text-xs text-slate-500">
+              اقبض من الزبون <b>{formatDzd(order.settlement.driverCollectsFromCustomer)}</b>، ثم امسح رمز QR على
+              هاتفه أو أدخل رمز التسليم (4 أرقام) الذي يعطيك إياه.
+            </p>
+            {scanError && <Alert>{scanError}</Alert>}
+            {isQrScanSupported() && (
+              <Button className="w-full" loading={busy === 'deliver'} onClick={() => setScanning('deliver')}>
+                📷 مسح QR الزبون
+              </Button>
+            )}
+            <div className="flex gap-2">
+              <input
+                className={`${inputClass} flex-1 text-center font-mono tracking-[0.5em]`}
+                inputMode="numeric"
+                maxLength={4}
+                dir="ltr"
+                placeholder="••••"
+                value={pin}
+                onChange={(e) => setPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
+              />
+              <Button
+                variant="secondary"
+                disabled={pin.length !== 4}
+                loading={busy === 'deliver'}
+                onClick={() =>
+                  act('deliver', () => api.deliver(order.id, { pin }), '✓ تم تسليم الطلب بنجاح')
+                }
+              >
+                تأكيد برمز التسليم
+              </Button>
+            </div>
             <Button variant="danger" className="w-full" onClick={() => setFailing(true)}>
               تعذّر التسليم
             </Button>
-          </>
+          </section>
         )}
 
         {(order.status === 'PICKED_UP' || order.status === 'OUT_FOR_DELIVERY') && failing && (
@@ -353,5 +326,38 @@ export default function Delivery() {
         )}
       </div>
     </div>
+  );
+}
+
+function Row({ label, value, strong }: { label: string; value: string; strong?: boolean }) {
+  return (
+    <div className={`flex items-center justify-between ${strong ? 'font-bold text-slate-900' : 'text-slate-600'}`}>
+      <span>{label}</span>
+      <span>{value}</span>
+    </div>
+  );
+}
+
+/** ما تدفعه للمحل، ما تقبضه من الزبون، وما يبقى معك */
+function MoneyCard({ settlement, beforePickup }: { settlement: Settlement; beforePickup: boolean }) {
+  return (
+    <section className="space-y-3 rounded-2xl border border-slate-200 bg-white p-4 text-sm">
+      <h2 className="font-bold text-slate-900">💵 الحساب</h2>
+      <div className={`space-y-1 rounded-xl p-3 ${beforePickup ? 'bg-amber-50' : 'bg-slate-50'}`}>
+        <p className="text-xs font-bold text-amber-800">عند المحل</p>
+        <Row label="قيمة المنتجات التي تدفعها للمحل" value={formatDzd(settlement.driverPaysShop)} strong />
+      </div>
+      <div className={`space-y-1 rounded-xl p-3 ${beforePickup ? 'bg-slate-50' : 'bg-brand-50'}`}>
+        <p className="text-xs font-bold text-brand-800">عند الزبون</p>
+        <Row label="قيمة المنتجات" value={formatDzd(settlement.productsAmount)} />
+        <Row label="رسوم التوصيل" value={formatDzd(settlement.deliveryFee)} />
+        {settlement.discount > 0 && <Row label="الخصم" value={`− ${formatDzd(settlement.discount)}`} />}
+        <Row label="المبلغ الذي تقبضه من الزبون" value={formatDzd(settlement.driverCollectsFromCustomer)} strong />
+      </div>
+      <div className="flex items-center justify-between rounded-xl bg-emerald-50 p-3 font-bold text-emerald-800">
+        <span>أجرة التوصيل التي تحتفظ بها</span>
+        <span>{formatDzd(settlement.driverKeeps)}</span>
+      </div>
+    </section>
   );
 }

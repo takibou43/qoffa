@@ -237,16 +237,37 @@ export default function OrderDetail() {
           <Alert>تعذّر تسليم الطلب. سيتواصل معك فريق المنصة.</Alert>
         )}
 
+        {(order.status === 'OUT_FOR_DELIVERY' || order.status === 'PICKED_UP') && (
+          <div className="rounded-2xl border-2 border-brand-300 bg-brand-50 p-4 text-center">
+            <p className="text-lg font-bold text-brand-800">🛵 طلبك في الطريق إليك</p>
+            <p className="mt-1 text-sm text-brand-700">
+              جهّز {formatDzd(order.total)} نقدًا — المبلغ يشمل رسوم التوصيل ويُدفع للموصّل.
+            </p>
+          </div>
+        )}
+
         <Timeline status={order.status} />
+
+        {order.deliveryPin && (
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 text-center">
+            <p className="text-sm font-bold text-slate-900">رمز التسليم</p>
+            <p dir="ltr" className="my-2 font-mono text-4xl font-bold tracking-[0.4em] text-slate-900">
+              {order.deliveryPin}
+            </p>
+            <p className="text-xs text-slate-500">
+              أعطِ هذا الرمز للموصّل فقط عند استلامك الطلبية ودفع المبلغ — أو اعرض له رمز QR أدناه.
+            </p>
+          </div>
+        )}
 
         {order.deliveryQr && (
           <OrderQr
             payload={order.deliveryQr}
             code={order.code}
             title="رمز تسليم طلبيتك"
-            hint="اعرض هذا الرمز على الموصّل عند وصوله ليتحقق أنها طلبيتك. لا تشاركه مع أحد غيره."
+            hint="اعرض هذا الرمز على الموصّل عند وصوله ليؤكد التسليم. لا تشاركه مع أحد غيره."
             verifiedAt={order.deliveryVerifiedAt}
-            verifiedLabel="تحقق الموصّل من طلبيتك"
+            verifiedLabel="تم تأكيد التسليم"
           />
         )}
 
@@ -330,11 +351,22 @@ export default function OrderDetail() {
               <dt>التوصيل</dt>
               <dd>{formatDzd(order.deliveryFee)}</dd>
             </div>
+            {(order.amounts?.discount ?? 0) > 0 && (
+              <div className="flex justify-between text-emerald-700">
+                <dt>الخصم</dt>
+                <dd>− {formatDzd(order.amounts!.discount)}</dd>
+              </div>
+            )}
             <div className="flex justify-between text-base font-bold text-slate-900">
-              <dt>الإجمالي (دفع عند الاستلام)</dt>
+              <dt>الإجمالي (يُدفع للموصّل عند الاستلام)</dt>
               <dd>{formatDzd(order.total)}</dd>
             </div>
           </dl>
+          <Link to={`/orders/${order.id}/invoice`} className="mt-3 block">
+            <Button variant="secondary" className="w-full">
+              🧾 عرض الفاتورة
+            </Button>
+          </Link>
         </section>
 
         {order.status === 'DELIVERED' && <ReviewForm order={order} onDone={() => load(true)} />}

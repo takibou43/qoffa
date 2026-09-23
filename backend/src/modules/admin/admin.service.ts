@@ -1,4 +1,5 @@
 import { badRequest, conflict, forbidden, notFound } from '../../lib/errors.js';
+import { orderSettlement } from '../../services/orderMoney.js';
 import { hashPassword } from '../../lib/password.js';
 import { paginated, type Pagination } from '../../lib/pagination.js';
 import { prisma } from '../../lib/prisma.js';
@@ -419,6 +420,9 @@ export async function listOrders(
         commissionAmount: true,
         driverEarning: true,
         createdAt: true,
+        acceptedAt: true,
+        readyAt: true,
+        pickedUpAt: true,
         deliveredAt: true,
         customer: { select: { id: true, fullName: true, phone: true } },
         shop: { select: { id: true, name: true } },
@@ -430,7 +434,12 @@ export async function listOrders(
     }),
     prisma.order.count({ where }),
   ]);
-  return paginated(items, total, query);
+  // الإدارة ترى الحساب الكامل: ما دفعه الموصّل للمحل، ما قبضه من الزبون، وأجرة التوصيل
+  return paginated(
+    items.map((o) => ({ ...o, settlement: orderSettlement(o) })),
+    total,
+    query,
+  );
 }
 
 /* ───────────────────────── الإحصائيات ───────────────────────── */

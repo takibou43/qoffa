@@ -101,6 +101,18 @@ enum DeliveryOfferStatus {
   CANCELLED
 }
 
+/// مرحلة مسح رمز الطلب (سجل عمليات QR/PIN)
+enum OrderScanStage {
+  PICKUP
+  DELIVERY
+}
+
+/// وسيلة التحقق: رمز QR أو رمز PIN القصير (للتسليم فقط)
+enum OrderScanMethod {
+  QR
+  PIN
+}
+
 enum CategoryKind {
   SHOP
   PRODUCT
@@ -361,6 +373,7 @@ model DriverProfile {
   offers    DeliveryOffer[]
   reviews   Review[]
   deliveries Delivery[]
+  scans     OrderScan[]
   wallet    Wallet?
 
   createdAt DateTime @default(now())
@@ -440,6 +453,10 @@ model Order {
   /// أول تحقق ناجح من رمز الاستلام/التسليم (لا يغيّر حالة الطلب)
   pickupVerifiedAt   DateTime?
   deliveryVerifiedAt DateTime?
+  /// رمز تأكيد التسليم (4 أرقام) — يظهر للزبون وحده ويعطيه للموصّل عند الاستلام (بديل مسح QR الزبون)
+  deliveryPin         String @default(dbgenerated("lpad(((floor((random() * (10000)::double precision)))::integer)::text, 4, '0'::text)"))
+  /// عدد محاولات PIN الخاطئة — يُقفل بعد حد معيّن ويبقى QR الزبون متاحًا
+  deliveryPinAttempts Int    @default(0)
 
   items         OrderItem[]
   delivery      Delivery?
@@ -448,6 +465,7 @@ model Order {
   notifications Notification[]
   statusEvents  OrderStatusEvent[]
   walletTxs     WalletTransaction[]
+  scans         OrderScan[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -495,6 +513,26 @@ model OrderStatusEvent {
   createdAt DateTime @default(now())
 
   @@index([orderId, createdAt])
+}
+
+/// سجل عمليات الاستلام/التسليم الناجحة بالـQR أو PIN.
+/// القيد الفريد (orderId, stage) يضمن أن الاستلام والتسليم يحدثان مرة واحدة فقط لكل طلب.
+model OrderScan {
+  id      String @id @default(cuid())
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  stage  OrderScanStage
+  method OrderScanMethod @default(QR)
+
+  /// الموصّل الذي نفّذ العملية
+  driverId String
+  driver   DriverProfile @relation(fields: [driverId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@unique([orderId, stage])
+  @@index([driverId, createdAt])
 }
 
 // ─────────────────────────────  Delivery  ─────────────────────────────

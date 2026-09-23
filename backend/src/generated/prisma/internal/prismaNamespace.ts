@@ -408,6 +408,7 @@ export const ModelName = {
   Order: 'Order',
   OrderItem: 'OrderItem',
   OrderStatusEvent: 'OrderStatusEvent',
+  OrderScan: 'OrderScan',
   Delivery: 'Delivery',
   DeliveryOffer: 'DeliveryOffer',
   Review: 'Review',
@@ -431,7 +432,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "customerProfile" | "address" | "shop" | "category" | "product" | "shopProduct" | "driverProfile" | "order" | "orderItem" | "orderStatusEvent" | "delivery" | "deliveryOffer" | "review" | "wallet" | "walletTransaction" | "notification" | "adminAuditLog" | "platformSetting"
+    modelProps: "user" | "customerProfile" | "address" | "shop" | "category" | "product" | "shopProduct" | "driverProfile" | "order" | "orderItem" | "orderStatusEvent" | "orderScan" | "delivery" | "deliveryOffer" | "review" | "wallet" | "walletTransaction" | "notification" | "adminAuditLog" | "platformSetting"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1249,6 +1250,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    OrderScan: {
+      payload: Prisma.$OrderScanPayload<ExtArgs>
+      fields: Prisma.OrderScanFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.OrderScanFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrderScanPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.OrderScanFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrderScanPayload>
+        }
+        findFirst: {
+          args: Prisma.OrderScanFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrderScanPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.OrderScanFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrderScanPayload>
+        }
+        findMany: {
+          args: Prisma.OrderScanFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrderScanPayload>[]
+        }
+        create: {
+          args: Prisma.OrderScanCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrderScanPayload>
+        }
+        createMany: {
+          args: Prisma.OrderScanCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.OrderScanCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrderScanPayload>[]
+        }
+        delete: {
+          args: Prisma.OrderScanDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrderScanPayload>
+        }
+        update: {
+          args: Prisma.OrderScanUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrderScanPayload>
+        }
+        deleteMany: {
+          args: Prisma.OrderScanDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.OrderScanUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.OrderScanUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrderScanPayload>[]
+        }
+        upsert: {
+          args: Prisma.OrderScanUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrderScanPayload>
+        }
+        aggregate: {
+          args: Prisma.OrderScanAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateOrderScan>
+        }
+        groupBy: {
+          args: Prisma.OrderScanGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.OrderScanGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.OrderScanCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.OrderScanCountAggregateOutputType> | number
+        }
+      }
+    }
     Delivery: {
       payload: Prisma.$DeliveryPayload<ExtArgs>
       fields: Prisma.DeliveryFieldRefs
@@ -2057,6 +2132,8 @@ export const OrderScalarFieldEnum = {
   deliveryToken: 'deliveryToken',
   pickupVerifiedAt: 'pickupVerifiedAt',
   deliveryVerifiedAt: 'deliveryVerifiedAt',
+  deliveryPin: 'deliveryPin',
+  deliveryPinAttempts: 'deliveryPinAttempts',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -2091,6 +2168,18 @@ export const OrderStatusEventScalarFieldEnum = {
 } as const
 
 export type OrderStatusEventScalarFieldEnum = (typeof OrderStatusEventScalarFieldEnum)[keyof typeof OrderStatusEventScalarFieldEnum]
+
+
+export const OrderScanScalarFieldEnum = {
+  id: 'id',
+  orderId: 'orderId',
+  stage: 'stage',
+  method: 'method',
+  driverId: 'driverId',
+  createdAt: 'createdAt'
+} as const
+
+export type OrderScanScalarFieldEnum = (typeof OrderScanScalarFieldEnum)[keyof typeof OrderScanScalarFieldEnum]
 
 
 export const DeliveryScalarFieldEnum = {
@@ -2437,6 +2526,34 @@ export type ListEnumActorTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$Pr
 
 
 /**
+ * Reference to a field of type 'OrderScanStage'
+ */
+export type EnumOrderScanStageFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'OrderScanStage'>
+    
+
+
+/**
+ * Reference to a field of type 'OrderScanStage[]'
+ */
+export type ListEnumOrderScanStageFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'OrderScanStage[]'>
+    
+
+
+/**
+ * Reference to a field of type 'OrderScanMethod'
+ */
+export type EnumOrderScanMethodFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'OrderScanMethod'>
+    
+
+
+/**
+ * Reference to a field of type 'OrderScanMethod[]'
+ */
+export type ListEnumOrderScanMethodFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'OrderScanMethod[]'>
+    
+
+
+/**
  * Reference to a field of type 'DeliveryOfferStatus'
  */
 export type EnumDeliveryOfferStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DeliveryOfferStatus'>
@@ -2695,6 +2812,7 @@ export type GlobalOmitConfig = {
   order?: Prisma.OrderOmit
   orderItem?: Prisma.OrderItemOmit
   orderStatusEvent?: Prisma.OrderStatusEventOmit
+  orderScan?: Prisma.OrderScanOmit
   delivery?: Prisma.DeliveryOmit
   deliveryOffer?: Prisma.DeliveryOfferOmit
   review?: Prisma.ReviewOmit

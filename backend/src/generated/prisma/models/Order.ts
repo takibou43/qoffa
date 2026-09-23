@@ -36,6 +36,7 @@ export type OrderAvgAggregateOutputType = {
   deliveryLongitude: number | null
   distanceMeters: number | null
   offerAttempts: number | null
+  deliveryPinAttempts: number | null
 }
 
 export type OrderSumAggregateOutputType = {
@@ -48,6 +49,7 @@ export type OrderSumAggregateOutputType = {
   deliveryLongitude: number | null
   distanceMeters: number | null
   offerAttempts: number | null
+  deliveryPinAttempts: number | null
 }
 
 export type OrderMinAggregateOutputType = {
@@ -89,6 +91,8 @@ export type OrderMinAggregateOutputType = {
   deliveryToken: string | null
   pickupVerifiedAt: Date | null
   deliveryVerifiedAt: Date | null
+  deliveryPin: string | null
+  deliveryPinAttempts: number | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -132,6 +136,8 @@ export type OrderMaxAggregateOutputType = {
   deliveryToken: string | null
   pickupVerifiedAt: Date | null
   deliveryVerifiedAt: Date | null
+  deliveryPin: string | null
+  deliveryPinAttempts: number | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -175,6 +181,8 @@ export type OrderCountAggregateOutputType = {
   deliveryToken: number
   pickupVerifiedAt: number
   deliveryVerifiedAt: number
+  deliveryPin: number
+  deliveryPinAttempts: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -191,6 +199,7 @@ export type OrderAvgAggregateInputType = {
   deliveryLongitude?: true
   distanceMeters?: true
   offerAttempts?: true
+  deliveryPinAttempts?: true
 }
 
 export type OrderSumAggregateInputType = {
@@ -203,6 +212,7 @@ export type OrderSumAggregateInputType = {
   deliveryLongitude?: true
   distanceMeters?: true
   offerAttempts?: true
+  deliveryPinAttempts?: true
 }
 
 export type OrderMinAggregateInputType = {
@@ -244,6 +254,8 @@ export type OrderMinAggregateInputType = {
   deliveryToken?: true
   pickupVerifiedAt?: true
   deliveryVerifiedAt?: true
+  deliveryPin?: true
+  deliveryPinAttempts?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -287,6 +299,8 @@ export type OrderMaxAggregateInputType = {
   deliveryToken?: true
   pickupVerifiedAt?: true
   deliveryVerifiedAt?: true
+  deliveryPin?: true
+  deliveryPinAttempts?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -330,6 +344,8 @@ export type OrderCountAggregateInputType = {
   deliveryToken?: true
   pickupVerifiedAt?: true
   deliveryVerifiedAt?: true
+  deliveryPin?: true
+  deliveryPinAttempts?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -460,6 +476,8 @@ export type OrderGroupByOutputType = {
   deliveryToken: string
   pickupVerifiedAt: Date | null
   deliveryVerifiedAt: Date | null
+  deliveryPin: string
+  deliveryPinAttempts: number
   createdAt: Date
   updatedAt: Date
   _count: OrderCountAggregateOutputType | null
@@ -526,6 +544,8 @@ export type OrderWhereInput = {
   deliveryToken?: Prisma.StringFilter<"Order"> | string
   pickupVerifiedAt?: Prisma.DateTimeNullableFilter<"Order"> | Date | string | null
   deliveryVerifiedAt?: Prisma.DateTimeNullableFilter<"Order"> | Date | string | null
+  deliveryPin?: Prisma.StringFilter<"Order"> | string
+  deliveryPinAttempts?: Prisma.IntFilter<"Order"> | number
   createdAt?: Prisma.DateTimeFilter<"Order"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Order"> | Date | string
   customer?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
@@ -539,6 +559,7 @@ export type OrderWhereInput = {
   notifications?: Prisma.NotificationListRelationFilter
   statusEvents?: Prisma.OrderStatusEventListRelationFilter
   walletTxs?: Prisma.WalletTransactionListRelationFilter
+  scans?: Prisma.OrderScanListRelationFilter
 }
 
 export type OrderOrderByWithRelationInput = {
@@ -580,6 +601,8 @@ export type OrderOrderByWithRelationInput = {
   deliveryToken?: Prisma.SortOrder
   pickupVerifiedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   deliveryVerifiedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  deliveryPin?: Prisma.SortOrder
+  deliveryPinAttempts?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   customer?: Prisma.UserOrderByWithRelationInput
@@ -593,6 +616,7 @@ export type OrderOrderByWithRelationInput = {
   notifications?: Prisma.NotificationOrderByRelationAggregateInput
   statusEvents?: Prisma.OrderStatusEventOrderByRelationAggregateInput
   walletTxs?: Prisma.WalletTransactionOrderByRelationAggregateInput
+  scans?: Prisma.OrderScanOrderByRelationAggregateInput
 }
 
 export type OrderWhereUniqueInput = Prisma.AtLeast<{
@@ -638,6 +662,8 @@ export type OrderWhereUniqueInput = Prisma.AtLeast<{
   clientRequestId?: Prisma.StringNullableFilter<"Order"> | string | null
   pickupVerifiedAt?: Prisma.DateTimeNullableFilter<"Order"> | Date | string | null
   deliveryVerifiedAt?: Prisma.DateTimeNullableFilter<"Order"> | Date | string | null
+  deliveryPin?: Prisma.StringFilter<"Order"> | string
+  deliveryPinAttempts?: Prisma.IntFilter<"Order"> | number
   createdAt?: Prisma.DateTimeFilter<"Order"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Order"> | Date | string
   customer?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
@@ -651,6 +677,7 @@ export type OrderWhereUniqueInput = Prisma.AtLeast<{
   notifications?: Prisma.NotificationListRelationFilter
   statusEvents?: Prisma.OrderStatusEventListRelationFilter
   walletTxs?: Prisma.WalletTransactionListRelationFilter
+  scans?: Prisma.OrderScanListRelationFilter
 }, "id" | "code" | "pickupToken" | "deliveryToken" | "customerId_clientRequestId">
 
 export type OrderOrderByWithAggregationInput = {
@@ -692,6 +719,8 @@ export type OrderOrderByWithAggregationInput = {
   deliveryToken?: Prisma.SortOrder
   pickupVerifiedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   deliveryVerifiedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  deliveryPin?: Prisma.SortOrder
+  deliveryPinAttempts?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.OrderCountOrderByAggregateInput
@@ -743,6 +772,8 @@ export type OrderScalarWhereWithAggregatesInput = {
   deliveryToken?: Prisma.StringWithAggregatesFilter<"Order"> | string
   pickupVerifiedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Order"> | Date | string | null
   deliveryVerifiedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Order"> | Date | string | null
+  deliveryPin?: Prisma.StringWithAggregatesFilter<"Order"> | string
+  deliveryPinAttempts?: Prisma.IntWithAggregatesFilter<"Order"> | number
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Order"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Order"> | Date | string
 }
@@ -782,6 +813,8 @@ export type OrderCreateInput = {
   deliveryToken?: string
   pickupVerifiedAt?: Date | string | null
   deliveryVerifiedAt?: Date | string | null
+  deliveryPin?: string
+  deliveryPinAttempts?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   customer: Prisma.UserCreateNestedOneWithoutOrdersInput
@@ -795,6 +828,7 @@ export type OrderCreateInput = {
   notifications?: Prisma.NotificationCreateNestedManyWithoutOrderInput
   statusEvents?: Prisma.OrderStatusEventCreateNestedManyWithoutOrderInput
   walletTxs?: Prisma.WalletTransactionCreateNestedManyWithoutOrderInput
+  scans?: Prisma.OrderScanCreateNestedManyWithoutOrderInput
 }
 
 export type OrderUncheckedCreateInput = {
@@ -836,6 +870,8 @@ export type OrderUncheckedCreateInput = {
   deliveryToken?: string
   pickupVerifiedAt?: Date | string | null
   deliveryVerifiedAt?: Date | string | null
+  deliveryPin?: string
+  deliveryPinAttempts?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   items?: Prisma.OrderItemUncheckedCreateNestedManyWithoutOrderInput
@@ -845,6 +881,7 @@ export type OrderUncheckedCreateInput = {
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutOrderInput
   statusEvents?: Prisma.OrderStatusEventUncheckedCreateNestedManyWithoutOrderInput
   walletTxs?: Prisma.WalletTransactionUncheckedCreateNestedManyWithoutOrderInput
+  scans?: Prisma.OrderScanUncheckedCreateNestedManyWithoutOrderInput
 }
 
 export type OrderUpdateInput = {
@@ -882,6 +919,8 @@ export type OrderUpdateInput = {
   deliveryToken?: Prisma.StringFieldUpdateOperationsInput | string
   pickupVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveryVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deliveryPin?: Prisma.StringFieldUpdateOperationsInput | string
+  deliveryPinAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   customer?: Prisma.UserUpdateOneRequiredWithoutOrdersNestedInput
@@ -895,6 +934,7 @@ export type OrderUpdateInput = {
   notifications?: Prisma.NotificationUpdateManyWithoutOrderNestedInput
   statusEvents?: Prisma.OrderStatusEventUpdateManyWithoutOrderNestedInput
   walletTxs?: Prisma.WalletTransactionUpdateManyWithoutOrderNestedInput
+  scans?: Prisma.OrderScanUpdateManyWithoutOrderNestedInput
 }
 
 export type OrderUncheckedUpdateInput = {
@@ -936,6 +976,8 @@ export type OrderUncheckedUpdateInput = {
   deliveryToken?: Prisma.StringFieldUpdateOperationsInput | string
   pickupVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveryVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deliveryPin?: Prisma.StringFieldUpdateOperationsInput | string
+  deliveryPinAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   items?: Prisma.OrderItemUncheckedUpdateManyWithoutOrderNestedInput
@@ -945,6 +987,7 @@ export type OrderUncheckedUpdateInput = {
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutOrderNestedInput
   statusEvents?: Prisma.OrderStatusEventUncheckedUpdateManyWithoutOrderNestedInput
   walletTxs?: Prisma.WalletTransactionUncheckedUpdateManyWithoutOrderNestedInput
+  scans?: Prisma.OrderScanUncheckedUpdateManyWithoutOrderNestedInput
 }
 
 export type OrderCreateManyInput = {
@@ -986,6 +1029,8 @@ export type OrderCreateManyInput = {
   deliveryToken?: string
   pickupVerifiedAt?: Date | string | null
   deliveryVerifiedAt?: Date | string | null
+  deliveryPin?: string
+  deliveryPinAttempts?: number
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -1025,6 +1070,8 @@ export type OrderUpdateManyMutationInput = {
   deliveryToken?: Prisma.StringFieldUpdateOperationsInput | string
   pickupVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveryVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deliveryPin?: Prisma.StringFieldUpdateOperationsInput | string
+  deliveryPinAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1068,6 +1115,8 @@ export type OrderUncheckedUpdateManyInput = {
   deliveryToken?: Prisma.StringFieldUpdateOperationsInput | string
   pickupVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveryVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deliveryPin?: Prisma.StringFieldUpdateOperationsInput | string
+  deliveryPinAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1126,6 +1175,8 @@ export type OrderCountOrderByAggregateInput = {
   deliveryToken?: Prisma.SortOrder
   pickupVerifiedAt?: Prisma.SortOrder
   deliveryVerifiedAt?: Prisma.SortOrder
+  deliveryPin?: Prisma.SortOrder
+  deliveryPinAttempts?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -1140,6 +1191,7 @@ export type OrderAvgOrderByAggregateInput = {
   deliveryLongitude?: Prisma.SortOrder
   distanceMeters?: Prisma.SortOrder
   offerAttempts?: Prisma.SortOrder
+  deliveryPinAttempts?: Prisma.SortOrder
 }
 
 export type OrderMaxOrderByAggregateInput = {
@@ -1181,6 +1233,8 @@ export type OrderMaxOrderByAggregateInput = {
   deliveryToken?: Prisma.SortOrder
   pickupVerifiedAt?: Prisma.SortOrder
   deliveryVerifiedAt?: Prisma.SortOrder
+  deliveryPin?: Prisma.SortOrder
+  deliveryPinAttempts?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -1224,6 +1278,8 @@ export type OrderMinOrderByAggregateInput = {
   deliveryToken?: Prisma.SortOrder
   pickupVerifiedAt?: Prisma.SortOrder
   deliveryVerifiedAt?: Prisma.SortOrder
+  deliveryPin?: Prisma.SortOrder
+  deliveryPinAttempts?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -1238,6 +1294,7 @@ export type OrderSumOrderByAggregateInput = {
   deliveryLongitude?: Prisma.SortOrder
   distanceMeters?: Prisma.SortOrder
   offerAttempts?: Prisma.SortOrder
+  deliveryPinAttempts?: Prisma.SortOrder
 }
 
 export type OrderScalarRelationFilter = {
@@ -1458,6 +1515,20 @@ export type OrderUpdateOneRequiredWithoutStatusEventsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.OrderUpdateToOneWithWhereWithoutStatusEventsInput, Prisma.OrderUpdateWithoutStatusEventsInput>, Prisma.OrderUncheckedUpdateWithoutStatusEventsInput>
 }
 
+export type OrderCreateNestedOneWithoutScansInput = {
+  create?: Prisma.XOR<Prisma.OrderCreateWithoutScansInput, Prisma.OrderUncheckedCreateWithoutScansInput>
+  connectOrCreate?: Prisma.OrderCreateOrConnectWithoutScansInput
+  connect?: Prisma.OrderWhereUniqueInput
+}
+
+export type OrderUpdateOneRequiredWithoutScansNestedInput = {
+  create?: Prisma.XOR<Prisma.OrderCreateWithoutScansInput, Prisma.OrderUncheckedCreateWithoutScansInput>
+  connectOrCreate?: Prisma.OrderCreateOrConnectWithoutScansInput
+  upsert?: Prisma.OrderUpsertWithoutScansInput
+  connect?: Prisma.OrderWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.OrderUpdateToOneWithWhereWithoutScansInput, Prisma.OrderUpdateWithoutScansInput>, Prisma.OrderUncheckedUpdateWithoutScansInput>
+}
+
 export type OrderCreateNestedOneWithoutDeliveryInput = {
   create?: Prisma.XOR<Prisma.OrderCreateWithoutDeliveryInput, Prisma.OrderUncheckedCreateWithoutDeliveryInput>
   connectOrCreate?: Prisma.OrderCreateOrConnectWithoutDeliveryInput
@@ -1567,6 +1638,8 @@ export type OrderCreateWithoutCustomerInput = {
   deliveryToken?: string
   pickupVerifiedAt?: Date | string | null
   deliveryVerifiedAt?: Date | string | null
+  deliveryPin?: string
+  deliveryPinAttempts?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   shop: Prisma.ShopCreateNestedOneWithoutOrdersInput
@@ -1579,6 +1652,7 @@ export type OrderCreateWithoutCustomerInput = {
   notifications?: Prisma.NotificationCreateNestedManyWithoutOrderInput
   statusEvents?: Prisma.OrderStatusEventCreateNestedManyWithoutOrderInput
   walletTxs?: Prisma.WalletTransactionCreateNestedManyWithoutOrderInput
+  scans?: Prisma.OrderScanCreateNestedManyWithoutOrderInput
 }
 
 export type OrderUncheckedCreateWithoutCustomerInput = {
@@ -1619,6 +1693,8 @@ export type OrderUncheckedCreateWithoutCustomerInput = {
   deliveryToken?: string
   pickupVerifiedAt?: Date | string | null
   deliveryVerifiedAt?: Date | string | null
+  deliveryPin?: string
+  deliveryPinAttempts?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   items?: Prisma.OrderItemUncheckedCreateNestedManyWithoutOrderInput
@@ -1628,6 +1704,7 @@ export type OrderUncheckedCreateWithoutCustomerInput = {
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutOrderInput
   statusEvents?: Prisma.OrderStatusEventUncheckedCreateNestedManyWithoutOrderInput
   walletTxs?: Prisma.WalletTransactionUncheckedCreateNestedManyWithoutOrderInput
+  scans?: Prisma.OrderScanUncheckedCreateNestedManyWithoutOrderInput
 }
 
 export type OrderCreateOrConnectWithoutCustomerInput = {
@@ -1698,6 +1775,8 @@ export type OrderScalarWhereInput = {
   deliveryToken?: Prisma.StringFilter<"Order"> | string
   pickupVerifiedAt?: Prisma.DateTimeNullableFilter<"Order"> | Date | string | null
   deliveryVerifiedAt?: Prisma.DateTimeNullableFilter<"Order"> | Date | string | null
+  deliveryPin?: Prisma.StringFilter<"Order"> | string
+  deliveryPinAttempts?: Prisma.IntFilter<"Order"> | number
   createdAt?: Prisma.DateTimeFilter<"Order"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Order"> | Date | string
 }
@@ -1737,6 +1816,8 @@ export type OrderCreateWithoutAddressInput = {
   deliveryToken?: string
   pickupVerifiedAt?: Date | string | null
   deliveryVerifiedAt?: Date | string | null
+  deliveryPin?: string
+  deliveryPinAttempts?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   customer: Prisma.UserCreateNestedOneWithoutOrdersInput
@@ -1749,6 +1830,7 @@ export type OrderCreateWithoutAddressInput = {
   notifications?: Prisma.NotificationCreateNestedManyWithoutOrderInput
   statusEvents?: Prisma.OrderStatusEventCreateNestedManyWithoutOrderInput
   walletTxs?: Prisma.WalletTransactionCreateNestedManyWithoutOrderInput
+  scans?: Prisma.OrderScanCreateNestedManyWithoutOrderInput
 }
 
 export type OrderUncheckedCreateWithoutAddressInput = {
@@ -1789,6 +1871,8 @@ export type OrderUncheckedCreateWithoutAddressInput = {
   deliveryToken?: string
   pickupVerifiedAt?: Date | string | null
   deliveryVerifiedAt?: Date | string | null
+  deliveryPin?: string
+  deliveryPinAttempts?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   items?: Prisma.OrderItemUncheckedCreateNestedManyWithoutOrderInput
@@ -1798,6 +1882,7 @@ export type OrderUncheckedCreateWithoutAddressInput = {
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutOrderInput
   statusEvents?: Prisma.OrderStatusEventUncheckedCreateNestedManyWithoutOrderInput
   walletTxs?: Prisma.WalletTransactionUncheckedCreateNestedManyWithoutOrderInput
+  scans?: Prisma.OrderScanUncheckedCreateNestedManyWithoutOrderInput
 }
 
 export type OrderCreateOrConnectWithoutAddressInput = {
@@ -1861,6 +1946,8 @@ export type OrderCreateWithoutShopInput = {
   deliveryToken?: string
   pickupVerifiedAt?: Date | string | null
   deliveryVerifiedAt?: Date | string | null
+  deliveryPin?: string
+  deliveryPinAttempts?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   customer: Prisma.UserCreateNestedOneWithoutOrdersInput
@@ -1873,6 +1960,7 @@ export type OrderCreateWithoutShopInput = {
   notifications?: Prisma.NotificationCreateNestedManyWithoutOrderInput
   statusEvents?: Prisma.OrderStatusEventCreateNestedManyWithoutOrderInput
   walletTxs?: Prisma.WalletTransactionCreateNestedManyWithoutOrderInput
+  scans?: Prisma.OrderScanCreateNestedManyWithoutOrderInput
 }
 
 export type OrderUncheckedCreateWithoutShopInput = {
@@ -1913,6 +2001,8 @@ export type OrderUncheckedCreateWithoutShopInput = {
   deliveryToken?: string
   pickupVerifiedAt?: Date | string | null
   deliveryVerifiedAt?: Date | string | null
+  deliveryPin?: string
+  deliveryPinAttempts?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   items?: Prisma.OrderItemUncheckedCreateNestedManyWithoutOrderInput
@@ -1922,6 +2012,7 @@ export type OrderUncheckedCreateWithoutShopInput = {
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutOrderInput
   statusEvents?: Prisma.OrderStatusEventUncheckedCreateNestedManyWithoutOrderInput
   walletTxs?: Prisma.WalletTransactionUncheckedCreateNestedManyWithoutOrderInput
+  scans?: Prisma.OrderScanUncheckedCreateNestedManyWithoutOrderInput
 }
 
 export type OrderCreateOrConnectWithoutShopInput = {
@@ -1985,6 +2076,8 @@ export type OrderCreateWithoutDriverInput = {
   deliveryToken?: string
   pickupVerifiedAt?: Date | string | null
   deliveryVerifiedAt?: Date | string | null
+  deliveryPin?: string
+  deliveryPinAttempts?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   customer: Prisma.UserCreateNestedOneWithoutOrdersInput
@@ -1997,6 +2090,7 @@ export type OrderCreateWithoutDriverInput = {
   notifications?: Prisma.NotificationCreateNestedManyWithoutOrderInput
   statusEvents?: Prisma.OrderStatusEventCreateNestedManyWithoutOrderInput
   walletTxs?: Prisma.WalletTransactionCreateNestedManyWithoutOrderInput
+  scans?: Prisma.OrderScanCreateNestedManyWithoutOrderInput
 }
 
 export type OrderUncheckedCreateWithoutDriverInput = {
@@ -2037,6 +2131,8 @@ export type OrderUncheckedCreateWithoutDriverInput = {
   deliveryToken?: string
   pickupVerifiedAt?: Date | string | null
   deliveryVerifiedAt?: Date | string | null
+  deliveryPin?: string
+  deliveryPinAttempts?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   items?: Prisma.OrderItemUncheckedCreateNestedManyWithoutOrderInput
@@ -2046,6 +2142,7 @@ export type OrderUncheckedCreateWithoutDriverInput = {
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutOrderInput
   statusEvents?: Prisma.OrderStatusEventUncheckedCreateNestedManyWithoutOrderInput
   walletTxs?: Prisma.WalletTransactionUncheckedCreateNestedManyWithoutOrderInput
+  scans?: Prisma.OrderScanUncheckedCreateNestedManyWithoutOrderInput
 }
 
 export type OrderCreateOrConnectWithoutDriverInput = {
@@ -2109,6 +2206,8 @@ export type OrderCreateWithoutItemsInput = {
   deliveryToken?: string
   pickupVerifiedAt?: Date | string | null
   deliveryVerifiedAt?: Date | string | null
+  deliveryPin?: string
+  deliveryPinAttempts?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   customer: Prisma.UserCreateNestedOneWithoutOrdersInput
@@ -2121,6 +2220,7 @@ export type OrderCreateWithoutItemsInput = {
   notifications?: Prisma.NotificationCreateNestedManyWithoutOrderInput
   statusEvents?: Prisma.OrderStatusEventCreateNestedManyWithoutOrderInput
   walletTxs?: Prisma.WalletTransactionCreateNestedManyWithoutOrderInput
+  scans?: Prisma.OrderScanCreateNestedManyWithoutOrderInput
 }
 
 export type OrderUncheckedCreateWithoutItemsInput = {
@@ -2162,6 +2262,8 @@ export type OrderUncheckedCreateWithoutItemsInput = {
   deliveryToken?: string
   pickupVerifiedAt?: Date | string | null
   deliveryVerifiedAt?: Date | string | null
+  deliveryPin?: string
+  deliveryPinAttempts?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   delivery?: Prisma.DeliveryUncheckedCreateNestedOneWithoutOrderInput
@@ -2170,6 +2272,7 @@ export type OrderUncheckedCreateWithoutItemsInput = {
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutOrderInput
   statusEvents?: Prisma.OrderStatusEventUncheckedCreateNestedManyWithoutOrderInput
   walletTxs?: Prisma.WalletTransactionUncheckedCreateNestedManyWithoutOrderInput
+  scans?: Prisma.OrderScanUncheckedCreateNestedManyWithoutOrderInput
 }
 
 export type OrderCreateOrConnectWithoutItemsInput = {
@@ -2223,6 +2326,8 @@ export type OrderUpdateWithoutItemsInput = {
   deliveryToken?: Prisma.StringFieldUpdateOperationsInput | string
   pickupVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveryVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deliveryPin?: Prisma.StringFieldUpdateOperationsInput | string
+  deliveryPinAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   customer?: Prisma.UserUpdateOneRequiredWithoutOrdersNestedInput
@@ -2235,6 +2340,7 @@ export type OrderUpdateWithoutItemsInput = {
   notifications?: Prisma.NotificationUpdateManyWithoutOrderNestedInput
   statusEvents?: Prisma.OrderStatusEventUpdateManyWithoutOrderNestedInput
   walletTxs?: Prisma.WalletTransactionUpdateManyWithoutOrderNestedInput
+  scans?: Prisma.OrderScanUpdateManyWithoutOrderNestedInput
 }
 
 export type OrderUncheckedUpdateWithoutItemsInput = {
@@ -2276,6 +2382,8 @@ export type OrderUncheckedUpdateWithoutItemsInput = {
   deliveryToken?: Prisma.StringFieldUpdateOperationsInput | string
   pickupVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveryVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deliveryPin?: Prisma.StringFieldUpdateOperationsInput | string
+  deliveryPinAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   delivery?: Prisma.DeliveryUncheckedUpdateOneWithoutOrderNestedInput
@@ -2284,6 +2392,7 @@ export type OrderUncheckedUpdateWithoutItemsInput = {
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutOrderNestedInput
   statusEvents?: Prisma.OrderStatusEventUncheckedUpdateManyWithoutOrderNestedInput
   walletTxs?: Prisma.WalletTransactionUncheckedUpdateManyWithoutOrderNestedInput
+  scans?: Prisma.OrderScanUncheckedUpdateManyWithoutOrderNestedInput
 }
 
 export type OrderCreateWithoutStatusEventsInput = {
@@ -2321,6 +2430,8 @@ export type OrderCreateWithoutStatusEventsInput = {
   deliveryToken?: string
   pickupVerifiedAt?: Date | string | null
   deliveryVerifiedAt?: Date | string | null
+  deliveryPin?: string
+  deliveryPinAttempts?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   customer: Prisma.UserCreateNestedOneWithoutOrdersInput
@@ -2333,6 +2444,7 @@ export type OrderCreateWithoutStatusEventsInput = {
   reviews?: Prisma.ReviewCreateNestedManyWithoutOrderInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutOrderInput
   walletTxs?: Prisma.WalletTransactionCreateNestedManyWithoutOrderInput
+  scans?: Prisma.OrderScanCreateNestedManyWithoutOrderInput
 }
 
 export type OrderUncheckedCreateWithoutStatusEventsInput = {
@@ -2374,6 +2486,8 @@ export type OrderUncheckedCreateWithoutStatusEventsInput = {
   deliveryToken?: string
   pickupVerifiedAt?: Date | string | null
   deliveryVerifiedAt?: Date | string | null
+  deliveryPin?: string
+  deliveryPinAttempts?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   items?: Prisma.OrderItemUncheckedCreateNestedManyWithoutOrderInput
@@ -2382,6 +2496,7 @@ export type OrderUncheckedCreateWithoutStatusEventsInput = {
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutOrderInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutOrderInput
   walletTxs?: Prisma.WalletTransactionUncheckedCreateNestedManyWithoutOrderInput
+  scans?: Prisma.OrderScanUncheckedCreateNestedManyWithoutOrderInput
 }
 
 export type OrderCreateOrConnectWithoutStatusEventsInput = {
@@ -2435,6 +2550,8 @@ export type OrderUpdateWithoutStatusEventsInput = {
   deliveryToken?: Prisma.StringFieldUpdateOperationsInput | string
   pickupVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveryVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deliveryPin?: Prisma.StringFieldUpdateOperationsInput | string
+  deliveryPinAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   customer?: Prisma.UserUpdateOneRequiredWithoutOrdersNestedInput
@@ -2447,6 +2564,7 @@ export type OrderUpdateWithoutStatusEventsInput = {
   reviews?: Prisma.ReviewUpdateManyWithoutOrderNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutOrderNestedInput
   walletTxs?: Prisma.WalletTransactionUpdateManyWithoutOrderNestedInput
+  scans?: Prisma.OrderScanUpdateManyWithoutOrderNestedInput
 }
 
 export type OrderUncheckedUpdateWithoutStatusEventsInput = {
@@ -2488,6 +2606,8 @@ export type OrderUncheckedUpdateWithoutStatusEventsInput = {
   deliveryToken?: Prisma.StringFieldUpdateOperationsInput | string
   pickupVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveryVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deliveryPin?: Prisma.StringFieldUpdateOperationsInput | string
+  deliveryPinAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   items?: Prisma.OrderItemUncheckedUpdateManyWithoutOrderNestedInput
@@ -2495,6 +2615,231 @@ export type OrderUncheckedUpdateWithoutStatusEventsInput = {
   offers?: Prisma.DeliveryOfferUncheckedUpdateManyWithoutOrderNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutOrderNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutOrderNestedInput
+  walletTxs?: Prisma.WalletTransactionUncheckedUpdateManyWithoutOrderNestedInput
+  scans?: Prisma.OrderScanUncheckedUpdateManyWithoutOrderNestedInput
+}
+
+export type OrderCreateWithoutScansInput = {
+  id?: string
+  code: string
+  status?: $Enums.OrderStatus
+  subtotal: number
+  deliveryFee: number
+  total: number
+  commissionAmount?: number
+  driverEarning?: number
+  paymentMethod?: $Enums.PaymentMethod
+  customerNote?: string | null
+  deliveryAddressLine: string
+  deliveryCity: string
+  deliveryLatitude: number
+  deliveryLongitude: number
+  customerPhone: string
+  distanceMeters?: number | null
+  rejectionReason?: string | null
+  cancelReason?: string | null
+  cancelledBy?: $Enums.ActorType | null
+  offerAttempts?: number
+  acceptedAt?: Date | string | null
+  preparingAt?: Date | string | null
+  readyAt?: Date | string | null
+  assignedAt?: Date | string | null
+  pickedUpAt?: Date | string | null
+  outForDeliveryAt?: Date | string | null
+  deliveredAt?: Date | string | null
+  closedAt?: Date | string | null
+  stockReserved?: boolean
+  clientRequestId?: string | null
+  pickupToken?: string
+  deliveryToken?: string
+  pickupVerifiedAt?: Date | string | null
+  deliveryVerifiedAt?: Date | string | null
+  deliveryPin?: string
+  deliveryPinAttempts?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  customer: Prisma.UserCreateNestedOneWithoutOrdersInput
+  shop: Prisma.ShopCreateNestedOneWithoutOrdersInput
+  driver?: Prisma.DriverProfileCreateNestedOneWithoutOrdersInput
+  address?: Prisma.AddressCreateNestedOneWithoutOrdersInput
+  items?: Prisma.OrderItemCreateNestedManyWithoutOrderInput
+  delivery?: Prisma.DeliveryCreateNestedOneWithoutOrderInput
+  offers?: Prisma.DeliveryOfferCreateNestedManyWithoutOrderInput
+  reviews?: Prisma.ReviewCreateNestedManyWithoutOrderInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutOrderInput
+  statusEvents?: Prisma.OrderStatusEventCreateNestedManyWithoutOrderInput
+  walletTxs?: Prisma.WalletTransactionCreateNestedManyWithoutOrderInput
+}
+
+export type OrderUncheckedCreateWithoutScansInput = {
+  id?: string
+  code: string
+  customerId: string
+  shopId: string
+  driverId?: string | null
+  status?: $Enums.OrderStatus
+  subtotal: number
+  deliveryFee: number
+  total: number
+  commissionAmount?: number
+  driverEarning?: number
+  paymentMethod?: $Enums.PaymentMethod
+  customerNote?: string | null
+  addressId?: string | null
+  deliveryAddressLine: string
+  deliveryCity: string
+  deliveryLatitude: number
+  deliveryLongitude: number
+  customerPhone: string
+  distanceMeters?: number | null
+  rejectionReason?: string | null
+  cancelReason?: string | null
+  cancelledBy?: $Enums.ActorType | null
+  offerAttempts?: number
+  acceptedAt?: Date | string | null
+  preparingAt?: Date | string | null
+  readyAt?: Date | string | null
+  assignedAt?: Date | string | null
+  pickedUpAt?: Date | string | null
+  outForDeliveryAt?: Date | string | null
+  deliveredAt?: Date | string | null
+  closedAt?: Date | string | null
+  stockReserved?: boolean
+  clientRequestId?: string | null
+  pickupToken?: string
+  deliveryToken?: string
+  pickupVerifiedAt?: Date | string | null
+  deliveryVerifiedAt?: Date | string | null
+  deliveryPin?: string
+  deliveryPinAttempts?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  items?: Prisma.OrderItemUncheckedCreateNestedManyWithoutOrderInput
+  delivery?: Prisma.DeliveryUncheckedCreateNestedOneWithoutOrderInput
+  offers?: Prisma.DeliveryOfferUncheckedCreateNestedManyWithoutOrderInput
+  reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutOrderInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutOrderInput
+  statusEvents?: Prisma.OrderStatusEventUncheckedCreateNestedManyWithoutOrderInput
+  walletTxs?: Prisma.WalletTransactionUncheckedCreateNestedManyWithoutOrderInput
+}
+
+export type OrderCreateOrConnectWithoutScansInput = {
+  where: Prisma.OrderWhereUniqueInput
+  create: Prisma.XOR<Prisma.OrderCreateWithoutScansInput, Prisma.OrderUncheckedCreateWithoutScansInput>
+}
+
+export type OrderUpsertWithoutScansInput = {
+  update: Prisma.XOR<Prisma.OrderUpdateWithoutScansInput, Prisma.OrderUncheckedUpdateWithoutScansInput>
+  create: Prisma.XOR<Prisma.OrderCreateWithoutScansInput, Prisma.OrderUncheckedCreateWithoutScansInput>
+  where?: Prisma.OrderWhereInput
+}
+
+export type OrderUpdateToOneWithWhereWithoutScansInput = {
+  where?: Prisma.OrderWhereInput
+  data: Prisma.XOR<Prisma.OrderUpdateWithoutScansInput, Prisma.OrderUncheckedUpdateWithoutScansInput>
+}
+
+export type OrderUpdateWithoutScansInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  code?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
+  subtotal?: Prisma.IntFieldUpdateOperationsInput | number
+  deliveryFee?: Prisma.IntFieldUpdateOperationsInput | number
+  total?: Prisma.IntFieldUpdateOperationsInput | number
+  commissionAmount?: Prisma.IntFieldUpdateOperationsInput | number
+  driverEarning?: Prisma.IntFieldUpdateOperationsInput | number
+  paymentMethod?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
+  customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deliveryAddressLine?: Prisma.StringFieldUpdateOperationsInput | string
+  deliveryCity?: Prisma.StringFieldUpdateOperationsInput | string
+  deliveryLatitude?: Prisma.FloatFieldUpdateOperationsInput | number
+  deliveryLongitude?: Prisma.FloatFieldUpdateOperationsInput | number
+  customerPhone?: Prisma.StringFieldUpdateOperationsInput | string
+  distanceMeters?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cancelReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cancelledBy?: Prisma.NullableEnumActorTypeFieldUpdateOperationsInput | $Enums.ActorType | null
+  offerAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  acceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  preparingAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  readyAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  assignedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  pickedUpAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  outForDeliveryAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deliveredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  stockReserved?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  clientRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupToken?: Prisma.StringFieldUpdateOperationsInput | string
+  deliveryToken?: Prisma.StringFieldUpdateOperationsInput | string
+  pickupVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deliveryVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deliveryPin?: Prisma.StringFieldUpdateOperationsInput | string
+  deliveryPinAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  customer?: Prisma.UserUpdateOneRequiredWithoutOrdersNestedInput
+  shop?: Prisma.ShopUpdateOneRequiredWithoutOrdersNestedInput
+  driver?: Prisma.DriverProfileUpdateOneWithoutOrdersNestedInput
+  address?: Prisma.AddressUpdateOneWithoutOrdersNestedInput
+  items?: Prisma.OrderItemUpdateManyWithoutOrderNestedInput
+  delivery?: Prisma.DeliveryUpdateOneWithoutOrderNestedInput
+  offers?: Prisma.DeliveryOfferUpdateManyWithoutOrderNestedInput
+  reviews?: Prisma.ReviewUpdateManyWithoutOrderNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutOrderNestedInput
+  statusEvents?: Prisma.OrderStatusEventUpdateManyWithoutOrderNestedInput
+  walletTxs?: Prisma.WalletTransactionUpdateManyWithoutOrderNestedInput
+}
+
+export type OrderUncheckedUpdateWithoutScansInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  code?: Prisma.StringFieldUpdateOperationsInput | string
+  customerId?: Prisma.StringFieldUpdateOperationsInput | string
+  shopId?: Prisma.StringFieldUpdateOperationsInput | string
+  driverId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
+  subtotal?: Prisma.IntFieldUpdateOperationsInput | number
+  deliveryFee?: Prisma.IntFieldUpdateOperationsInput | number
+  total?: Prisma.IntFieldUpdateOperationsInput | number
+  commissionAmount?: Prisma.IntFieldUpdateOperationsInput | number
+  driverEarning?: Prisma.IntFieldUpdateOperationsInput | number
+  paymentMethod?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
+  customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  addressId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deliveryAddressLine?: Prisma.StringFieldUpdateOperationsInput | string
+  deliveryCity?: Prisma.StringFieldUpdateOperationsInput | string
+  deliveryLatitude?: Prisma.FloatFieldUpdateOperationsInput | number
+  deliveryLongitude?: Prisma.FloatFieldUpdateOperationsInput | number
+  customerPhone?: Prisma.StringFieldUpdateOperationsInput | string
+  distanceMeters?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cancelReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cancelledBy?: Prisma.NullableEnumActorTypeFieldUpdateOperationsInput | $Enums.ActorType | null
+  offerAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  acceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  preparingAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  readyAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  assignedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  pickedUpAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  outForDeliveryAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deliveredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  stockReserved?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  clientRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pickupToken?: Prisma.StringFieldUpdateOperationsInput | string
+  deliveryToken?: Prisma.StringFieldUpdateOperationsInput | string
+  pickupVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deliveryVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deliveryPin?: Prisma.StringFieldUpdateOperationsInput | string
+  deliveryPinAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  items?: Prisma.OrderItemUncheckedUpdateManyWithoutOrderNestedInput
+  delivery?: Prisma.DeliveryUncheckedUpdateOneWithoutOrderNestedInput
+  offers?: Prisma.DeliveryOfferUncheckedUpdateManyWithoutOrderNestedInput
+  reviews?: Prisma.ReviewUncheckedUpdateManyWithoutOrderNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutOrderNestedInput
+  statusEvents?: Prisma.OrderStatusEventUncheckedUpdateManyWithoutOrderNestedInput
   walletTxs?: Prisma.WalletTransactionUncheckedUpdateManyWithoutOrderNestedInput
 }
 
@@ -2533,6 +2878,8 @@ export type OrderCreateWithoutDeliveryInput = {
   deliveryToken?: string
   pickupVerifiedAt?: Date | string | null
   deliveryVerifiedAt?: Date | string | null
+  deliveryPin?: string
+  deliveryPinAttempts?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   customer: Prisma.UserCreateNestedOneWithoutOrdersInput
@@ -2545,6 +2892,7 @@ export type OrderCreateWithoutDeliveryInput = {
   notifications?: Prisma.NotificationCreateNestedManyWithoutOrderInput
   statusEvents?: Prisma.OrderStatusEventCreateNestedManyWithoutOrderInput
   walletTxs?: Prisma.WalletTransactionCreateNestedManyWithoutOrderInput
+  scans?: Prisma.OrderScanCreateNestedManyWithoutOrderInput
 }
 
 export type OrderUncheckedCreateWithoutDeliveryInput = {
@@ -2586,6 +2934,8 @@ export type OrderUncheckedCreateWithoutDeliveryInput = {
   deliveryToken?: string
   pickupVerifiedAt?: Date | string | null
   deliveryVerifiedAt?: Date | string | null
+  deliveryPin?: string
+  deliveryPinAttempts?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   items?: Prisma.OrderItemUncheckedCreateNestedManyWithoutOrderInput
@@ -2594,6 +2944,7 @@ export type OrderUncheckedCreateWithoutDeliveryInput = {
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutOrderInput
   statusEvents?: Prisma.OrderStatusEventUncheckedCreateNestedManyWithoutOrderInput
   walletTxs?: Prisma.WalletTransactionUncheckedCreateNestedManyWithoutOrderInput
+  scans?: Prisma.OrderScanUncheckedCreateNestedManyWithoutOrderInput
 }
 
 export type OrderCreateOrConnectWithoutDeliveryInput = {
@@ -2647,6 +2998,8 @@ export type OrderUpdateWithoutDeliveryInput = {
   deliveryToken?: Prisma.StringFieldUpdateOperationsInput | string
   pickupVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveryVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deliveryPin?: Prisma.StringFieldUpdateOperationsInput | string
+  deliveryPinAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   customer?: Prisma.UserUpdateOneRequiredWithoutOrdersNestedInput
@@ -2659,6 +3012,7 @@ export type OrderUpdateWithoutDeliveryInput = {
   notifications?: Prisma.NotificationUpdateManyWithoutOrderNestedInput
   statusEvents?: Prisma.OrderStatusEventUpdateManyWithoutOrderNestedInput
   walletTxs?: Prisma.WalletTransactionUpdateManyWithoutOrderNestedInput
+  scans?: Prisma.OrderScanUpdateManyWithoutOrderNestedInput
 }
 
 export type OrderUncheckedUpdateWithoutDeliveryInput = {
@@ -2700,6 +3054,8 @@ export type OrderUncheckedUpdateWithoutDeliveryInput = {
   deliveryToken?: Prisma.StringFieldUpdateOperationsInput | string
   pickupVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveryVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deliveryPin?: Prisma.StringFieldUpdateOperationsInput | string
+  deliveryPinAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   items?: Prisma.OrderItemUncheckedUpdateManyWithoutOrderNestedInput
@@ -2708,6 +3064,7 @@ export type OrderUncheckedUpdateWithoutDeliveryInput = {
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutOrderNestedInput
   statusEvents?: Prisma.OrderStatusEventUncheckedUpdateManyWithoutOrderNestedInput
   walletTxs?: Prisma.WalletTransactionUncheckedUpdateManyWithoutOrderNestedInput
+  scans?: Prisma.OrderScanUncheckedUpdateManyWithoutOrderNestedInput
 }
 
 export type OrderCreateWithoutOffersInput = {
@@ -2745,6 +3102,8 @@ export type OrderCreateWithoutOffersInput = {
   deliveryToken?: string
   pickupVerifiedAt?: Date | string | null
   deliveryVerifiedAt?: Date | string | null
+  deliveryPin?: string
+  deliveryPinAttempts?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   customer: Prisma.UserCreateNestedOneWithoutOrdersInput
@@ -2757,6 +3116,7 @@ export type OrderCreateWithoutOffersInput = {
   notifications?: Prisma.NotificationCreateNestedManyWithoutOrderInput
   statusEvents?: Prisma.OrderStatusEventCreateNestedManyWithoutOrderInput
   walletTxs?: Prisma.WalletTransactionCreateNestedManyWithoutOrderInput
+  scans?: Prisma.OrderScanCreateNestedManyWithoutOrderInput
 }
 
 export type OrderUncheckedCreateWithoutOffersInput = {
@@ -2798,6 +3158,8 @@ export type OrderUncheckedCreateWithoutOffersInput = {
   deliveryToken?: string
   pickupVerifiedAt?: Date | string | null
   deliveryVerifiedAt?: Date | string | null
+  deliveryPin?: string
+  deliveryPinAttempts?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   items?: Prisma.OrderItemUncheckedCreateNestedManyWithoutOrderInput
@@ -2806,6 +3168,7 @@ export type OrderUncheckedCreateWithoutOffersInput = {
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutOrderInput
   statusEvents?: Prisma.OrderStatusEventUncheckedCreateNestedManyWithoutOrderInput
   walletTxs?: Prisma.WalletTransactionUncheckedCreateNestedManyWithoutOrderInput
+  scans?: Prisma.OrderScanUncheckedCreateNestedManyWithoutOrderInput
 }
 
 export type OrderCreateOrConnectWithoutOffersInput = {
@@ -2859,6 +3222,8 @@ export type OrderUpdateWithoutOffersInput = {
   deliveryToken?: Prisma.StringFieldUpdateOperationsInput | string
   pickupVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveryVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deliveryPin?: Prisma.StringFieldUpdateOperationsInput | string
+  deliveryPinAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   customer?: Prisma.UserUpdateOneRequiredWithoutOrdersNestedInput
@@ -2871,6 +3236,7 @@ export type OrderUpdateWithoutOffersInput = {
   notifications?: Prisma.NotificationUpdateManyWithoutOrderNestedInput
   statusEvents?: Prisma.OrderStatusEventUpdateManyWithoutOrderNestedInput
   walletTxs?: Prisma.WalletTransactionUpdateManyWithoutOrderNestedInput
+  scans?: Prisma.OrderScanUpdateManyWithoutOrderNestedInput
 }
 
 export type OrderUncheckedUpdateWithoutOffersInput = {
@@ -2912,6 +3278,8 @@ export type OrderUncheckedUpdateWithoutOffersInput = {
   deliveryToken?: Prisma.StringFieldUpdateOperationsInput | string
   pickupVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveryVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deliveryPin?: Prisma.StringFieldUpdateOperationsInput | string
+  deliveryPinAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   items?: Prisma.OrderItemUncheckedUpdateManyWithoutOrderNestedInput
@@ -2920,6 +3288,7 @@ export type OrderUncheckedUpdateWithoutOffersInput = {
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutOrderNestedInput
   statusEvents?: Prisma.OrderStatusEventUncheckedUpdateManyWithoutOrderNestedInput
   walletTxs?: Prisma.WalletTransactionUncheckedUpdateManyWithoutOrderNestedInput
+  scans?: Prisma.OrderScanUncheckedUpdateManyWithoutOrderNestedInput
 }
 
 export type OrderCreateWithoutReviewsInput = {
@@ -2957,6 +3326,8 @@ export type OrderCreateWithoutReviewsInput = {
   deliveryToken?: string
   pickupVerifiedAt?: Date | string | null
   deliveryVerifiedAt?: Date | string | null
+  deliveryPin?: string
+  deliveryPinAttempts?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   customer: Prisma.UserCreateNestedOneWithoutOrdersInput
@@ -2969,6 +3340,7 @@ export type OrderCreateWithoutReviewsInput = {
   notifications?: Prisma.NotificationCreateNestedManyWithoutOrderInput
   statusEvents?: Prisma.OrderStatusEventCreateNestedManyWithoutOrderInput
   walletTxs?: Prisma.WalletTransactionCreateNestedManyWithoutOrderInput
+  scans?: Prisma.OrderScanCreateNestedManyWithoutOrderInput
 }
 
 export type OrderUncheckedCreateWithoutReviewsInput = {
@@ -3010,6 +3382,8 @@ export type OrderUncheckedCreateWithoutReviewsInput = {
   deliveryToken?: string
   pickupVerifiedAt?: Date | string | null
   deliveryVerifiedAt?: Date | string | null
+  deliveryPin?: string
+  deliveryPinAttempts?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   items?: Prisma.OrderItemUncheckedCreateNestedManyWithoutOrderInput
@@ -3018,6 +3392,7 @@ export type OrderUncheckedCreateWithoutReviewsInput = {
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutOrderInput
   statusEvents?: Prisma.OrderStatusEventUncheckedCreateNestedManyWithoutOrderInput
   walletTxs?: Prisma.WalletTransactionUncheckedCreateNestedManyWithoutOrderInput
+  scans?: Prisma.OrderScanUncheckedCreateNestedManyWithoutOrderInput
 }
 
 export type OrderCreateOrConnectWithoutReviewsInput = {
@@ -3071,6 +3446,8 @@ export type OrderUpdateWithoutReviewsInput = {
   deliveryToken?: Prisma.StringFieldUpdateOperationsInput | string
   pickupVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveryVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deliveryPin?: Prisma.StringFieldUpdateOperationsInput | string
+  deliveryPinAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   customer?: Prisma.UserUpdateOneRequiredWithoutOrdersNestedInput
@@ -3083,6 +3460,7 @@ export type OrderUpdateWithoutReviewsInput = {
   notifications?: Prisma.NotificationUpdateManyWithoutOrderNestedInput
   statusEvents?: Prisma.OrderStatusEventUpdateManyWithoutOrderNestedInput
   walletTxs?: Prisma.WalletTransactionUpdateManyWithoutOrderNestedInput
+  scans?: Prisma.OrderScanUpdateManyWithoutOrderNestedInput
 }
 
 export type OrderUncheckedUpdateWithoutReviewsInput = {
@@ -3124,6 +3502,8 @@ export type OrderUncheckedUpdateWithoutReviewsInput = {
   deliveryToken?: Prisma.StringFieldUpdateOperationsInput | string
   pickupVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveryVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deliveryPin?: Prisma.StringFieldUpdateOperationsInput | string
+  deliveryPinAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   items?: Prisma.OrderItemUncheckedUpdateManyWithoutOrderNestedInput
@@ -3132,6 +3512,7 @@ export type OrderUncheckedUpdateWithoutReviewsInput = {
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutOrderNestedInput
   statusEvents?: Prisma.OrderStatusEventUncheckedUpdateManyWithoutOrderNestedInput
   walletTxs?: Prisma.WalletTransactionUncheckedUpdateManyWithoutOrderNestedInput
+  scans?: Prisma.OrderScanUncheckedUpdateManyWithoutOrderNestedInput
 }
 
 export type OrderCreateWithoutWalletTxsInput = {
@@ -3169,6 +3550,8 @@ export type OrderCreateWithoutWalletTxsInput = {
   deliveryToken?: string
   pickupVerifiedAt?: Date | string | null
   deliveryVerifiedAt?: Date | string | null
+  deliveryPin?: string
+  deliveryPinAttempts?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   customer: Prisma.UserCreateNestedOneWithoutOrdersInput
@@ -3181,6 +3564,7 @@ export type OrderCreateWithoutWalletTxsInput = {
   reviews?: Prisma.ReviewCreateNestedManyWithoutOrderInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutOrderInput
   statusEvents?: Prisma.OrderStatusEventCreateNestedManyWithoutOrderInput
+  scans?: Prisma.OrderScanCreateNestedManyWithoutOrderInput
 }
 
 export type OrderUncheckedCreateWithoutWalletTxsInput = {
@@ -3222,6 +3606,8 @@ export type OrderUncheckedCreateWithoutWalletTxsInput = {
   deliveryToken?: string
   pickupVerifiedAt?: Date | string | null
   deliveryVerifiedAt?: Date | string | null
+  deliveryPin?: string
+  deliveryPinAttempts?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   items?: Prisma.OrderItemUncheckedCreateNestedManyWithoutOrderInput
@@ -3230,6 +3616,7 @@ export type OrderUncheckedCreateWithoutWalletTxsInput = {
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutOrderInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutOrderInput
   statusEvents?: Prisma.OrderStatusEventUncheckedCreateNestedManyWithoutOrderInput
+  scans?: Prisma.OrderScanUncheckedCreateNestedManyWithoutOrderInput
 }
 
 export type OrderCreateOrConnectWithoutWalletTxsInput = {
@@ -3283,6 +3670,8 @@ export type OrderUpdateWithoutWalletTxsInput = {
   deliveryToken?: Prisma.StringFieldUpdateOperationsInput | string
   pickupVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveryVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deliveryPin?: Prisma.StringFieldUpdateOperationsInput | string
+  deliveryPinAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   customer?: Prisma.UserUpdateOneRequiredWithoutOrdersNestedInput
@@ -3295,6 +3684,7 @@ export type OrderUpdateWithoutWalletTxsInput = {
   reviews?: Prisma.ReviewUpdateManyWithoutOrderNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutOrderNestedInput
   statusEvents?: Prisma.OrderStatusEventUpdateManyWithoutOrderNestedInput
+  scans?: Prisma.OrderScanUpdateManyWithoutOrderNestedInput
 }
 
 export type OrderUncheckedUpdateWithoutWalletTxsInput = {
@@ -3336,6 +3726,8 @@ export type OrderUncheckedUpdateWithoutWalletTxsInput = {
   deliveryToken?: Prisma.StringFieldUpdateOperationsInput | string
   pickupVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveryVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deliveryPin?: Prisma.StringFieldUpdateOperationsInput | string
+  deliveryPinAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   items?: Prisma.OrderItemUncheckedUpdateManyWithoutOrderNestedInput
@@ -3344,6 +3736,7 @@ export type OrderUncheckedUpdateWithoutWalletTxsInput = {
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutOrderNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutOrderNestedInput
   statusEvents?: Prisma.OrderStatusEventUncheckedUpdateManyWithoutOrderNestedInput
+  scans?: Prisma.OrderScanUncheckedUpdateManyWithoutOrderNestedInput
 }
 
 export type OrderCreateWithoutNotificationsInput = {
@@ -3381,6 +3774,8 @@ export type OrderCreateWithoutNotificationsInput = {
   deliveryToken?: string
   pickupVerifiedAt?: Date | string | null
   deliveryVerifiedAt?: Date | string | null
+  deliveryPin?: string
+  deliveryPinAttempts?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   customer: Prisma.UserCreateNestedOneWithoutOrdersInput
@@ -3393,6 +3788,7 @@ export type OrderCreateWithoutNotificationsInput = {
   reviews?: Prisma.ReviewCreateNestedManyWithoutOrderInput
   statusEvents?: Prisma.OrderStatusEventCreateNestedManyWithoutOrderInput
   walletTxs?: Prisma.WalletTransactionCreateNestedManyWithoutOrderInput
+  scans?: Prisma.OrderScanCreateNestedManyWithoutOrderInput
 }
 
 export type OrderUncheckedCreateWithoutNotificationsInput = {
@@ -3434,6 +3830,8 @@ export type OrderUncheckedCreateWithoutNotificationsInput = {
   deliveryToken?: string
   pickupVerifiedAt?: Date | string | null
   deliveryVerifiedAt?: Date | string | null
+  deliveryPin?: string
+  deliveryPinAttempts?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   items?: Prisma.OrderItemUncheckedCreateNestedManyWithoutOrderInput
@@ -3442,6 +3840,7 @@ export type OrderUncheckedCreateWithoutNotificationsInput = {
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutOrderInput
   statusEvents?: Prisma.OrderStatusEventUncheckedCreateNestedManyWithoutOrderInput
   walletTxs?: Prisma.WalletTransactionUncheckedCreateNestedManyWithoutOrderInput
+  scans?: Prisma.OrderScanUncheckedCreateNestedManyWithoutOrderInput
 }
 
 export type OrderCreateOrConnectWithoutNotificationsInput = {
@@ -3495,6 +3894,8 @@ export type OrderUpdateWithoutNotificationsInput = {
   deliveryToken?: Prisma.StringFieldUpdateOperationsInput | string
   pickupVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveryVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deliveryPin?: Prisma.StringFieldUpdateOperationsInput | string
+  deliveryPinAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   customer?: Prisma.UserUpdateOneRequiredWithoutOrdersNestedInput
@@ -3507,6 +3908,7 @@ export type OrderUpdateWithoutNotificationsInput = {
   reviews?: Prisma.ReviewUpdateManyWithoutOrderNestedInput
   statusEvents?: Prisma.OrderStatusEventUpdateManyWithoutOrderNestedInput
   walletTxs?: Prisma.WalletTransactionUpdateManyWithoutOrderNestedInput
+  scans?: Prisma.OrderScanUpdateManyWithoutOrderNestedInput
 }
 
 export type OrderUncheckedUpdateWithoutNotificationsInput = {
@@ -3548,6 +3950,8 @@ export type OrderUncheckedUpdateWithoutNotificationsInput = {
   deliveryToken?: Prisma.StringFieldUpdateOperationsInput | string
   pickupVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveryVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deliveryPin?: Prisma.StringFieldUpdateOperationsInput | string
+  deliveryPinAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   items?: Prisma.OrderItemUncheckedUpdateManyWithoutOrderNestedInput
@@ -3556,6 +3960,7 @@ export type OrderUncheckedUpdateWithoutNotificationsInput = {
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutOrderNestedInput
   statusEvents?: Prisma.OrderStatusEventUncheckedUpdateManyWithoutOrderNestedInput
   walletTxs?: Prisma.WalletTransactionUncheckedUpdateManyWithoutOrderNestedInput
+  scans?: Prisma.OrderScanUncheckedUpdateManyWithoutOrderNestedInput
 }
 
 export type OrderCreateManyCustomerInput = {
@@ -3596,6 +4001,8 @@ export type OrderCreateManyCustomerInput = {
   deliveryToken?: string
   pickupVerifiedAt?: Date | string | null
   deliveryVerifiedAt?: Date | string | null
+  deliveryPin?: string
+  deliveryPinAttempts?: number
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -3635,6 +4042,8 @@ export type OrderUpdateWithoutCustomerInput = {
   deliveryToken?: Prisma.StringFieldUpdateOperationsInput | string
   pickupVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveryVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deliveryPin?: Prisma.StringFieldUpdateOperationsInput | string
+  deliveryPinAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   shop?: Prisma.ShopUpdateOneRequiredWithoutOrdersNestedInput
@@ -3647,6 +4056,7 @@ export type OrderUpdateWithoutCustomerInput = {
   notifications?: Prisma.NotificationUpdateManyWithoutOrderNestedInput
   statusEvents?: Prisma.OrderStatusEventUpdateManyWithoutOrderNestedInput
   walletTxs?: Prisma.WalletTransactionUpdateManyWithoutOrderNestedInput
+  scans?: Prisma.OrderScanUpdateManyWithoutOrderNestedInput
 }
 
 export type OrderUncheckedUpdateWithoutCustomerInput = {
@@ -3687,6 +4097,8 @@ export type OrderUncheckedUpdateWithoutCustomerInput = {
   deliveryToken?: Prisma.StringFieldUpdateOperationsInput | string
   pickupVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveryVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deliveryPin?: Prisma.StringFieldUpdateOperationsInput | string
+  deliveryPinAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   items?: Prisma.OrderItemUncheckedUpdateManyWithoutOrderNestedInput
@@ -3696,6 +4108,7 @@ export type OrderUncheckedUpdateWithoutCustomerInput = {
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutOrderNestedInput
   statusEvents?: Prisma.OrderStatusEventUncheckedUpdateManyWithoutOrderNestedInput
   walletTxs?: Prisma.WalletTransactionUncheckedUpdateManyWithoutOrderNestedInput
+  scans?: Prisma.OrderScanUncheckedUpdateManyWithoutOrderNestedInput
 }
 
 export type OrderUncheckedUpdateManyWithoutCustomerInput = {
@@ -3736,6 +4149,8 @@ export type OrderUncheckedUpdateManyWithoutCustomerInput = {
   deliveryToken?: Prisma.StringFieldUpdateOperationsInput | string
   pickupVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveryVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deliveryPin?: Prisma.StringFieldUpdateOperationsInput | string
+  deliveryPinAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -3778,6 +4193,8 @@ export type OrderCreateManyAddressInput = {
   deliveryToken?: string
   pickupVerifiedAt?: Date | string | null
   deliveryVerifiedAt?: Date | string | null
+  deliveryPin?: string
+  deliveryPinAttempts?: number
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -3817,6 +4234,8 @@ export type OrderUpdateWithoutAddressInput = {
   deliveryToken?: Prisma.StringFieldUpdateOperationsInput | string
   pickupVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveryVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deliveryPin?: Prisma.StringFieldUpdateOperationsInput | string
+  deliveryPinAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   customer?: Prisma.UserUpdateOneRequiredWithoutOrdersNestedInput
@@ -3829,6 +4248,7 @@ export type OrderUpdateWithoutAddressInput = {
   notifications?: Prisma.NotificationUpdateManyWithoutOrderNestedInput
   statusEvents?: Prisma.OrderStatusEventUpdateManyWithoutOrderNestedInput
   walletTxs?: Prisma.WalletTransactionUpdateManyWithoutOrderNestedInput
+  scans?: Prisma.OrderScanUpdateManyWithoutOrderNestedInput
 }
 
 export type OrderUncheckedUpdateWithoutAddressInput = {
@@ -3869,6 +4289,8 @@ export type OrderUncheckedUpdateWithoutAddressInput = {
   deliveryToken?: Prisma.StringFieldUpdateOperationsInput | string
   pickupVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveryVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deliveryPin?: Prisma.StringFieldUpdateOperationsInput | string
+  deliveryPinAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   items?: Prisma.OrderItemUncheckedUpdateManyWithoutOrderNestedInput
@@ -3878,6 +4300,7 @@ export type OrderUncheckedUpdateWithoutAddressInput = {
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutOrderNestedInput
   statusEvents?: Prisma.OrderStatusEventUncheckedUpdateManyWithoutOrderNestedInput
   walletTxs?: Prisma.WalletTransactionUncheckedUpdateManyWithoutOrderNestedInput
+  scans?: Prisma.OrderScanUncheckedUpdateManyWithoutOrderNestedInput
 }
 
 export type OrderUncheckedUpdateManyWithoutAddressInput = {
@@ -3918,6 +4341,8 @@ export type OrderUncheckedUpdateManyWithoutAddressInput = {
   deliveryToken?: Prisma.StringFieldUpdateOperationsInput | string
   pickupVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveryVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deliveryPin?: Prisma.StringFieldUpdateOperationsInput | string
+  deliveryPinAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -3960,6 +4385,8 @@ export type OrderCreateManyShopInput = {
   deliveryToken?: string
   pickupVerifiedAt?: Date | string | null
   deliveryVerifiedAt?: Date | string | null
+  deliveryPin?: string
+  deliveryPinAttempts?: number
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -3999,6 +4426,8 @@ export type OrderUpdateWithoutShopInput = {
   deliveryToken?: Prisma.StringFieldUpdateOperationsInput | string
   pickupVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveryVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deliveryPin?: Prisma.StringFieldUpdateOperationsInput | string
+  deliveryPinAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   customer?: Prisma.UserUpdateOneRequiredWithoutOrdersNestedInput
@@ -4011,6 +4440,7 @@ export type OrderUpdateWithoutShopInput = {
   notifications?: Prisma.NotificationUpdateManyWithoutOrderNestedInput
   statusEvents?: Prisma.OrderStatusEventUpdateManyWithoutOrderNestedInput
   walletTxs?: Prisma.WalletTransactionUpdateManyWithoutOrderNestedInput
+  scans?: Prisma.OrderScanUpdateManyWithoutOrderNestedInput
 }
 
 export type OrderUncheckedUpdateWithoutShopInput = {
@@ -4051,6 +4481,8 @@ export type OrderUncheckedUpdateWithoutShopInput = {
   deliveryToken?: Prisma.StringFieldUpdateOperationsInput | string
   pickupVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveryVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deliveryPin?: Prisma.StringFieldUpdateOperationsInput | string
+  deliveryPinAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   items?: Prisma.OrderItemUncheckedUpdateManyWithoutOrderNestedInput
@@ -4060,6 +4492,7 @@ export type OrderUncheckedUpdateWithoutShopInput = {
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutOrderNestedInput
   statusEvents?: Prisma.OrderStatusEventUncheckedUpdateManyWithoutOrderNestedInput
   walletTxs?: Prisma.WalletTransactionUncheckedUpdateManyWithoutOrderNestedInput
+  scans?: Prisma.OrderScanUncheckedUpdateManyWithoutOrderNestedInput
 }
 
 export type OrderUncheckedUpdateManyWithoutShopInput = {
@@ -4100,6 +4533,8 @@ export type OrderUncheckedUpdateManyWithoutShopInput = {
   deliveryToken?: Prisma.StringFieldUpdateOperationsInput | string
   pickupVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveryVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deliveryPin?: Prisma.StringFieldUpdateOperationsInput | string
+  deliveryPinAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -4142,6 +4577,8 @@ export type OrderCreateManyDriverInput = {
   deliveryToken?: string
   pickupVerifiedAt?: Date | string | null
   deliveryVerifiedAt?: Date | string | null
+  deliveryPin?: string
+  deliveryPinAttempts?: number
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -4181,6 +4618,8 @@ export type OrderUpdateWithoutDriverInput = {
   deliveryToken?: Prisma.StringFieldUpdateOperationsInput | string
   pickupVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveryVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deliveryPin?: Prisma.StringFieldUpdateOperationsInput | string
+  deliveryPinAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   customer?: Prisma.UserUpdateOneRequiredWithoutOrdersNestedInput
@@ -4193,6 +4632,7 @@ export type OrderUpdateWithoutDriverInput = {
   notifications?: Prisma.NotificationUpdateManyWithoutOrderNestedInput
   statusEvents?: Prisma.OrderStatusEventUpdateManyWithoutOrderNestedInput
   walletTxs?: Prisma.WalletTransactionUpdateManyWithoutOrderNestedInput
+  scans?: Prisma.OrderScanUpdateManyWithoutOrderNestedInput
 }
 
 export type OrderUncheckedUpdateWithoutDriverInput = {
@@ -4233,6 +4673,8 @@ export type OrderUncheckedUpdateWithoutDriverInput = {
   deliveryToken?: Prisma.StringFieldUpdateOperationsInput | string
   pickupVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveryVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deliveryPin?: Prisma.StringFieldUpdateOperationsInput | string
+  deliveryPinAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   items?: Prisma.OrderItemUncheckedUpdateManyWithoutOrderNestedInput
@@ -4242,6 +4684,7 @@ export type OrderUncheckedUpdateWithoutDriverInput = {
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutOrderNestedInput
   statusEvents?: Prisma.OrderStatusEventUncheckedUpdateManyWithoutOrderNestedInput
   walletTxs?: Prisma.WalletTransactionUncheckedUpdateManyWithoutOrderNestedInput
+  scans?: Prisma.OrderScanUncheckedUpdateManyWithoutOrderNestedInput
 }
 
 export type OrderUncheckedUpdateManyWithoutDriverInput = {
@@ -4282,6 +4725,8 @@ export type OrderUncheckedUpdateManyWithoutDriverInput = {
   deliveryToken?: Prisma.StringFieldUpdateOperationsInput | string
   pickupVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveryVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deliveryPin?: Prisma.StringFieldUpdateOperationsInput | string
+  deliveryPinAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -4298,6 +4743,7 @@ export type OrderCountOutputType = {
   notifications: number
   statusEvents: number
   walletTxs: number
+  scans: number
 }
 
 export type OrderCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -4307,6 +4753,7 @@ export type OrderCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.
   notifications?: boolean | OrderCountOutputTypeCountNotificationsArgs
   statusEvents?: boolean | OrderCountOutputTypeCountStatusEventsArgs
   walletTxs?: boolean | OrderCountOutputTypeCountWalletTxsArgs
+  scans?: boolean | OrderCountOutputTypeCountScansArgs
 }
 
 /**
@@ -4361,6 +4808,13 @@ export type OrderCountOutputTypeCountWalletTxsArgs<ExtArgs extends runtime.Types
   where?: Prisma.WalletTransactionWhereInput
 }
 
+/**
+ * OrderCountOutputType without action
+ */
+export type OrderCountOutputTypeCountScansArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.OrderScanWhereInput
+}
+
 
 export type OrderSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -4401,6 +4855,8 @@ export type OrderSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   deliveryToken?: boolean
   pickupVerifiedAt?: boolean
   deliveryVerifiedAt?: boolean
+  deliveryPin?: boolean
+  deliveryPinAttempts?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   customer?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -4414,6 +4870,7 @@ export type OrderSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   notifications?: boolean | Prisma.Order$notificationsArgs<ExtArgs>
   statusEvents?: boolean | Prisma.Order$statusEventsArgs<ExtArgs>
   walletTxs?: boolean | Prisma.Order$walletTxsArgs<ExtArgs>
+  scans?: boolean | Prisma.Order$scansArgs<ExtArgs>
   _count?: boolean | Prisma.OrderCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["order"]>
 
@@ -4456,6 +4913,8 @@ export type OrderSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   deliveryToken?: boolean
   pickupVerifiedAt?: boolean
   deliveryVerifiedAt?: boolean
+  deliveryPin?: boolean
+  deliveryPinAttempts?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   customer?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -4503,6 +4962,8 @@ export type OrderSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   deliveryToken?: boolean
   pickupVerifiedAt?: boolean
   deliveryVerifiedAt?: boolean
+  deliveryPin?: boolean
+  deliveryPinAttempts?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   customer?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -4550,11 +5011,13 @@ export type OrderSelectScalar = {
   deliveryToken?: boolean
   pickupVerifiedAt?: boolean
   deliveryVerifiedAt?: boolean
+  deliveryPin?: boolean
+  deliveryPinAttempts?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type OrderOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "code" | "customerId" | "shopId" | "driverId" | "status" | "subtotal" | "deliveryFee" | "total" | "commissionAmount" | "driverEarning" | "paymentMethod" | "customerNote" | "addressId" | "deliveryAddressLine" | "deliveryCity" | "deliveryLatitude" | "deliveryLongitude" | "customerPhone" | "distanceMeters" | "rejectionReason" | "cancelReason" | "cancelledBy" | "offerAttempts" | "acceptedAt" | "preparingAt" | "readyAt" | "assignedAt" | "pickedUpAt" | "outForDeliveryAt" | "deliveredAt" | "closedAt" | "stockReserved" | "clientRequestId" | "pickupToken" | "deliveryToken" | "pickupVerifiedAt" | "deliveryVerifiedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["order"]>
+export type OrderOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "code" | "customerId" | "shopId" | "driverId" | "status" | "subtotal" | "deliveryFee" | "total" | "commissionAmount" | "driverEarning" | "paymentMethod" | "customerNote" | "addressId" | "deliveryAddressLine" | "deliveryCity" | "deliveryLatitude" | "deliveryLongitude" | "customerPhone" | "distanceMeters" | "rejectionReason" | "cancelReason" | "cancelledBy" | "offerAttempts" | "acceptedAt" | "preparingAt" | "readyAt" | "assignedAt" | "pickedUpAt" | "outForDeliveryAt" | "deliveredAt" | "closedAt" | "stockReserved" | "clientRequestId" | "pickupToken" | "deliveryToken" | "pickupVerifiedAt" | "deliveryVerifiedAt" | "deliveryPin" | "deliveryPinAttempts" | "createdAt" | "updatedAt", ExtArgs["result"]["order"]>
 export type OrderInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   customer?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   shop?: boolean | Prisma.ShopDefaultArgs<ExtArgs>
@@ -4567,6 +5030,7 @@ export type OrderInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   notifications?: boolean | Prisma.Order$notificationsArgs<ExtArgs>
   statusEvents?: boolean | Prisma.Order$statusEventsArgs<ExtArgs>
   walletTxs?: boolean | Prisma.Order$walletTxsArgs<ExtArgs>
+  scans?: boolean | Prisma.Order$scansArgs<ExtArgs>
   _count?: boolean | Prisma.OrderCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type OrderIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -4596,6 +5060,7 @@ export type $OrderPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     notifications: Prisma.$NotificationPayload<ExtArgs>[]
     statusEvents: Prisma.$OrderStatusEventPayload<ExtArgs>[]
     walletTxs: Prisma.$WalletTransactionPayload<ExtArgs>[]
+    scans: Prisma.$OrderScanPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -4669,6 +5134,14 @@ export type $OrderPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
      */
     pickupVerifiedAt: Date | null
     deliveryVerifiedAt: Date | null
+    /**
+     * رمز تأكيد التسليم (4 أرقام) — يظهر للزبون وحده ويعطيه للموصّل عند الاستلام (بديل مسح QR الزبون)
+     */
+    deliveryPin: string
+    /**
+     * عدد محاولات PIN الخاطئة — يُقفل بعد حد معيّن ويبقى QR الزبون متاحًا
+     */
+    deliveryPinAttempts: number
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["order"]>
@@ -5076,6 +5549,7 @@ export interface Prisma__OrderClient<T, Null = never, ExtArgs extends runtime.Ty
   notifications<T extends Prisma.Order$notificationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Order$notificationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$NotificationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   statusEvents<T extends Prisma.Order$statusEventsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Order$statusEventsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OrderStatusEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   walletTxs<T extends Prisma.Order$walletTxsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Order$walletTxsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$WalletTransactionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  scans<T extends Prisma.Order$scansArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Order$scansArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OrderScanPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -5143,6 +5617,8 @@ export interface OrderFieldRefs {
   readonly deliveryToken: Prisma.FieldRef<"Order", 'String'>
   readonly pickupVerifiedAt: Prisma.FieldRef<"Order", 'DateTime'>
   readonly deliveryVerifiedAt: Prisma.FieldRef<"Order", 'DateTime'>
+  readonly deliveryPin: Prisma.FieldRef<"Order", 'String'>
+  readonly deliveryPinAttempts: Prisma.FieldRef<"Order", 'Int'>
   readonly createdAt: Prisma.FieldRef<"Order", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Order", 'DateTime'>
 }
@@ -5744,6 +6220,30 @@ export type Order$walletTxsArgs<ExtArgs extends runtime.Types.Extensions.Interna
   take?: number
   skip?: number
   distinct?: Prisma.WalletTransactionScalarFieldEnum | Prisma.WalletTransactionScalarFieldEnum[]
+}
+
+/**
+ * Order.scans
+ */
+export type Order$scansArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the OrderScan
+   */
+  select?: Prisma.OrderScanSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the OrderScan
+   */
+  omit?: Prisma.OrderScanOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OrderScanInclude<ExtArgs> | null
+  where?: Prisma.OrderScanWhereInput
+  orderBy?: Prisma.OrderScanOrderByWithRelationInput | Prisma.OrderScanOrderByWithRelationInput[]
+  cursor?: Prisma.OrderScanWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.OrderScanScalarFieldEnum | Prisma.OrderScanScalarFieldEnum[]
 }
 
 /**

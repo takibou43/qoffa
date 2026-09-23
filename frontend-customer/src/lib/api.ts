@@ -2,6 +2,7 @@ import type {
   Address,
   Category,
   Notification,
+  Invoice,
   Order,
   Paginated,
   Product,
@@ -169,6 +170,7 @@ export const api = {
     request<Paginated<Order>>('/orders/me', { auth: true, query: params }),
 
   order: (id: string) => request<{ order: Order }>(`/orders/${id}`, { auth: true }),
+  invoice: (id: string) => request<{ invoice: Invoice }>(`/orders/${id}/invoice`, { auth: true }),
 
   cancelOrder: (id: string, reason?: string) =>
     request<{ ok: true }>(`/orders/${id}/cancel`, {

@@ -98,7 +98,12 @@ export interface Order {
   deliveredAt: string | null;
   /** حمولة QR التسليم — تظهر للزبون فقط ما دام الطلب نشطًا */
   deliveryQr?: string | null;
+  /** رمز التسليم القصير (4 أرقام) — يعطيه الزبون للموصّل عند الاستلام */
+  deliveryPin?: string | null;
   deliveryVerifiedAt?: string | null;
+  pickedUpAt?: string | null;
+  /** ملخص المبالغ: المنتجات + التوصيل − الخصم = الإجمالي */
+  amounts?: { productsAmount: number; deliveryFee: number; discount: number; total: number };
   items: OrderItem[];
   shop: {
     id: string;
@@ -159,4 +164,26 @@ export interface CatalogEntry {
     isAvailable: boolean;
     shop: { id: string; name: string; city: string; isOpen: boolean };
   }[];
+}
+
+export interface Invoice {
+  brand: 'QOFFA';
+  title: string;
+  orderId: string;
+  orderCode: string;
+  status: OrderStatus;
+  date: string;
+  deliveredAt: string | null;
+  shop: { name: string; phone: string; address: string };
+  customer: { fullName: string; phone: string; address: string };
+  items: { name: string; unit: string; quantity: number; unitPrice: number; lineTotal: number }[];
+  productsTotal: number;
+  deliveryFee: number;
+  discount: number;
+  total: number;
+  currency: 'DZD';
+  paymentMethod: string;
+  paymentLabel: string;
+  paymentNote: string;
+  qr: string;
 }

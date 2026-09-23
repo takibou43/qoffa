@@ -305,6 +305,7 @@ export type DriverProfileWhereInput = {
   offers?: Prisma.DeliveryOfferListRelationFilter
   reviews?: Prisma.ReviewListRelationFilter
   deliveries?: Prisma.DeliveryListRelationFilter
+  scans?: Prisma.OrderScanListRelationFilter
   wallet?: Prisma.XOR<Prisma.WalletNullableScalarRelationFilter, Prisma.WalletWhereInput> | null
 }
 
@@ -328,6 +329,7 @@ export type DriverProfileOrderByWithRelationInput = {
   offers?: Prisma.DeliveryOfferOrderByRelationAggregateInput
   reviews?: Prisma.ReviewOrderByRelationAggregateInput
   deliveries?: Prisma.DeliveryOrderByRelationAggregateInput
+  scans?: Prisma.OrderScanOrderByRelationAggregateInput
   wallet?: Prisma.WalletOrderByWithRelationInput
 }
 
@@ -354,6 +356,7 @@ export type DriverProfileWhereUniqueInput = Prisma.AtLeast<{
   offers?: Prisma.DeliveryOfferListRelationFilter
   reviews?: Prisma.ReviewListRelationFilter
   deliveries?: Prisma.DeliveryListRelationFilter
+  scans?: Prisma.OrderScanListRelationFilter
   wallet?: Prisma.XOR<Prisma.WalletNullableScalarRelationFilter, Prisma.WalletWhereInput> | null
 }, "id" | "userId" | "currentOrderId">
 
@@ -418,6 +421,7 @@ export type DriverProfileCreateInput = {
   offers?: Prisma.DeliveryOfferCreateNestedManyWithoutDriverInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutDriverInput
   deliveries?: Prisma.DeliveryCreateNestedManyWithoutDriverInput
+  scans?: Prisma.OrderScanCreateNestedManyWithoutDriverInput
   wallet?: Prisma.WalletCreateNestedOneWithoutDriverInput
 }
 
@@ -440,6 +444,7 @@ export type DriverProfileUncheckedCreateInput = {
   offers?: Prisma.DeliveryOfferUncheckedCreateNestedManyWithoutDriverInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutDriverInput
   deliveries?: Prisma.DeliveryUncheckedCreateNestedManyWithoutDriverInput
+  scans?: Prisma.OrderScanUncheckedCreateNestedManyWithoutDriverInput
   wallet?: Prisma.WalletUncheckedCreateNestedOneWithoutDriverInput
 }
 
@@ -462,6 +467,7 @@ export type DriverProfileUpdateInput = {
   offers?: Prisma.DeliveryOfferUpdateManyWithoutDriverNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutDriverNestedInput
   deliveries?: Prisma.DeliveryUpdateManyWithoutDriverNestedInput
+  scans?: Prisma.OrderScanUpdateManyWithoutDriverNestedInput
   wallet?: Prisma.WalletUpdateOneWithoutDriverNestedInput
 }
 
@@ -484,6 +490,7 @@ export type DriverProfileUncheckedUpdateInput = {
   offers?: Prisma.DeliveryOfferUncheckedUpdateManyWithoutDriverNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutDriverNestedInput
   deliveries?: Prisma.DeliveryUncheckedUpdateManyWithoutDriverNestedInput
+  scans?: Prisma.OrderScanUncheckedUpdateManyWithoutDriverNestedInput
   wallet?: Prisma.WalletUncheckedUpdateOneWithoutDriverNestedInput
 }
 
@@ -668,6 +675,20 @@ export type DriverProfileUpdateOneWithoutOrdersNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.DriverProfileUpdateToOneWithWhereWithoutOrdersInput, Prisma.DriverProfileUpdateWithoutOrdersInput>, Prisma.DriverProfileUncheckedUpdateWithoutOrdersInput>
 }
 
+export type DriverProfileCreateNestedOneWithoutScansInput = {
+  create?: Prisma.XOR<Prisma.DriverProfileCreateWithoutScansInput, Prisma.DriverProfileUncheckedCreateWithoutScansInput>
+  connectOrCreate?: Prisma.DriverProfileCreateOrConnectWithoutScansInput
+  connect?: Prisma.DriverProfileWhereUniqueInput
+}
+
+export type DriverProfileUpdateOneRequiredWithoutScansNestedInput = {
+  create?: Prisma.XOR<Prisma.DriverProfileCreateWithoutScansInput, Prisma.DriverProfileUncheckedCreateWithoutScansInput>
+  connectOrCreate?: Prisma.DriverProfileCreateOrConnectWithoutScansInput
+  upsert?: Prisma.DriverProfileUpsertWithoutScansInput
+  connect?: Prisma.DriverProfileWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.DriverProfileUpdateToOneWithWhereWithoutScansInput, Prisma.DriverProfileUpdateWithoutScansInput>, Prisma.DriverProfileUncheckedUpdateWithoutScansInput>
+}
+
 export type DriverProfileCreateNestedOneWithoutDeliveriesInput = {
   create?: Prisma.XOR<Prisma.DriverProfileCreateWithoutDeliveriesInput, Prisma.DriverProfileUncheckedCreateWithoutDeliveriesInput>
   connectOrCreate?: Prisma.DriverProfileCreateOrConnectWithoutDeliveriesInput
@@ -746,6 +767,7 @@ export type DriverProfileCreateWithoutUserInput = {
   offers?: Prisma.DeliveryOfferCreateNestedManyWithoutDriverInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutDriverInput
   deliveries?: Prisma.DeliveryCreateNestedManyWithoutDriverInput
+  scans?: Prisma.OrderScanCreateNestedManyWithoutDriverInput
   wallet?: Prisma.WalletCreateNestedOneWithoutDriverInput
 }
 
@@ -767,6 +789,7 @@ export type DriverProfileUncheckedCreateWithoutUserInput = {
   offers?: Prisma.DeliveryOfferUncheckedCreateNestedManyWithoutDriverInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutDriverInput
   deliveries?: Prisma.DeliveryUncheckedCreateNestedManyWithoutDriverInput
+  scans?: Prisma.OrderScanUncheckedCreateNestedManyWithoutDriverInput
   wallet?: Prisma.WalletUncheckedCreateNestedOneWithoutDriverInput
 }
 
@@ -804,6 +827,7 @@ export type DriverProfileUpdateWithoutUserInput = {
   offers?: Prisma.DeliveryOfferUpdateManyWithoutDriverNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutDriverNestedInput
   deliveries?: Prisma.DeliveryUpdateManyWithoutDriverNestedInput
+  scans?: Prisma.OrderScanUpdateManyWithoutDriverNestedInput
   wallet?: Prisma.WalletUpdateOneWithoutDriverNestedInput
 }
 
@@ -825,6 +849,7 @@ export type DriverProfileUncheckedUpdateWithoutUserInput = {
   offers?: Prisma.DeliveryOfferUncheckedUpdateManyWithoutDriverNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutDriverNestedInput
   deliveries?: Prisma.DeliveryUncheckedUpdateManyWithoutDriverNestedInput
+  scans?: Prisma.OrderScanUncheckedUpdateManyWithoutDriverNestedInput
   wallet?: Prisma.WalletUncheckedUpdateOneWithoutDriverNestedInput
 }
 
@@ -846,6 +871,7 @@ export type DriverProfileCreateWithoutOrdersInput = {
   offers?: Prisma.DeliveryOfferCreateNestedManyWithoutDriverInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutDriverInput
   deliveries?: Prisma.DeliveryCreateNestedManyWithoutDriverInput
+  scans?: Prisma.OrderScanCreateNestedManyWithoutDriverInput
   wallet?: Prisma.WalletCreateNestedOneWithoutDriverInput
 }
 
@@ -867,6 +893,7 @@ export type DriverProfileUncheckedCreateWithoutOrdersInput = {
   offers?: Prisma.DeliveryOfferUncheckedCreateNestedManyWithoutDriverInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutDriverInput
   deliveries?: Prisma.DeliveryUncheckedCreateNestedManyWithoutDriverInput
+  scans?: Prisma.OrderScanUncheckedCreateNestedManyWithoutDriverInput
   wallet?: Prisma.WalletUncheckedCreateNestedOneWithoutDriverInput
 }
 
@@ -904,6 +931,7 @@ export type DriverProfileUpdateWithoutOrdersInput = {
   offers?: Prisma.DeliveryOfferUpdateManyWithoutDriverNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutDriverNestedInput
   deliveries?: Prisma.DeliveryUpdateManyWithoutDriverNestedInput
+  scans?: Prisma.OrderScanUpdateManyWithoutDriverNestedInput
   wallet?: Prisma.WalletUpdateOneWithoutDriverNestedInput
 }
 
@@ -922,6 +950,111 @@ export type DriverProfileUncheckedUpdateWithoutOrdersInput = {
   ratingCount?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  offers?: Prisma.DeliveryOfferUncheckedUpdateManyWithoutDriverNestedInput
+  reviews?: Prisma.ReviewUncheckedUpdateManyWithoutDriverNestedInput
+  deliveries?: Prisma.DeliveryUncheckedUpdateManyWithoutDriverNestedInput
+  scans?: Prisma.OrderScanUncheckedUpdateManyWithoutDriverNestedInput
+  wallet?: Prisma.WalletUncheckedUpdateOneWithoutDriverNestedInput
+}
+
+export type DriverProfileCreateWithoutScansInput = {
+  id?: string
+  status?: $Enums.ApprovalStatus
+  vehicleType?: string
+  plateNumber?: string | null
+  isAvailable?: boolean
+  latitude?: number | null
+  longitude?: number | null
+  lastLocationAt?: Date | string | null
+  currentOrderId?: string | null
+  ratingAvg?: number
+  ratingCount?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  user: Prisma.UserCreateNestedOneWithoutDriverProfileInput
+  orders?: Prisma.OrderCreateNestedManyWithoutDriverInput
+  offers?: Prisma.DeliveryOfferCreateNestedManyWithoutDriverInput
+  reviews?: Prisma.ReviewCreateNestedManyWithoutDriverInput
+  deliveries?: Prisma.DeliveryCreateNestedManyWithoutDriverInput
+  wallet?: Prisma.WalletCreateNestedOneWithoutDriverInput
+}
+
+export type DriverProfileUncheckedCreateWithoutScansInput = {
+  id?: string
+  userId: string
+  status?: $Enums.ApprovalStatus
+  vehicleType?: string
+  plateNumber?: string | null
+  isAvailable?: boolean
+  latitude?: number | null
+  longitude?: number | null
+  lastLocationAt?: Date | string | null
+  currentOrderId?: string | null
+  ratingAvg?: number
+  ratingCount?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutDriverInput
+  offers?: Prisma.DeliveryOfferUncheckedCreateNestedManyWithoutDriverInput
+  reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutDriverInput
+  deliveries?: Prisma.DeliveryUncheckedCreateNestedManyWithoutDriverInput
+  wallet?: Prisma.WalletUncheckedCreateNestedOneWithoutDriverInput
+}
+
+export type DriverProfileCreateOrConnectWithoutScansInput = {
+  where: Prisma.DriverProfileWhereUniqueInput
+  create: Prisma.XOR<Prisma.DriverProfileCreateWithoutScansInput, Prisma.DriverProfileUncheckedCreateWithoutScansInput>
+}
+
+export type DriverProfileUpsertWithoutScansInput = {
+  update: Prisma.XOR<Prisma.DriverProfileUpdateWithoutScansInput, Prisma.DriverProfileUncheckedUpdateWithoutScansInput>
+  create: Prisma.XOR<Prisma.DriverProfileCreateWithoutScansInput, Prisma.DriverProfileUncheckedCreateWithoutScansInput>
+  where?: Prisma.DriverProfileWhereInput
+}
+
+export type DriverProfileUpdateToOneWithWhereWithoutScansInput = {
+  where?: Prisma.DriverProfileWhereInput
+  data: Prisma.XOR<Prisma.DriverProfileUpdateWithoutScansInput, Prisma.DriverProfileUncheckedUpdateWithoutScansInput>
+}
+
+export type DriverProfileUpdateWithoutScansInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumApprovalStatusFieldUpdateOperationsInput | $Enums.ApprovalStatus
+  vehicleType?: Prisma.StringFieldUpdateOperationsInput | string
+  plateNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isAvailable?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  lastLocationAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  currentOrderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ratingAvg?: Prisma.FloatFieldUpdateOperationsInput | number
+  ratingCount?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  user?: Prisma.UserUpdateOneRequiredWithoutDriverProfileNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutDriverNestedInput
+  offers?: Prisma.DeliveryOfferUpdateManyWithoutDriverNestedInput
+  reviews?: Prisma.ReviewUpdateManyWithoutDriverNestedInput
+  deliveries?: Prisma.DeliveryUpdateManyWithoutDriverNestedInput
+  wallet?: Prisma.WalletUpdateOneWithoutDriverNestedInput
+}
+
+export type DriverProfileUncheckedUpdateWithoutScansInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumApprovalStatusFieldUpdateOperationsInput | $Enums.ApprovalStatus
+  vehicleType?: Prisma.StringFieldUpdateOperationsInput | string
+  plateNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isAvailable?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  lastLocationAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  currentOrderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ratingAvg?: Prisma.FloatFieldUpdateOperationsInput | number
+  ratingCount?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutDriverNestedInput
   offers?: Prisma.DeliveryOfferUncheckedUpdateManyWithoutDriverNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutDriverNestedInput
   deliveries?: Prisma.DeliveryUncheckedUpdateManyWithoutDriverNestedInput
@@ -946,6 +1079,7 @@ export type DriverProfileCreateWithoutDeliveriesInput = {
   orders?: Prisma.OrderCreateNestedManyWithoutDriverInput
   offers?: Prisma.DeliveryOfferCreateNestedManyWithoutDriverInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutDriverInput
+  scans?: Prisma.OrderScanCreateNestedManyWithoutDriverInput
   wallet?: Prisma.WalletCreateNestedOneWithoutDriverInput
 }
 
@@ -967,6 +1101,7 @@ export type DriverProfileUncheckedCreateWithoutDeliveriesInput = {
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutDriverInput
   offers?: Prisma.DeliveryOfferUncheckedCreateNestedManyWithoutDriverInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutDriverInput
+  scans?: Prisma.OrderScanUncheckedCreateNestedManyWithoutDriverInput
   wallet?: Prisma.WalletUncheckedCreateNestedOneWithoutDriverInput
 }
 
@@ -1004,6 +1139,7 @@ export type DriverProfileUpdateWithoutDeliveriesInput = {
   orders?: Prisma.OrderUpdateManyWithoutDriverNestedInput
   offers?: Prisma.DeliveryOfferUpdateManyWithoutDriverNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutDriverNestedInput
+  scans?: Prisma.OrderScanUpdateManyWithoutDriverNestedInput
   wallet?: Prisma.WalletUpdateOneWithoutDriverNestedInput
 }
 
@@ -1025,6 +1161,7 @@ export type DriverProfileUncheckedUpdateWithoutDeliveriesInput = {
   orders?: Prisma.OrderUncheckedUpdateManyWithoutDriverNestedInput
   offers?: Prisma.DeliveryOfferUncheckedUpdateManyWithoutDriverNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutDriverNestedInput
+  scans?: Prisma.OrderScanUncheckedUpdateManyWithoutDriverNestedInput
   wallet?: Prisma.WalletUncheckedUpdateOneWithoutDriverNestedInput
 }
 
@@ -1046,6 +1183,7 @@ export type DriverProfileCreateWithoutOffersInput = {
   orders?: Prisma.OrderCreateNestedManyWithoutDriverInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutDriverInput
   deliveries?: Prisma.DeliveryCreateNestedManyWithoutDriverInput
+  scans?: Prisma.OrderScanCreateNestedManyWithoutDriverInput
   wallet?: Prisma.WalletCreateNestedOneWithoutDriverInput
 }
 
@@ -1067,6 +1205,7 @@ export type DriverProfileUncheckedCreateWithoutOffersInput = {
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutDriverInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutDriverInput
   deliveries?: Prisma.DeliveryUncheckedCreateNestedManyWithoutDriverInput
+  scans?: Prisma.OrderScanUncheckedCreateNestedManyWithoutDriverInput
   wallet?: Prisma.WalletUncheckedCreateNestedOneWithoutDriverInput
 }
 
@@ -1104,6 +1243,7 @@ export type DriverProfileUpdateWithoutOffersInput = {
   orders?: Prisma.OrderUpdateManyWithoutDriverNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutDriverNestedInput
   deliveries?: Prisma.DeliveryUpdateManyWithoutDriverNestedInput
+  scans?: Prisma.OrderScanUpdateManyWithoutDriverNestedInput
   wallet?: Prisma.WalletUpdateOneWithoutDriverNestedInput
 }
 
@@ -1125,6 +1265,7 @@ export type DriverProfileUncheckedUpdateWithoutOffersInput = {
   orders?: Prisma.OrderUncheckedUpdateManyWithoutDriverNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutDriverNestedInput
   deliveries?: Prisma.DeliveryUncheckedUpdateManyWithoutDriverNestedInput
+  scans?: Prisma.OrderScanUncheckedUpdateManyWithoutDriverNestedInput
   wallet?: Prisma.WalletUncheckedUpdateOneWithoutDriverNestedInput
 }
 
@@ -1146,6 +1287,7 @@ export type DriverProfileCreateWithoutReviewsInput = {
   orders?: Prisma.OrderCreateNestedManyWithoutDriverInput
   offers?: Prisma.DeliveryOfferCreateNestedManyWithoutDriverInput
   deliveries?: Prisma.DeliveryCreateNestedManyWithoutDriverInput
+  scans?: Prisma.OrderScanCreateNestedManyWithoutDriverInput
   wallet?: Prisma.WalletCreateNestedOneWithoutDriverInput
 }
 
@@ -1167,6 +1309,7 @@ export type DriverProfileUncheckedCreateWithoutReviewsInput = {
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutDriverInput
   offers?: Prisma.DeliveryOfferUncheckedCreateNestedManyWithoutDriverInput
   deliveries?: Prisma.DeliveryUncheckedCreateNestedManyWithoutDriverInput
+  scans?: Prisma.OrderScanUncheckedCreateNestedManyWithoutDriverInput
   wallet?: Prisma.WalletUncheckedCreateNestedOneWithoutDriverInput
 }
 
@@ -1204,6 +1347,7 @@ export type DriverProfileUpdateWithoutReviewsInput = {
   orders?: Prisma.OrderUpdateManyWithoutDriverNestedInput
   offers?: Prisma.DeliveryOfferUpdateManyWithoutDriverNestedInput
   deliveries?: Prisma.DeliveryUpdateManyWithoutDriverNestedInput
+  scans?: Prisma.OrderScanUpdateManyWithoutDriverNestedInput
   wallet?: Prisma.WalletUpdateOneWithoutDriverNestedInput
 }
 
@@ -1225,6 +1369,7 @@ export type DriverProfileUncheckedUpdateWithoutReviewsInput = {
   orders?: Prisma.OrderUncheckedUpdateManyWithoutDriverNestedInput
   offers?: Prisma.DeliveryOfferUncheckedUpdateManyWithoutDriverNestedInput
   deliveries?: Prisma.DeliveryUncheckedUpdateManyWithoutDriverNestedInput
+  scans?: Prisma.OrderScanUncheckedUpdateManyWithoutDriverNestedInput
   wallet?: Prisma.WalletUncheckedUpdateOneWithoutDriverNestedInput
 }
 
@@ -1247,6 +1392,7 @@ export type DriverProfileCreateWithoutWalletInput = {
   offers?: Prisma.DeliveryOfferCreateNestedManyWithoutDriverInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutDriverInput
   deliveries?: Prisma.DeliveryCreateNestedManyWithoutDriverInput
+  scans?: Prisma.OrderScanCreateNestedManyWithoutDriverInput
 }
 
 export type DriverProfileUncheckedCreateWithoutWalletInput = {
@@ -1268,6 +1414,7 @@ export type DriverProfileUncheckedCreateWithoutWalletInput = {
   offers?: Prisma.DeliveryOfferUncheckedCreateNestedManyWithoutDriverInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutDriverInput
   deliveries?: Prisma.DeliveryUncheckedCreateNestedManyWithoutDriverInput
+  scans?: Prisma.OrderScanUncheckedCreateNestedManyWithoutDriverInput
 }
 
 export type DriverProfileCreateOrConnectWithoutWalletInput = {
@@ -1305,6 +1452,7 @@ export type DriverProfileUpdateWithoutWalletInput = {
   offers?: Prisma.DeliveryOfferUpdateManyWithoutDriverNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutDriverNestedInput
   deliveries?: Prisma.DeliveryUpdateManyWithoutDriverNestedInput
+  scans?: Prisma.OrderScanUpdateManyWithoutDriverNestedInput
 }
 
 export type DriverProfileUncheckedUpdateWithoutWalletInput = {
@@ -1326,6 +1474,7 @@ export type DriverProfileUncheckedUpdateWithoutWalletInput = {
   offers?: Prisma.DeliveryOfferUncheckedUpdateManyWithoutDriverNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutDriverNestedInput
   deliveries?: Prisma.DeliveryUncheckedUpdateManyWithoutDriverNestedInput
+  scans?: Prisma.OrderScanUncheckedUpdateManyWithoutDriverNestedInput
 }
 
 
@@ -1338,6 +1487,7 @@ export type DriverProfileCountOutputType = {
   offers: number
   reviews: number
   deliveries: number
+  scans: number
 }
 
 export type DriverProfileCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1345,6 +1495,7 @@ export type DriverProfileCountOutputTypeSelect<ExtArgs extends runtime.Types.Ext
   offers?: boolean | DriverProfileCountOutputTypeCountOffersArgs
   reviews?: boolean | DriverProfileCountOutputTypeCountReviewsArgs
   deliveries?: boolean | DriverProfileCountOutputTypeCountDeliveriesArgs
+  scans?: boolean | DriverProfileCountOutputTypeCountScansArgs
 }
 
 /**
@@ -1385,6 +1536,13 @@ export type DriverProfileCountOutputTypeCountDeliveriesArgs<ExtArgs extends runt
   where?: Prisma.DeliveryWhereInput
 }
 
+/**
+ * DriverProfileCountOutputType without action
+ */
+export type DriverProfileCountOutputTypeCountScansArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.OrderScanWhereInput
+}
+
 
 export type DriverProfileSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1406,6 +1564,7 @@ export type DriverProfileSelect<ExtArgs extends runtime.Types.Extensions.Interna
   offers?: boolean | Prisma.DriverProfile$offersArgs<ExtArgs>
   reviews?: boolean | Prisma.DriverProfile$reviewsArgs<ExtArgs>
   deliveries?: boolean | Prisma.DriverProfile$deliveriesArgs<ExtArgs>
+  scans?: boolean | Prisma.DriverProfile$scansArgs<ExtArgs>
   wallet?: boolean | Prisma.DriverProfile$walletArgs<ExtArgs>
   _count?: boolean | Prisma.DriverProfileCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["driverProfile"]>
@@ -1470,6 +1629,7 @@ export type DriverProfileInclude<ExtArgs extends runtime.Types.Extensions.Intern
   offers?: boolean | Prisma.DriverProfile$offersArgs<ExtArgs>
   reviews?: boolean | Prisma.DriverProfile$reviewsArgs<ExtArgs>
   deliveries?: boolean | Prisma.DriverProfile$deliveriesArgs<ExtArgs>
+  scans?: boolean | Prisma.DriverProfile$scansArgs<ExtArgs>
   wallet?: boolean | Prisma.DriverProfile$walletArgs<ExtArgs>
   _count?: boolean | Prisma.DriverProfileCountOutputTypeDefaultArgs<ExtArgs>
 }
@@ -1488,6 +1648,7 @@ export type $DriverProfilePayload<ExtArgs extends runtime.Types.Extensions.Inter
     offers: Prisma.$DeliveryOfferPayload<ExtArgs>[]
     reviews: Prisma.$ReviewPayload<ExtArgs>[]
     deliveries: Prisma.$DeliveryPayload<ExtArgs>[]
+    scans: Prisma.$OrderScanPayload<ExtArgs>[]
     wallet: Prisma.$WalletPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -1907,6 +2068,7 @@ export interface Prisma__DriverProfileClient<T, Null = never, ExtArgs extends ru
   offers<T extends Prisma.DriverProfile$offersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.DriverProfile$offersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DeliveryOfferPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   reviews<T extends Prisma.DriverProfile$reviewsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.DriverProfile$reviewsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ReviewPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   deliveries<T extends Prisma.DriverProfile$deliveriesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.DriverProfile$deliveriesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DeliveryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  scans<T extends Prisma.DriverProfile$scansArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.DriverProfile$scansArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OrderScanPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   wallet<T extends Prisma.DriverProfile$walletArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.DriverProfile$walletArgs<ExtArgs>>): Prisma.Prisma__WalletClient<runtime.Types.Result.GetResult<Prisma.$WalletPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -2445,6 +2607,30 @@ export type DriverProfile$deliveriesArgs<ExtArgs extends runtime.Types.Extension
   take?: number
   skip?: number
   distinct?: Prisma.DeliveryScalarFieldEnum | Prisma.DeliveryScalarFieldEnum[]
+}
+
+/**
+ * DriverProfile.scans
+ */
+export type DriverProfile$scansArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the OrderScan
+   */
+  select?: Prisma.OrderScanSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the OrderScan
+   */
+  omit?: Prisma.OrderScanOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OrderScanInclude<ExtArgs> | null
+  where?: Prisma.OrderScanWhereInput
+  orderBy?: Prisma.OrderScanOrderByWithRelationInput | Prisma.OrderScanOrderByWithRelationInput[]
+  cursor?: Prisma.OrderScanWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.OrderScanScalarFieldEnum | Prisma.OrderScanScalarFieldEnum[]
 }
 
 /**

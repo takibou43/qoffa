@@ -13,6 +13,8 @@ import {
   createProduct,
   createShop,
   resetDb,
+  deliveryQrFor,
+  pickupQrFor,
 } from './helpers/factories.js';
 
 const app = createApp();
@@ -254,13 +256,18 @@ describe('تدفق حالات الطلب عبر الـAPI', () => {
         .set(bearer(driver.token))).status,
     ).toBe(200);
 
-    for (const path of ['pickup', 'out-for-delivery', 'deliver']) {
-      expect(
-        (await request(app).post(`/api/orders/${orderId}/${path}`).set(bearer(driver.token)))
-          .status,
-        path,
-      ).toBe(200);
-    }
+    expect(
+      (await request(app)
+        .post(`/api/orders/${orderId}/pickup`)
+        .set(bearer(driver.token))
+        .send({ payload: await pickupQrFor(orderId) })).status,
+    ).toBe(200);
+    expect(
+      (await request(app)
+        .post(`/api/orders/${orderId}/deliver`)
+        .set(bearer(driver.token))
+        .send({ payload: await deliveryQrFor(orderId) })).status,
+    ).toBe(200);
 
     const delivered = await prisma.order.findUniqueOrThrow({ where: { id: orderId } });
     expect(delivered.status).toBe('DELIVERED');

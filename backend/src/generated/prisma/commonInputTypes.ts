@@ -426,6 +426,40 @@ export type EnumActorTypeWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedEnumActorTypeFilter<$PrismaModel>
 }
 
+export type EnumOrderScanStageFilter<$PrismaModel = never> = {
+  equals?: $Enums.OrderScanStage | Prisma.EnumOrderScanStageFieldRefInput<$PrismaModel>
+  in?: $Enums.OrderScanStage[] | Prisma.ListEnumOrderScanStageFieldRefInput<$PrismaModel>
+  notIn?: $Enums.OrderScanStage[] | Prisma.ListEnumOrderScanStageFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumOrderScanStageFilter<$PrismaModel> | $Enums.OrderScanStage
+}
+
+export type EnumOrderScanMethodFilter<$PrismaModel = never> = {
+  equals?: $Enums.OrderScanMethod | Prisma.EnumOrderScanMethodFieldRefInput<$PrismaModel>
+  in?: $Enums.OrderScanMethod[] | Prisma.ListEnumOrderScanMethodFieldRefInput<$PrismaModel>
+  notIn?: $Enums.OrderScanMethod[] | Prisma.ListEnumOrderScanMethodFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumOrderScanMethodFilter<$PrismaModel> | $Enums.OrderScanMethod
+}
+
+export type EnumOrderScanStageWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.OrderScanStage | Prisma.EnumOrderScanStageFieldRefInput<$PrismaModel>
+  in?: $Enums.OrderScanStage[] | Prisma.ListEnumOrderScanStageFieldRefInput<$PrismaModel>
+  notIn?: $Enums.OrderScanStage[] | Prisma.ListEnumOrderScanStageFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumOrderScanStageWithAggregatesFilter<$PrismaModel> | $Enums.OrderScanStage
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumOrderScanStageFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumOrderScanStageFilter<$PrismaModel>
+}
+
+export type EnumOrderScanMethodWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.OrderScanMethod | Prisma.EnumOrderScanMethodFieldRefInput<$PrismaModel>
+  in?: $Enums.OrderScanMethod[] | Prisma.ListEnumOrderScanMethodFieldRefInput<$PrismaModel>
+  notIn?: $Enums.OrderScanMethod[] | Prisma.ListEnumOrderScanMethodFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumOrderScanMethodWithAggregatesFilter<$PrismaModel> | $Enums.OrderScanMethod
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumOrderScanMethodFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumOrderScanMethodFilter<$PrismaModel>
+}
+
 export type EnumDeliveryOfferStatusFilter<$PrismaModel = never> = {
   equals?: $Enums.DeliveryOfferStatus | Prisma.EnumDeliveryOfferStatusFieldRefInput<$PrismaModel>
   in?: $Enums.DeliveryOfferStatus[] | Prisma.ListEnumDeliveryOfferStatusFieldRefInput<$PrismaModel>
@@ -1031,6 +1065,40 @@ export type NestedEnumActorTypeWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumActorTypeFilter<$PrismaModel>
   _max?: Prisma.NestedEnumActorTypeFilter<$PrismaModel>
+}
+
+export type NestedEnumOrderScanStageFilter<$PrismaModel = never> = {
+  equals?: $Enums.OrderScanStage | Prisma.EnumOrderScanStageFieldRefInput<$PrismaModel>
+  in?: $Enums.OrderScanStage[] | Prisma.ListEnumOrderScanStageFieldRefInput<$PrismaModel>
+  notIn?: $Enums.OrderScanStage[] | Prisma.ListEnumOrderScanStageFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumOrderScanStageFilter<$PrismaModel> | $Enums.OrderScanStage
+}
+
+export type NestedEnumOrderScanMethodFilter<$PrismaModel = never> = {
+  equals?: $Enums.OrderScanMethod | Prisma.EnumOrderScanMethodFieldRefInput<$PrismaModel>
+  in?: $Enums.OrderScanMethod[] | Prisma.ListEnumOrderScanMethodFieldRefInput<$PrismaModel>
+  notIn?: $Enums.OrderScanMethod[] | Prisma.ListEnumOrderScanMethodFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumOrderScanMethodFilter<$PrismaModel> | $Enums.OrderScanMethod
+}
+
+export type NestedEnumOrderScanStageWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.OrderScanStage | Prisma.EnumOrderScanStageFieldRefInput<$PrismaModel>
+  in?: $Enums.OrderScanStage[] | Prisma.ListEnumOrderScanStageFieldRefInput<$PrismaModel>
+  notIn?: $Enums.OrderScanStage[] | Prisma.ListEnumOrderScanStageFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumOrderScanStageWithAggregatesFilter<$PrismaModel> | $Enums.OrderScanStage
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumOrderScanStageFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumOrderScanStageFilter<$PrismaModel>
+}
+
+export type NestedEnumOrderScanMethodWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.OrderScanMethod | Prisma.EnumOrderScanMethodFieldRefInput<$PrismaModel>
+  in?: $Enums.OrderScanMethod[] | Prisma.ListEnumOrderScanMethodFieldRefInput<$PrismaModel>
+  notIn?: $Enums.OrderScanMethod[] | Prisma.ListEnumOrderScanMethodFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumOrderScanMethodWithAggregatesFilter<$PrismaModel> | $Enums.OrderScanMethod
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumOrderScanMethodFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumOrderScanMethodFilter<$PrismaModel>
 }
 
 export type NestedEnumDeliveryOfferStatusFilter<$PrismaModel = never> = {

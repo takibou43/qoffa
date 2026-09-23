@@ -1,11 +1,13 @@
 import { request } from './apiCore';
 import type {
   CurrentOrder,
+  DeliverResult,
   DriverProfile,
   DriverStats,
   Notification,
   Offer,
   Paginated,
+  PickupResult,
   QrVerification,
   User,
 } from './types';
@@ -62,10 +64,14 @@ export const api = {
     request<{ ok: true }>(`/drivers/offers/${orderId}/decline`, { method: 'POST' }),
 
   /* خطوات التوصيل — كلها تمر من آلة حالات الخادم */
-  pickup: (orderId: string) => request<{ ok: true }>(`/orders/${orderId}/pickup`, { method: 'POST' }),
+  /** الاستلام من المحل بمسح QR الطلبية — يتم مرة واحدة وينقل الطلب إلى "في الطريق" */
+  pickup: (orderId: string, payload: string) =>
+    request<PickupResult>(`/orders/${orderId}/pickup`, { method: 'POST', body: { payload } }),
   outForDelivery: (orderId: string) =>
     request<{ ok: true }>(`/orders/${orderId}/out-for-delivery`, { method: 'POST' }),
-  deliver: (orderId: string) => request<{ ok: true }>(`/orders/${orderId}/deliver`, { method: 'POST' }),
+  /** تأكيد التسليم: مسح QR الزبون أو رمز PIN من 4 أرقام يعطيه الزبون */
+  deliver: (orderId: string, confirmation: { payload: string } | { pin: string }) =>
+    request<DeliverResult>(`/orders/${orderId}/deliver`, { method: 'POST', body: confirmation }),
   failDelivery: (orderId: string, reason: string) =>
     request<{ ok: true }>(`/orders/${orderId}/fail-delivery`, { method: 'POST', body: { reason } }),
   /** تحقق فقط — لا يغيّر حالة الطلب */

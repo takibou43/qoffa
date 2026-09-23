@@ -115,6 +115,22 @@ export const DeliveryOfferStatus = {
 export type DeliveryOfferStatus = (typeof DeliveryOfferStatus)[keyof typeof DeliveryOfferStatus]
 
 
+export const OrderScanStage = {
+  PICKUP: 'PICKUP',
+  DELIVERY: 'DELIVERY'
+} as const
+
+export type OrderScanStage = (typeof OrderScanStage)[keyof typeof OrderScanStage]
+
+
+export const OrderScanMethod = {
+  QR: 'QR',
+  PIN: 'PIN'
+} as const
+
+export type OrderScanMethod = (typeof OrderScanMethod)[keyof typeof OrderScanMethod]
+
+
 export const CategoryKind = {
   SHOP: 'SHOP',
   PRODUCT: 'PRODUCT'

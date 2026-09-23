@@ -1,6 +1,6 @@
 import { forbidden, notFound } from '../../lib/errors.js';
 import { prisma } from '../../lib/prisma.js';
-import { buildQrPayload } from '../../services/orderQr.js';
+import { orderSettlement } from '../../services/orderMoney.js';
 
 export const driverProfileSelect = {
   id: true,
@@ -144,7 +144,6 @@ export async function getCurrentDelivery(driverProfileId: string) {
       assignedAt: true,
       pickedUpAt: true,
       outForDeliveryAt: true,
-      pickupToken: true,
       pickupVerifiedAt: true,
       deliveryVerifiedAt: true,
       items: { select: { nameSnapshot: true, quantity: true, unitSnapshot: true } },
@@ -163,9 +162,9 @@ export async function getCurrentDelivery(driverProfileId: string) {
     },
   });
   if (!order) return null;
-  // الرمز الخام لا يُرسل؛ يُرسل حمولة QR الجاهزة (رمز الاستلام فقط — رمز التسليم عند الزبون وحده)
-  const { pickupToken, ...rest } = order;
-  return { ...rest, pickupQr: buildQrPayload('P', pickupToken) };
+  // لا يُرسل للموصّل أي رمز QR: رمز الاستلام يمسحه من المحل، ورمز التسليم يمسحه من هاتف الزبون.
+  // الحساب المالي واضح: ما يدفعه للمحل، ما يقبضه من الزبون، وما يبقى معه.
+  return { ...order, settlement: orderSettlement(order) };
 }
 
 /** يتأكد أن الطلب مُسند فعلًا لهذا الموصّل */

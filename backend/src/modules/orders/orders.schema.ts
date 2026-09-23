@@ -91,3 +91,23 @@ export const adminForceStatusSchema = z.object({
 export const verifyQrSchema = z.object({
   payload: z.string().trim().min(1, 'رمز QR فارغ').max(300),
 });
+
+/** استلام الطلب من المحل: حمولة QR الطلبية كما قرأتها الكاميرا */
+export const pickupSchema = z.object({
+  payload: z.string({ required_error: 'امسح رمز QR الطلبية في المحل' }).trim().min(1, 'رمز QR فارغ').max(300),
+});
+
+/** تأكيد التسليم: QR الزبون أو رمز PIN من 4 أرقام */
+export const deliverSchema = z
+  .object({
+    payload: z.string().trim().min(1).max(300).optional(),
+    pin: z
+      .string()
+      .trim()
+      .regex(/^\d{4}$/, 'رمز التسليم 4 أرقام')
+      .optional(),
+  })
+  .refine((v) => Boolean(v.payload) || Boolean(v.pin), {
+    message: 'امسح رمز QR الزبون أو أدخل رمز التسليم',
+    path: ['pin'],
+  });

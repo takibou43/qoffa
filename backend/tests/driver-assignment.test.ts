@@ -1,7 +1,7 @@
 import request from 'supertest';
 import { afterAll, beforeEach, describe, expect, it } from 'vitest';
 import { createApp } from '../src/app.js';
-import { ALGIERS, bearer, createCustomer, createDriver, createProduct, createShop, resetDb } from './helpers/factories.js';
+import { ALGIERS, bearer, deliveryPinFor, pickupQrFor, createCustomer, createDriver, createProduct, createShop, resetDb } from './helpers/factories.js';
 import { prisma } from '../src/lib/prisma.js';
 import { transitionOrder } from '../src/modules/orders/orders.service.js';
 import {
@@ -379,12 +379,17 @@ describe('تدفق التوصيل', () => {
     expect(current.body.order.shop.name).toBeTruthy();
     expect(current.body.order.customerPhone).toBeTruthy();
 
-    for (const path of ['pickup', 'out-for-delivery', 'deliver']) {
-      const res = await request(app)
-        .post(`/api/orders/${order.id}/${path}`)
-        .set(bearer(driver.token));
-      expect(res.status, path).toBe(200);
-    }
+    const pick = await request(app)
+      .post(`/api/orders/${order.id}/pickup`)
+      .set(bearer(driver.token))
+      .send({ payload: await pickupQrFor(order.id) });
+    expect(pick.status).toBe(200);
+    expect(pick.body.to).toBe('OUT_FOR_DELIVERY');
+    const done = await request(app)
+      .post(`/api/orders/${order.id}/deliver`)
+      .set(bearer(driver.token))
+      .send({ pin: await deliveryPinFor(order.id) });
+    expect(done.status).toBe(200);
 
     const delivered = await prisma.order.findUniqueOrThrow({ where: { id: order.id } });
     expect(delivered.status).toBe('DELIVERED');
@@ -409,7 +414,8 @@ describe('تدفق التوصيل', () => {
     // تسليم قبل الاستلام
     const early = await request(app)
       .post(`/api/orders/${order.id}/deliver`)
-      .set(bearer(driver.token));
+      .set(bearer(driver.token))
+      .send({ pin: await deliveryPinFor(order.id) });
     expect(early.status).toBe(409);
 
     const unchanged = await prisma.order.findUniqueOrThrow({ where: { id: order.id } });
@@ -425,8 +431,10 @@ describe('تدفق التوصيل', () => {
 
     const res = await request(app)
       .post(`/api/orders/${order.id}/pickup`)
-      .set(bearer(intruder.token));
-    expect(res.status).toBe(404);
+      .set(bearer(intruder.token))
+      .send({ payload: await pickupQrFor(order.id) });
+    expect(res.status).toBe(403);
+    expect(res.body.error.code).toBe('NOT_ASSIGNED_DRIVER');
   });
 
   it('تعذّر التسليم يسجّل السبب ويحرّر الموصّل', async () => {
@@ -434,7 +442,11 @@ describe('تدفق التوصيل', () => {
     const order = await readyOrder();
     await offerTo(order.id, driver.profile.id);
     await acceptDeliveryOffer(driver.profile.id, order.id);
-    await request(app).post(`/api/orders/${order.id}/pickup`).set(bearer(driver.token));
+    await request(app)
+      .post(`/api/orders/${order.id}/pickup`)
+      .set(bearer(driver.token))
+      .send({ payload: await pickupQrFor(order.id) })
+      .expect(200);
 
     const noReason = await request(app)
       .post(`/api/orders/${order.id}/fail-delivery`)

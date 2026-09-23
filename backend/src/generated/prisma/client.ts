@@ -99,6 +99,12 @@ export type OrderItem = Prisma.OrderItemModel
  */
 export type OrderStatusEvent = Prisma.OrderStatusEventModel
 /**
+ * Model OrderScan
+ * سجل عمليات الاستلام/التسليم الناجحة بالـQR أو PIN.
+ * القيد الفريد (orderId, stage) يضمن أن الاستلام والتسليم يحدثان مرة واحدة فقط لكل طلب.
+ */
+export type OrderScan = Prisma.OrderScanModel
+/**
  * Model Delivery
  * 
  */

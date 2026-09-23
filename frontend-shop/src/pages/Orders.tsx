@@ -91,7 +91,7 @@ export default function Orders() {
               </div>
               <div className="mt-2 flex items-center justify-between text-sm">
                 <span className="text-slate-500">{order.items.length} منتج</span>
-                <span className="font-bold">{formatDzd(order.total)}</span>
+                <span className="font-bold">{formatDzd(order.productsAmount)}</span>
               </div>
             </Link>
           ))

@@ -2,6 +2,7 @@ import { request } from './apiCore';
 import type {
   AdminDriver,
   AdminOrder,
+  AdminOrderDetail,
   AdminProduct,
   AdminShop,
   ApprovalStatus,
@@ -99,7 +100,7 @@ export const api = {
   orders: (params: { status?: OrderStatus; q?: string; page?: number; limit?: number }) =>
     request<Paginated<AdminOrder>>('/admin/orders', { query: params }),
 
-  order: (id: string) => request<{ order: Record<string, unknown> }>(`/orders/${id}`),
+  order: (id: string) => request<{ order: AdminOrderDetail }>(`/orders/${id}`),
 
   wallets: (params: { page?: number; limit?: number } = {}) =>
     request<{ items: Wallet[]; meta: Record<string, number> }>('/admin/wallets', { query: params }),

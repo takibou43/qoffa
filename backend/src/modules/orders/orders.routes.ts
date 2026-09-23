@@ -15,6 +15,8 @@ import {
   rejectOrderSchema,
   type ListOrdersQuery,
   verifyQrSchema,
+  pickupSchema,
+  deliverSchema,
   type QuoteQuery,
 } from './orders.schema.js';
 import { verifyOrderQr } from '../../services/orderQr.js';
@@ -149,29 +151,59 @@ ordersRouter.post(
 
 /* ───────────── الموصّل ───────────── */
 
-const driverActions = [
-  { path: 'pickup', status: 'PICKED_UP' },
-  { path: 'out-for-delivery', status: 'OUT_FOR_DELIVERY' },
-  { path: 'deliver', status: 'DELIVERED' },
-] as const;
+/** الانطلاق نحو الزبون — للطلبات التي وصلت PICKED_UP بطريق آخر (الاستلام بالـQR ينقلها مباشرة إلى OUT_FOR_DELIVERY) */
+ordersRouter.post(
+  '/:orderId/out-for-delivery',
+  requireRole('DRIVER'),
+  writeLimiter,
+  async (req, res) => {
+    const orderId = param(req, 'orderId');
+    const profile = await getDriverProfileOrThrow(req.auth!.userId);
+    await assertDriverOrder(orderId, profile.id);
+    const result = await service.transitionOrder(orderId, 'OUT_FOR_DELIVERY', {
+      actorType: 'DRIVER',
+      actorId: req.auth!.userId,
+    });
+    res.json({ ok: true, ...result });
+  },
+);
 
-for (const action of driverActions) {
-  ordersRouter.post(
-    `/:orderId/${action.path}`,
-    requireRole('DRIVER'),
-    writeLimiter,
-    async (req, res) => {
-      const orderId = param(req, 'orderId');
-      const profile = await getDriverProfileOrThrow(req.auth!.userId);
-      await assertDriverOrder(orderId, profile.id);
-      const result = await service.transitionOrder(orderId, action.status, {
-        actorType: 'DRIVER',
-        actorId: req.auth!.userId,
-      });
-      res.json({ ok: true, ...result });
-    },
-  );
-}
+/**
+ * استلام الطلب من المحل: الموصّل المعيَّن يمسح QR الطلبية في المحل.
+ * يتم مرة واحدة فقط، وينقل الطلب إلى "في الطريق" ويُعلم الزبون.
+ */
+ordersRouter.post(
+  '/:orderId/pickup',
+  requireRole('DRIVER'),
+  writeLimiter,
+  validate(pickupSchema),
+  async (req, res) => {
+    const profile = await getDriverProfileOrThrow(req.auth!.userId);
+    const result = await service.pickupOrderWithQr(
+      param(req, 'orderId'),
+      { userId: req.auth!.userId, profileId: profile.id },
+      req.body.payload,
+    );
+    res.json(result);
+  },
+);
+
+/** تأكيد التسليم: مسح QR الزبون أو إدخال رمز PIN الذي يعطيه الزبون */
+ordersRouter.post(
+  '/:orderId/deliver',
+  requireRole('DRIVER'),
+  writeLimiter,
+  validate(deliverSchema),
+  async (req, res) => {
+    const profile = await getDriverProfileOrThrow(req.auth!.userId);
+    const result = await service.confirmDelivery(
+      param(req, 'orderId'),
+      { userId: req.auth!.userId, profileId: profile.id },
+      req.body,
+    );
+    res.json(result);
+  },
+);
 
 /** تعذّر التسليم */
 ordersRouter.post(
@@ -231,6 +263,13 @@ ordersRouter.get('/:orderId', async (req, res) => {
     req.auth!.role,
   );
   res.json({ order });
+});
+
+/** فاتورة الطلب — للزبون والإدارة */
+ordersRouter.get('/:orderId/invoice', async (req, res) => {
+  res.json({
+    invoice: await service.getOrderInvoice(param(req, 'orderId'), req.auth!.userId, req.auth!.role),
+  });
 });
 
 ordersRouter.get('/:orderId/timeline', async (req, res) => {

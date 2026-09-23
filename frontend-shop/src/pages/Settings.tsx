@@ -158,7 +158,7 @@ export default function Settings() {
         </section>
 
         <section className="space-y-3 rounded-2xl border border-slate-200 bg-white p-4">
-          <h2 className="text-sm font-bold text-slate-900">ساعات العمل والتوصيل</h2>
+          <h2 className="text-sm font-bold text-slate-900">ساعات العمل</h2>
           <div className="grid grid-cols-2 gap-3">
             <Field label="الفتح">
               <input className={inputClass} type="time" dir="ltr" value={form.openingTime} onChange={set('openingTime')} />
@@ -169,9 +169,6 @@ export default function Settings() {
           </div>
           <p className="text-xs text-slate-500">
             إن تساوى الوقتان يُعتبر المحل مفتوحًا 24 ساعة (مع مفتاح الفتح).
-          </p>
-          <p className="text-xs text-slate-500">
-            رسوم التوصيل تحددها إدارة المنصة وتُحسب تلقائيًا حسب المسافة بين محلك والزبون.
           </p>
           <p className="text-xs text-slate-500">
             عمولة المنصة الحالية: {(shop.commissionBps / 100).toFixed(1)}% — تُحدَّد من إدارة المنصة.

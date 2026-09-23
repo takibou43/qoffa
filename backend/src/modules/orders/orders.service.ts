@@ -1,6 +1,7 @@
 import { env } from '../../config/env.js';
 import { generateOrderCode } from '../../lib/code.js';
-import { badRequest, conflict, forbidden, notFound } from '../../lib/errors.js';
+import { timingSafeEqual } from 'node:crypto';
+import { AppError, badRequest, conflict, forbidden, notFound } from '../../lib/errors.js';
 import { haversineMeters } from '../../lib/geo.js';
 import { computeIsOpenNow } from '../../lib/hours.js';
 import { paginated, type Pagination } from '../../lib/pagination.js';
@@ -17,7 +18,8 @@ import {
   loadPricingConfig,
   type DeliveryQuote,
 } from '../../services/deliveryPricing.js';
-import { buildQrPayload, qrVisible } from '../../services/orderQr.js';
+import { buildQrPayload, parseQrPayload, qrVisible } from '../../services/orderQr.js';
+import { orderSettlement, toShopOrderView } from '../../services/orderMoney.js';
 import { releaseStock, reserveStock, shouldRestock } from '../../services/stock.js';
 import { settleDeliveredOrder } from '../../services/wallet.js';
 import type { CreateOrderInput, ListOrdersQuery } from './orders.schema.js';
@@ -279,7 +281,7 @@ export async function createOrder(customerId: string, input: CreateOrderInput) {
         distanceMeters,
         items: { createMany: { data: itemsWithReservation } },
       },
-      select: { id: true, code: true, total: true },
+      select: { id: true, code: true, subtotal: true },
     });
 
     await tx.orderStatusEvent.create({
@@ -297,7 +299,8 @@ export async function createOrder(customerId: string, input: CreateOrderInput) {
         userId: shop.ownerId,
         type: 'ORDER_CREATED',
         title: 'طلب جديد',
-        body: `وصلك طلب جديد ${created.code} بقيمة ${created.total} دج.`,
+        // المحل يرى قيمة المنتجات فقط — لا رسوم توصيل ولا إجمالي
+        body: `وصلك طلب جديد ${created.code} بقيمة منتجات ${created.subtotal} دج.`,
         orderId: created.id,
       },
       {
@@ -347,6 +350,8 @@ export interface TransitionOptions {
   driverId?: string;
   /** عميل معاملة موجود (تُستعمل عند الاستدعاء من داخل معاملة أخرى) */
   tx?: Prisma.TransactionClient;
+  /** لا تُرسل إشعارات القالب الافتراضي (المستدعي يرسل إشعارًا مخصّصًا) */
+  silent?: boolean;
 }
 
 type OrderForTransition = {
@@ -500,7 +505,7 @@ async function runTransition(
   }
 
   // ── الإشعارات ──
-  const template = STATUS_NOTIFICATION[to];
+  const template = options.silent ? undefined : STATUS_NOTIFICATION[to];
   if (template) {
     const recipients = new Set<string>([order.customerId]);
     // المحل يُعلَم بما يخص التوصيل والإلغاء
@@ -578,54 +583,423 @@ export async function listShopOrders(shopId: string, query: ListOrdersQuery) {
     }),
     prisma.order.count({ where }),
   ]);
-  return paginated(items, total, query);
+  return paginated(items.map(toShopOrderView), total, query);
 }
 
-/** يعيد الطلب فقط إن كان المستخدم طرفًا فيه — الزبون أو صاحب المحل أو الموصّل المعيَّن أو الإدارة */
+/** سجل عمليات الاستلام/التسليم (للإدارة) */
+const scanSelect = {
+  stage: true,
+  method: true,
+  createdAt: true,
+  driver: { select: { id: true, user: { select: { fullName: true, phone: true } } } },
+} as const;
+
+export type OrderViewerRole = 'CUSTOMER' | 'SHOP' | 'DRIVER' | 'ADMIN';
+
+/** يحدد صفة المستخدم في الطلب — الزبون أو صاحب المحل أو الموصّل المعيَّن أو الإدارة */
+async function resolveViewer(
+  order: { customerId: string; shop: { ownerId: string }; driverId: string | null },
+  userId: string,
+  role: string,
+): Promise<OrderViewerRole> {
+  if (role === 'ADMIN' || role === 'SUPER_ADMIN') return 'ADMIN';
+  if (order.customerId === userId) return 'CUSTOMER';
+  if (order.shop.ownerId === userId) return 'SHOP';
+  if (order.driverId) {
+    const driver = await prisma.driverProfile.findUnique({
+      where: { id: order.driverId },
+      select: { userId: true },
+    });
+    if (driver?.userId === userId) return 'DRIVER';
+  }
+  throw forbidden('لا يمكنك الاطلاع على هذا الطلب');
+}
+
+/**
+ * يعيد الطلب فقط إن كان المستخدم طرفًا فيه، بالشكل المناسب لكل طرف:
+ * - الزبون: المنتجات + التوصيل + الإجمالي + رمز التسليم (QR و PIN).
+ * - المحل: قيمة المنتجات فقط والمبلغ الذي يستلمه من الموصّل — لا رسوم توصيل ولا إجمالي.
+ * - الموصّل: الحساب الكامل (ما يدفعه للمحل وما يقبضه من الزبون وما يبقى معه). لا يرى رمز الاستلام:
+ *   عليه أن يمسحه من المحل.
+ * - الإدارة: كل شيء، بما فيه الرموز وسجل العمليات.
+ */
 export async function getOrderForUser(
   orderId: string,
   userId: string,
   role: string,
 ): Promise<Record<string, unknown>> {
-  const isAdmin = role === 'ADMIN' || role === 'SUPER_ADMIN';
   const order = await prisma.order.findUnique({
     where: { id: orderId },
-    select: { ...shopOrderSelect, shop: { select: { ...shopOrderSelect.shop.select, ownerId: true } } },
+    select: {
+      ...shopOrderSelect,
+      customerId: true,
+      driverId: true,
+      shop: { select: { ...shopOrderSelect.shop.select, ownerId: true } },
+    },
   });
   if (!order) throw notFound('الطلب غير موجود');
 
-  if (isAdmin) return order as unknown as Record<string, unknown>;
+  const viewer = await resolveViewer(order, userId, role);
 
-  const isCustomer = order.customer?.id === userId;
-  const isShopOwner = (order.shop as { ownerId?: string }).ownerId === userId;
-  const driverUser = await (order.driver
-    ? prisma.driverProfile.findUnique({
-        where: { id: (order.driver as { id: string }).id },
-        select: { userId: true },
-      })
-    : Promise.resolve(null));
-  const isDriver = driverUser?.userId === userId;
+  const { shop, customerId: _c, driverId: _d, ...rest } = order;
+  const { ownerId: _ownerId, ...publicShop } = shop;
+  const base = { ...rest, shop: publicShop };
+  const active = qrVisible(order.status);
 
-  if (!isCustomer && !isShopOwner && !isDriver) {
-    throw forbidden('لا يمكنك الاطلاع على هذا الطلب');
-  }
-
-  // رموز QR حسب الطرف: رمز التسليم للزبون وحده، ورمز الاستلام للمحل وللموصّل المعيَّن
-  let pickupQr: string | null = null;
-  let deliveryQr: string | null = null;
-  if (qrVisible(order.status)) {
+  if (viewer === 'SHOP') {
     const tokens = await prisma.order.findUniqueOrThrow({
       where: { id: orderId },
-      select: { pickupToken: true, deliveryToken: true },
+      select: { pickupToken: true },
     });
-    if (isCustomer) deliveryQr = buildQrPayload('D', tokens.deliveryToken);
-    if (isShopOwner || isDriver) pickupQr = buildQrPayload('P', tokens.pickupToken);
+    return toShopOrderView({
+      ...base,
+      // رمز الاستلام يُعرض في المحل ليمسحه الموصّل
+      pickupQr: active ? buildQrPayload('P', tokens.pickupToken) : null,
+      deliveryQr: null,
+    });
   }
 
-  // الزبون لا يحتاج بيانات المحل الداخلية
-  const { shop, ...rest } = order;
-  const { ownerId: _ownerId, ...publicShop } = shop as Record<string, unknown>;
-  return { ...rest, shop: publicShop, pickupQr, deliveryQr };
+  const settlement = orderSettlement(order);
+  const amounts = {
+    productsAmount: settlement.productsAmount,
+    deliveryFee: settlement.deliveryFee,
+    discount: settlement.discount,
+    total: settlement.total,
+  };
+
+  if (viewer === 'CUSTOMER') {
+    const tokens = await prisma.order.findUniqueOrThrow({
+      where: { id: orderId },
+      select: { deliveryToken: true, deliveryPin: true },
+    });
+    return {
+      ...base,
+      amounts,
+      pickupQr: null,
+      deliveryQr: active ? buildQrPayload('D', tokens.deliveryToken) : null,
+      // رمز التسليم القصير: يعطيه الزبون للموصّل عند الاستلام
+      deliveryPin: active ? tokens.deliveryPin : null,
+    };
+  }
+
+  if (viewer === 'DRIVER') {
+    return { ...base, amounts, settlement, pickupQr: null, deliveryQr: null };
+  }
+
+  // الإدارة
+  const extra = await prisma.order.findUniqueOrThrow({
+    where: { id: orderId },
+    select: {
+      pickupToken: true,
+      deliveryToken: true,
+      deliveryPin: true,
+      commissionAmount: true,
+      driverEarning: true,
+      scans: { select: scanSelect, orderBy: { createdAt: 'asc' } },
+    },
+  });
+  return {
+    ...base,
+    amounts,
+    settlement,
+    commissionAmount: extra.commissionAmount,
+    driverEarning: extra.driverEarning,
+    scans: extra.scans,
+    pickupQr: buildQrPayload('P', extra.pickupToken),
+    deliveryQr: buildQrPayload('D', extra.deliveryToken),
+    deliveryPin: extra.deliveryPin,
+  };
+}
+
+/* ───────────────────────────── الفاتورة ───────────────────────────── */
+
+const PAYMENT_LABEL: Record<string, string> = { CASH_ON_DELIVERY: 'نقدًا عند الاستلام' };
+
+/**
+ * فاتورة الطلب — للزبون والإدارة فقط (المحل لا يرى رسوم التوصيل، فلا يحصل على هذه الفاتورة).
+ */
+export async function getOrderInvoice(orderId: string, userId: string, role: string) {
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+    select: {
+      id: true,
+      code: true,
+      status: true,
+      createdAt: true,
+      deliveredAt: true,
+      subtotal: true,
+      deliveryFee: true,
+      total: true,
+      paymentMethod: true,
+      customerId: true,
+      driverId: true,
+      deliveryToken: true,
+      deliveryAddressLine: true,
+      deliveryCity: true,
+      customerPhone: true,
+      customer: { select: { fullName: true } },
+      shop: { select: { name: true, phone: true, addressLine: true, city: true, ownerId: true } },
+      items: {
+        select: { nameSnapshot: true, unitSnapshot: true, unitPrice: true, quantity: true, lineTotal: true },
+      },
+    },
+  });
+  if (!order) throw notFound('الطلب غير موجود');
+  const viewer = await resolveViewer(order, userId, role);
+  if (viewer !== 'CUSTOMER' && viewer !== 'ADMIN') {
+    throw forbidden('الفاتورة متاحة للزبون والإدارة فقط');
+  }
+
+  const s = orderSettlement(order);
+  return {
+    brand: 'QOFFA',
+    title: `فاتورة الطلب ${order.code}`,
+    orderId: order.id,
+    orderCode: order.code,
+    status: order.status,
+    date: order.createdAt,
+    deliveredAt: order.deliveredAt,
+    shop: {
+      name: order.shop.name,
+      phone: order.shop.phone,
+      address: `${order.shop.addressLine}، ${order.shop.city}`,
+    },
+    customer: {
+      fullName: order.customer.fullName,
+      phone: order.customerPhone,
+      address: `${order.deliveryAddressLine}، ${order.deliveryCity}`,
+    },
+    items: order.items.map((i) => ({
+      name: i.nameSnapshot,
+      unit: i.unitSnapshot,
+      quantity: i.quantity,
+      unitPrice: i.unitPrice,
+      lineTotal: i.lineTotal,
+    })),
+    productsTotal: s.productsAmount,
+    deliveryFee: s.deliveryFee,
+    discount: s.discount,
+    total: s.total,
+    currency: 'DZD',
+    paymentMethod: order.paymentMethod,
+    paymentLabel: PAYMENT_LABEL[order.paymentMethod] ?? order.paymentMethod,
+    paymentNote: `المبلغ النهائي ${s.total} دج يشمل رسوم التوصيل (${s.deliveryFee} دج)، ويُدفع كاملًا للموصّل نقدًا عند الاستلام.`,
+    qr: buildQrPayload('D', order.deliveryToken),
+  };
+}
+
+/* ───────────────────────────── الاستلام والتسليم ───────────────────────────── */
+
+const flowError = (status: number, code: string, message: string) =>
+  new AppError(status, code, message);
+
+const isUniqueViolation = (err: unknown) => (err as { code?: string })?.code === 'P2002';
+
+/** يفسّر رمزًا لا يطابق هذا الطلب: رمز لطلب آخر أم رمز غير معروف (دون كشف الطلب الآخر) */
+async function mismatchError(kind: 'P' | 'D', token: string, orderCode: string) {
+  const other = await prisma.order.findFirst({
+    where: kind === 'P' ? { pickupToken: token } : { deliveryToken: token },
+    select: { id: true },
+  });
+  if (other) {
+    return flowError(409, 'QR_OTHER_ORDER', `هذا الرمز يخص طلبية أخرى وليس الطلب ${orderCode}`);
+  }
+  return flowError(400, 'QR_INVALID', 'رمز QR غير معروف أو قديم');
+}
+
+/**
+ * استلام الموصّل للطلب من المحل بمسح QR الطلبية.
+ * يتحقق من: صحة الرمز، وجود الطلب، أن الموصّل هو المعيَّن، أن الحالة تسمح، وأن الرمز لم يُستعمل للاستلام.
+ * عند النجاح (مرة واحدة فقط): يسجّل العملية، ثم PICKED_UP → OUT_FOR_DELIVERY، ويُعلم الزبون والمحل.
+ */
+export async function pickupOrderWithQr(
+  orderId: string,
+  driver: { userId: string; profileId: string },
+  rawPayload: unknown,
+) {
+  const parsed = parseQrPayload(rawPayload);
+  if (!parsed) throw flowError(400, 'QR_INVALID', 'رمز QR غير صالح — ليس رمز طلبية من قُفّة');
+  if (parsed.kind !== 'P') {
+    throw flowError(409, 'QR_WRONG_STAGE', 'هذا رمز التسليم الخاص بالزبون. امسح رمز الطلبية المعروض في المحل.');
+  }
+
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+    select: {
+      id: true,
+      code: true,
+      status: true,
+      driverId: true,
+      customerId: true,
+      pickupToken: true,
+      subtotal: true,
+      deliveryFee: true,
+      total: true,
+      shop: { select: { ownerId: true } },
+      scans: { where: { stage: 'PICKUP' }, select: { id: true } },
+    },
+  });
+  if (!order) throw notFound('الطلب غير موجود');
+  if (order.driverId !== driver.profileId) {
+    throw flowError(403, 'NOT_ASSIGNED_DRIVER', 'هذا الطلب غير مُسند إليك — لا يمكنك استلامه');
+  }
+  if (parsed.token !== order.pickupToken) throw await mismatchError('P', parsed.token, order.code);
+  if (order.scans.length > 0) {
+    throw flowError(409, 'QR_ALREADY_USED', 'تم استلام هذا الطلب مسبقًا بهذا الرمز');
+  }
+  if (isTerminal(order.status) || order.status === 'FAILED_DELIVERY') {
+    throw flowError(409, 'QR_EXPIRED', 'انتهت صلاحية هذا الرمز — الطلب لم يعد قيد التوصيل');
+  }
+  if (order.status !== 'DRIVER_ASSIGNED') {
+    throw flowError(409, 'QR_WRONG_STAGE', 'الطلب ليس في مرحلة الاستلام من المحل');
+  }
+
+  const now = new Date();
+  try {
+    await prisma.$transaction(async (tx) => {
+      // القيد الفريد (orderId, PICKUP) يضمن استلامًا واحدًا حتى مع طلبين متزامنين
+      await tx.orderScan.create({
+        data: { orderId, stage: 'PICKUP', method: 'QR', driverId: driver.profileId },
+      });
+      await tx.order.updateMany({
+        where: { id: orderId, pickupVerifiedAt: null },
+        data: { pickupVerifiedAt: now },
+      });
+      const common = { actorType: 'DRIVER' as const, actorId: driver.userId, tx, silent: true };
+      await runTransition(tx, orderId, 'PICKED_UP', { ...common, note: 'استلام من المحل بمسح QR' });
+      await runTransition(tx, orderId, 'OUT_FOR_DELIVERY', common);
+      await notifyMany(tx, [
+        {
+          userId: order.customerId,
+          type: 'ORDER_OUT_FOR_DELIVERY',
+          title: '🛵 طلبك في الطريق إليك',
+          body: `الموصّل استلم طلبك ${order.code} من المحل وهو في الطريق إليك.`,
+          orderId,
+        },
+        {
+          userId: order.shop.ownerId,
+          type: 'ORDER_PICKED_UP',
+          title: 'تم استلام الطلب من طرف الموصّل',
+          body: `استلم الموصّل الطلب ${order.code}. المبلغ الذي تستلمه من الموصّل: ${order.subtotal} دج.`,
+          orderId,
+        },
+      ]);
+    });
+  } catch (err) {
+    if (isUniqueViolation(err)) {
+      throw flowError(409, 'QR_ALREADY_USED', 'تم استلام هذا الطلب مسبقًا بهذا الرمز');
+    }
+    throw err;
+  }
+
+  return {
+    ok: true as const,
+    from: 'DRIVER_ASSIGNED' as const,
+    to: 'OUT_FOR_DELIVERY' as const,
+    pickedUpAt: now,
+    order: { id: order.id, code: order.code },
+    settlement: orderSettlement(order),
+  };
+}
+
+/** عدد محاولات PIN الخاطئة قبل القفل (يبقى مسح QR الزبون متاحًا) */
+export const MAX_PIN_ATTEMPTS = 5;
+
+const pinMatches = (given: string, expected: string) => {
+  const a = Buffer.from(given);
+  const b = Buffer.from(expected);
+  return a.length === b.length && timingSafeEqual(a, b);
+};
+
+/**
+ * تأكيد التسليم للزبون: بمسح QR الزبون أو بإدخال PIN الذي يعطيه الزبون.
+ * بعد النجاح: DELIVERED (مرة واحدة فقط) وتُسجَّل العملية والتسوية المالية.
+ */
+export async function confirmDelivery(
+  orderId: string,
+  driver: { userId: string; profileId: string },
+  input: { payload?: string; pin?: string },
+) {
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+    select: {
+      id: true,
+      code: true,
+      status: true,
+      driverId: true,
+      deliveryToken: true,
+      deliveryPin: true,
+      deliveryPinAttempts: true,
+      subtotal: true,
+      deliveryFee: true,
+      total: true,
+    },
+  });
+  if (!order || order.driverId !== driver.profileId) throw notFound('هذا الطلب غير مُسند إليك');
+  if (order.status === 'DELIVERED') {
+    throw flowError(409, 'ALREADY_DELIVERED', 'تم تسليم هذا الطلب مسبقًا');
+  }
+  // يرمي 409 إن لم تكن الحالة تسمح بالتسليم (مثلًا قبل الاستلام من المحل)
+  assertTransition(order.status, 'DELIVERED', 'DRIVER');
+
+  let method: 'QR' | 'PIN';
+  if (input.payload) {
+    const parsed = parseQrPayload(input.payload);
+    if (!parsed) throw flowError(400, 'QR_INVALID', 'رمز QR غير صالح — ليس رمز طلبية من قُفّة');
+    if (parsed.kind !== 'D') {
+      throw flowError(409, 'QR_WRONG_STAGE', 'هذا رمز الاستلام من المحل. امسح الرمز على هاتف الزبون.');
+    }
+    if (parsed.token !== order.deliveryToken) throw await mismatchError('D', parsed.token, order.code);
+    method = 'QR';
+  } else if (input.pin) {
+    if (order.deliveryPinAttempts >= MAX_PIN_ATTEMPTS) {
+      throw flowError(429, 'PIN_LOCKED', 'تجاوزت عدد المحاولات. امسح رمز QR على هاتف الزبون.');
+    }
+    if (!pinMatches(input.pin, order.deliveryPin)) {
+      const updated = await prisma.order.update({
+        where: { id: orderId },
+        data: { deliveryPinAttempts: { increment: 1 } },
+        select: { deliveryPinAttempts: true },
+      });
+      const left = Math.max(0, MAX_PIN_ATTEMPTS - updated.deliveryPinAttempts);
+      throw flowError(400, 'PIN_INVALID', `رمز التسليم غير صحيح. المحاولات المتبقية: ${left}`);
+    }
+    method = 'PIN';
+  } else {
+    throw flowError(
+      400,
+      'CONFIRMATION_REQUIRED',
+      'لتأكيد التسليم امسح رمز QR الزبون أو أدخل رمز التسليم الذي يعطيك إياه',
+    );
+  }
+
+  try {
+    await prisma.$transaction(async (tx) => {
+      await tx.orderScan.create({
+        data: { orderId, stage: 'DELIVERY', method, driverId: driver.profileId },
+      });
+      await tx.order.updateMany({
+        where: { id: orderId, deliveryVerifiedAt: null },
+        data: { deliveryVerifiedAt: new Date() },
+      });
+      await runTransition(tx, orderId, 'DELIVERED', {
+        actorType: 'DRIVER',
+        actorId: driver.userId,
+        note: method === 'QR' ? 'تسليم مؤكَّد بمسح QR الزبون' : 'تسليم مؤكَّد برمز PIN',
+      });
+    });
+  } catch (err) {
+    if (isUniqueViolation(err)) throw flowError(409, 'ALREADY_DELIVERED', 'تم تسليم هذا الطلب مسبقًا');
+    throw err;
+  }
+
+  return {
+    ok: true as const,
+    from: order.status,
+    to: 'DELIVERED' as const,
+    method,
+    settlement: orderSettlement(order),
+  };
 }
 
 export async function getOrderTimeline(orderId: string) {

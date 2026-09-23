@@ -18,7 +18,7 @@ export const ALGIERS = { lat: 36.7538, lon: 3.0588 };
 export async function resetDb() {
   await prisma.$executeRawUnsafe(`
     TRUNCATE TABLE
-      "WalletTransaction", "Wallet", "Notification", "Review",
+      "OrderScan", "WalletTransaction", "Wallet", "Notification", "Review",
       "DeliveryOffer", "Delivery", "OrderStatusEvent", "OrderItem", "Order",
       "ShopProduct", "Product", "Shop", "DriverProfile", "Address", "CustomerProfile",
       "AdminAuditLog", "PlatformSetting", "Category", "User"
@@ -185,3 +185,21 @@ export async function createAdmin(role: 'ADMIN' | 'SUPER_ADMIN' = 'ADMIN') {
 }
 
 export const bearer = (token: string) => ({ Authorization: `Bearer ${token}` });
+
+/** حمولة QR الاستلام كما يعرضها المحل (يمسحها الموصّل) */
+export async function pickupQrFor(orderId: string) {
+  const o = await prisma.order.findUniqueOrThrow({ where: { id: orderId }, select: { pickupToken: true } });
+  return `QOFFA:P:${o.pickupToken}`;
+}
+
+/** حمولة QR التسليم كما يعرضها هاتف الزبون */
+export async function deliveryQrFor(orderId: string) {
+  const o = await prisma.order.findUniqueOrThrow({ where: { id: orderId }, select: { deliveryToken: true } });
+  return `QOFFA:D:${o.deliveryToken}`;
+}
+
+/** رمز PIN للتسليم كما يراه الزبون */
+export async function deliveryPinFor(orderId: string) {
+  const o = await prisma.order.findUniqueOrThrow({ where: { id: orderId }, select: { deliveryPin: true } });
+  return o.deliveryPin;
+}

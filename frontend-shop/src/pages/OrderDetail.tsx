@@ -95,9 +95,9 @@ export default function OrderDetail() {
             payload={order.pickupQr}
             code={order.code}
             title="رمز استلام الطلبية"
-            hint="يمسحه الموصّل عند الاستلام ليتأكد أنه يأخذ الطلبية الصحيحة. اعرضه على الشاشة أو اكتب رقم الطلب على الكيس."
+            hint={`يمسحه الموصّل المعيَّن لاستلام الطلبية (مرة واحدة فقط). يدفع لك الموصّل ${formatDzd(order.amountFromDriver)}. اعرضه على الشاشة أو اطبعه على الكيس.`}
             verifiedAt={order.pickupVerifiedAt}
-            verifiedLabel="تحقق الموصّل من الطلبية عند الاستلام"
+            verifiedLabel="استلم الموصّل الطلبية بمسح الرمز"
           />
         )}
 
@@ -161,17 +161,13 @@ export default function OrderDetail() {
             ))}
           </ul>
           <dl className="mt-3 space-y-1 border-t border-slate-200 pt-3 text-sm">
-            <div className="flex justify-between text-slate-600">
-              <dt>المنتجات</dt>
-              <dd>{formatDzd(order.subtotal)}</dd>
-            </div>
-            <div className="flex justify-between text-slate-600">
-              <dt>التوصيل</dt>
-              <dd>{formatDzd(order.deliveryFee)}</dd>
-            </div>
             <div className="flex justify-between text-base font-bold text-slate-900">
-              <dt>الإجمالي</dt>
-              <dd>{formatDzd(order.total)}</dd>
+              <dt>قيمة المنتجات</dt>
+              <dd>{formatDzd(order.productsAmount)}</dd>
+            </div>
+            <div className="flex justify-between rounded-lg bg-emerald-50 p-2 font-bold text-emerald-800">
+              <dt>المبلغ الذي تستلمه من الموصّل</dt>
+              <dd>{formatDzd(order.amountFromDriver)}</dd>
             </div>
           </dl>
         </section>
