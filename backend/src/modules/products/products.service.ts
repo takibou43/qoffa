@@ -128,12 +128,19 @@ const textFilter = (q: string) => ({
 
 /* ───────────────────────── الزبون ───────────────────────── */
 
+/**
+ * الزبون لا يرى عرضًا نفدت كميته (stock = 0). stock = null يعني كمية غير متتبَّعة فيبقى ظاهرًا.
+ * المحل والإدارة يريان كل العروض ليعيدوا التعبئة؛ وعند زيادة الكمية يعود العرض للظهور تلقائيًا.
+ */
+const inStockForCustomer = { OR: [{ stock: null }, { stock: { gt: 0 } }] };
+
 /** منتجات محل كما يراها الزبون — المخفية لا تظهر، والسعر هو سعر هذا المحل */
 export async function listPublicShopProducts(shopId: string, query: ShopProductsQuery) {
   const { page, limit, q, categoryId } = query;
   const where = {
     AND: [
       { shopId, isHidden: false },
+      inStockForCustomer,
       ...(categoryId ? [{ product: { categoryId } }] : []),
       ...(q ? [textFilter(q)] : []),
     ],
@@ -162,7 +169,7 @@ export async function getCatalogByBarcode(code: string) {
   if (!product) throw notFound('لا يوجد منتج بهذا الباركود');
 
   const listings = await prisma.shopProduct.findMany({
-    where: { productId: product.id, isHidden: false, shop: { status: 'APPROVED' } },
+    where: { productId: product.id, isHidden: false, shop: { status: 'APPROVED' }, ...inStockForCustomer },
     select: {
       id: true,
       price: true,
