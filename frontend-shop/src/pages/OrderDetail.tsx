@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { PageHeader } from '../components/Layout';
+import { OrderQr } from '../components/OrderQr';
 import { Alert, Button, ErrorState, LoadingBlock, StatusBadge, inputClass } from '../components/ui';
 import { ApiError, api } from '../lib/api';
 import { useOrderAlerts } from '../lib/orderAlertContext';
@@ -87,6 +88,17 @@ export default function OrderDetail() {
         )}
         {order.status === 'READY_FOR_PICKUP' && (
           <Alert kind="info">الطلب جاهز — جارٍ البحث عن موصّل…</Alert>
+        )}
+
+        {order.pickupQr && order.status !== 'PENDING' && (
+          <OrderQr
+            payload={order.pickupQr}
+            code={order.code}
+            title="رمز استلام الطلبية"
+            hint="يمسحه الموصّل عند الاستلام ليتأكد أنه يأخذ الطلبية الصحيحة. اعرضه على الشاشة أو اكتب رقم الطلب على الكيس."
+            verifiedAt={order.pickupVerifiedAt}
+            verifiedLabel="تحقق الموصّل من الطلبية عند الاستلام"
+          />
         )}
 
         {/* الزبون */}

@@ -64,6 +64,10 @@ export interface CurrentOrder {
   assignedAt: string | null;
   pickedUpAt: string | null;
   outForDeliveryAt: string | null;
+  /** حمولة QR الاستلام (رمز التسليم عند الزبون وحده) */
+  pickupQr: string;
+  pickupVerifiedAt: string | null;
+  deliveryVerifiedAt: string | null;
   items: { nameSnapshot: string; quantity: number; unitSnapshot: string }[];
   customer: { fullName: string; phone: string } | null;
   shop: {
@@ -98,4 +102,20 @@ export interface Notification {
 export interface Paginated<T> {
   items: T[];
   meta: { page: number; limit: number; total: number; totalPages: number; hasNext: boolean };
+}
+
+export interface QrVerification {
+  verified: true;
+  stage: 'PICKUP' | 'DELIVERY';
+  alreadyVerified: boolean;
+  verifiedAt: string;
+  order: {
+    id: string;
+    code: string;
+    status: OrderStatus;
+    total: number;
+    paymentMethod: string;
+    itemsCount: number;
+    items: { nameSnapshot: string; quantity: number; unitSnapshot: string }[];
+  };
 }

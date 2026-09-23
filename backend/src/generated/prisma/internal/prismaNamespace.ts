@@ -2053,6 +2053,10 @@ export const OrderScalarFieldEnum = {
   closedAt: 'closedAt',
   stockReserved: 'stockReserved',
   clientRequestId: 'clientRequestId',
+  pickupToken: 'pickupToken',
+  deliveryToken: 'deliveryToken',
+  pickupVerifiedAt: 'pickupVerifiedAt',
+  deliveryVerifiedAt: 'deliveryVerifiedAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

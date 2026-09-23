@@ -6,6 +6,7 @@ import type {
   Notification,
   Offer,
   Paginated,
+  QrVerification,
   User,
 } from './types';
 
@@ -67,6 +68,9 @@ export const api = {
   deliver: (orderId: string) => request<{ ok: true }>(`/orders/${orderId}/deliver`, { method: 'POST' }),
   failDelivery: (orderId: string, reason: string) =>
     request<{ ok: true }>(`/orders/${orderId}/fail-delivery`, { method: 'POST', body: { reason } }),
+  /** تحقق فقط — لا يغيّر حالة الطلب */
+  verifyQr: (orderId: string, payload: string) =>
+    request<QrVerification>(`/orders/${orderId}/verify-qr`, { method: 'POST', body: { payload } }),
   release: (orderId: string) =>
     request<{ ok: true }>(`/orders/${orderId}/release`, { method: 'POST' }),
 

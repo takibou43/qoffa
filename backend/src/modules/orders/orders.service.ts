@@ -17,6 +17,7 @@ import {
   loadPricingConfig,
   type DeliveryQuote,
 } from '../../services/deliveryPricing.js';
+import { buildQrPayload, qrVisible } from '../../services/orderQr.js';
 import { releaseStock, reserveStock, shouldRestock } from '../../services/stock.js';
 import { settleDeliveredOrder } from '../../services/wallet.js';
 import type { CreateOrderInput, ListOrdersQuery } from './orders.schema.js';
@@ -61,6 +62,8 @@ export const customerOrderSelect = {
   pickedUpAt: true,
   outForDeliveryAt: true,
   deliveredAt: true,
+  pickupVerifiedAt: true,
+  deliveryVerifiedAt: true,
   items: { select: orderItemSelect },
   shop: {
     select: {
@@ -118,6 +121,9 @@ async function findByClientRequestId(customerId: string, clientRequestId?: strin
     select: customerOrderSelect,
   });
 }
+
+/** محاولات توليد رقم طلب فريد عند التصادم (احتمال التصادم ضئيل جدًا: 34^6 تركيبة) */
+const ORDER_CODE_ATTEMPTS = 5;
 
 export async function createOrder(customerId: string, input: CreateOrderInput) {
   // إعادة إرسال نفس الطلب: نعيد الطلب الموجود دون إنشاء جديد ودون خصم ثانٍ للمخزون
@@ -306,20 +312,25 @@ export async function createOrder(customerId: string, input: CreateOrderInput) {
     return created.id;
   };
 
-  let orderId: string;
-  try {
-    orderId = await prisma.$transaction(createOrderTx);
-  } catch (err) {
-    // إرسالان متزامنان بنفس المفتاح: الثاني يصطدم بالقيد الفريد وتُرجَع معاملته (بما فيها الخصم)
-    if ((err as { code?: string })?.code === 'P2002' && input.clientRequestId) {
-      const winner = await findByClientRequestId(customerId, input.clientRequestId);
-      if (winner) return winner;
+  let orderId: string | undefined;
+  for (let attempt = 1; ; attempt++) {
+    try {
+      orderId = await prisma.$transaction(createOrderTx);
+      break;
+    } catch (err) {
+      if ((err as { code?: string })?.code !== 'P2002') throw err;
+      // إرسالان متزامنان بنفس المفتاح: الثاني يصطدم بالقيد الفريد وتُرجَع معاملته (بما فيها الخصم)
+      if (input.clientRequestId) {
+        const winner = await findByClientRequestId(customerId, input.clientRequestId);
+        if (winner) return winner;
+      }
+      // غير ذلك: تصادم نادر في رقم الطلب القصير — تُرجَع المعاملة كاملة ونعيد بتوليد رقم جديد
+      if (attempt >= ORDER_CODE_ATTEMPTS) throw err;
     }
-    throw err;
   }
 
   return prisma.order.findUniqueOrThrow({
-    where: { id: orderId },
+    where: { id: orderId! },
     select: customerOrderSelect,
   });
 }
@@ -599,10 +610,22 @@ export async function getOrderForUser(
     throw forbidden('لا يمكنك الاطلاع على هذا الطلب');
   }
 
+  // رموز QR حسب الطرف: رمز التسليم للزبون وحده، ورمز الاستلام للمحل وللموصّل المعيَّن
+  let pickupQr: string | null = null;
+  let deliveryQr: string | null = null;
+  if (qrVisible(order.status)) {
+    const tokens = await prisma.order.findUniqueOrThrow({
+      where: { id: orderId },
+      select: { pickupToken: true, deliveryToken: true },
+    });
+    if (isCustomer) deliveryQr = buildQrPayload('D', tokens.deliveryToken);
+    if (isShopOwner || isDriver) pickupQr = buildQrPayload('P', tokens.pickupToken);
+  }
+
   // الزبون لا يحتاج بيانات المحل الداخلية
   const { shop, ...rest } = order;
   const { ownerId: _ownerId, ...publicShop } = shop as Record<string, unknown>;
-  return { ...rest, shop: publicShop };
+  return { ...rest, shop: publicShop, pickupQr, deliveryQr };
 }
 
 export async function getOrderTimeline(orderId: string) {

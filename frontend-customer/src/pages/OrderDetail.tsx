@@ -14,6 +14,7 @@ import {
   telUrl,
 } from '../lib/format';
 import type { Order, OrderStatus } from '../lib/types';
+import { OrderQr } from '../components/OrderQr';
 import { ProductImage } from '../components/ProductImage';
 import { orderItemImage } from '../lib/images';
 
@@ -237,6 +238,17 @@ export default function OrderDetail() {
         )}
 
         <Timeline status={order.status} />
+
+        {order.deliveryQr && (
+          <OrderQr
+            payload={order.deliveryQr}
+            code={order.code}
+            title="رمز تسليم طلبيتك"
+            hint="اعرض هذا الرمز على الموصّل عند وصوله ليتحقق أنها طلبيتك. لا تشاركه مع أحد غيره."
+            verifiedAt={order.deliveryVerifiedAt}
+            verifiedLabel="تحقق الموصّل من طلبيتك"
+          />
+        )}
 
         {/* المحل */}
         <section className="rounded-2xl border border-slate-200 bg-white p-4">

@@ -14,8 +14,10 @@ import {
   quoteQuery,
   rejectOrderSchema,
   type ListOrdersQuery,
+  verifyQrSchema,
   type QuoteQuery,
 } from './orders.schema.js';
+import { verifyOrderQr } from '../../services/orderQr.js';
 import * as service from './orders.service.js';
 
 export const ordersRouter = Router();
@@ -187,6 +189,22 @@ ordersRouter.post(
       reason: req.body.reason,
     });
     res.json({ ok: true, ...result });
+  },
+);
+
+/**
+ * تحقق الموصّل من رمز QR (في المحل أو عند الزبون).
+ * للتحقق فقط — لا يغيّر حالة الطلب؛ الانتقال يبقى عبر أزرار الخطوات وآلة الحالات.
+ */
+ordersRouter.post(
+  '/:orderId/verify-qr',
+  requireRole('DRIVER'),
+  writeLimiter,
+  validate(verifyQrSchema),
+  async (req, res) => {
+    const profile = await getDriverProfileOrThrow(req.auth!.userId);
+    const result = await verifyOrderQr(param(req, 'orderId'), profile.id, req.body.payload);
+    res.json(result);
   },
 );
 

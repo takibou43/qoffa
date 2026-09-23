@@ -433,6 +433,14 @@ model Order {
   /// مفتاح منع التكرار من الواجهة: إعادة الإرسال بنفس المفتاح تعيد نفس الطلب بلا خصم ثانٍ
   clientRequestId String?
 
+  /// رمز QR للاستلام من المحل (يظهر للمحل وللموصّل المعيَّن فقط). عشوائي بالكامل، لا يحمل أي بيانات.
+  pickupToken        String    @unique @default(dbgenerated("replace(((gen_random_uuid())::text || (gen_random_uuid())::text), '-'::text, ''::text)"))
+  /// رمز QR للتسليم (يظهر للزبون فقط ويمسحه الموصّل عند الباب)
+  deliveryToken      String    @unique @default(dbgenerated("replace(((gen_random_uuid())::text || (gen_random_uuid())::text), '-'::text, ''::text)"))
+  /// أول تحقق ناجح من رمز الاستلام/التسليم (لا يغيّر حالة الطلب)
+  pickupVerifiedAt   DateTime?
+  deliveryVerifiedAt DateTime?
+
   items         OrderItem[]
   delivery      Delivery?
   offers        DeliveryOffer[]

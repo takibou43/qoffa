@@ -124,6 +124,9 @@ export interface Order {
   items: OrderItem[];
   customer: { id: string; fullName: string; phone: string } | null;
   driver: { id: string; vehicleType: string; user: { fullName: string; phone: string } } | null;
+  /** حمولة QR الاستلام (للطلبات النشطة فقط) */
+  pickupQr?: string | null;
+  pickupVerifiedAt?: string | null;
 }
 
 export interface ShopStats {

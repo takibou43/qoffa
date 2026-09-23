@@ -96,6 +96,9 @@ export interface Order {
   cancelReason: string | null;
   createdAt: string;
   deliveredAt: string | null;
+  /** حمولة QR التسليم — تظهر للزبون فقط ما دام الطلب نشطًا */
+  deliveryQr?: string | null;
+  deliveryVerifiedAt?: string | null;
   items: OrderItem[];
   shop: {
     id: string;

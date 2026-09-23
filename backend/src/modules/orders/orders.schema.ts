@@ -86,3 +86,8 @@ export const adminForceStatusSchema = z.object({
   status: z.enum(ORDER_STATUSES),
   note: z.string().trim().max(200).optional(),
 });
+
+/** محتوى QR كما قرأته الكاميرا — يُتحقق من صيغته وملكيته في الخادم */
+export const verifyQrSchema = z.object({
+  payload: z.string().trim().min(1, 'رمز QR فارغ').max(300),
+});

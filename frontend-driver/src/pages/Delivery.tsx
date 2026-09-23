@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { PageHeader } from '../components/Layout';
+import { OrderQr } from '../components/OrderQr';
+import { QrScanner, isQrScanSupported } from '../components/QrScanner';
 import {
   Alert,
   Button,
@@ -11,7 +13,7 @@ import {
 } from '../components/ui';
 import { ApiError, api } from '../lib/api';
 import { formatDistance, formatDzd, mapsUrl, telUrl } from '../lib/format';
-import type { CurrentOrder } from '../lib/types';
+import type { CurrentOrder, QrVerification } from '../lib/types';
 
 export default function Delivery() {
   const [order, setOrder] = useState<CurrentOrder | null>(null);
@@ -20,6 +22,10 @@ export default function Delivery() {
   const [busy, setBusy] = useState<string | null>(null);
   const [failing, setFailing] = useState(false);
   const [reason, setReason] = useState('');
+  const [scanning, setScanning] = useState(false);
+  const [verifying, setVerifying] = useState(false);
+  const [verifyResult, setVerifyResult] = useState<QrVerification | null>(null);
+  const [verifyError, setVerifyError] = useState<string | null>(null);
 
   const load = useCallback((silent = false) => {
     if (!silent) setLoading(true);
@@ -36,6 +42,8 @@ export default function Delivery() {
 
   async function act(name: string, fn: () => Promise<unknown>) {
     setError(null);
+    setVerifyResult(null);
+    setVerifyError(null);
     setBusy(name);
     try {
       await fn();
@@ -45,6 +53,24 @@ export default function Delivery() {
       setError(e instanceof ApiError ? e.message : 'تعذّر تنفيذ العملية.');
     } finally {
       setBusy(null);
+    }
+  }
+
+  /** التحقق فقط — الخادم يقرر صحة الرمز ولا يغيّر حالة الطلب */
+  async function handleScan(payload: string) {
+    setScanning(false);
+    if (!order) return;
+    setVerifyError(null);
+    setVerifyResult(null);
+    setVerifying(true);
+    try {
+      const result = await api.verifyQr(order.id, payload);
+      setVerifyResult(result);
+      await load(true);
+    } catch (e) {
+      setVerifyError(e instanceof ApiError ? e.message : 'تعذّر التحقق من الرمز. حاول مرة أخرى.');
+    } finally {
+      setVerifying(false);
     }
   }
 
@@ -82,6 +108,66 @@ export default function Delivery() {
         </div>
 
         {error && <Alert>{error}</Alert>}
+
+        {/* التحقق بالـQR: في المحل (رمز الاستلام) ثم عند الزبون (رمز التسليم) */}
+        {(() => {
+          const verifiedAt = beforePickup ? order.pickupVerifiedAt : order.deliveryVerifiedAt;
+          return (
+            <section className="space-y-3 rounded-2xl border border-slate-200 bg-white p-4">
+              <div className="flex items-center justify-between gap-2">
+                <h2 className="text-sm font-bold text-slate-900">
+                  {beforePickup ? 'التحقق عند الاستلام' : 'التحقق عند التسليم'}
+                </h2>
+                <span dir="ltr" className="font-mono text-lg font-bold tracking-widest text-slate-900">
+                  {order.code}
+                </span>
+              </div>
+              <p className="text-xs text-slate-500">
+                {beforePickup
+                  ? 'امسح رمز QR المعروض في المحل للتأكد أنك تأخذ الطلبية الصحيحة.'
+                  : 'امسح رمز QR على هاتف الزبون للتأكد أنك تسلّم الطلبية لصاحبها.'}
+              </p>
+              {verifiedAt && (
+                <p className="rounded-lg bg-emerald-50 p-2 text-sm font-bold text-emerald-700">
+                  ✓ تم التحقق من الطلبية
+                </p>
+              )}
+              {verifyResult && (
+                <div className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-800">
+                  <p className="font-bold">
+                    ✓ الرمز صحيح — طلب {verifyResult.order.code}
+                  </p>
+                  <p className="text-xs">
+                    {verifyResult.order.itemsCount} قطعة • {formatDzd(verifyResult.order.total)}
+                  </p>
+                </div>
+              )}
+              {verifyError && <Alert>{verifyError}</Alert>}
+              {isQrScanSupported() ? (
+                <Button
+                  variant={verifiedAt ? 'secondary' : 'primary'}
+                  className="w-full"
+                  loading={verifying}
+                  onClick={() => setScanning(true)}
+                >
+                  📷 {beforePickup ? 'مسح QR المحل' : 'مسح QR الزبون'}
+                </Button>
+              ) : (
+                <p className="text-xs text-amber-700">
+                  الكاميرا غير متاحة في هذا المتصفح. طابق رقم الطلب يدويًا.
+                </p>
+              )}
+            </section>
+          );
+        })()}
+
+        {scanning && (
+          <QrScanner
+            title={beforePickup ? 'وجّه الكاميرا نحو رمز المحل' : 'وجّه الكاميرا نحو رمز الزبون'}
+            onDetected={handleScan}
+            onClose={() => setScanning(false)}
+          />
+        )}
 
         {/* الوجهة الحالية أولًا */}
         {beforePickup ? (
@@ -153,6 +239,22 @@ export default function Delivery() {
             </>
           )}
         </section>
+
+        {beforePickup && (
+          <details className="rounded-2xl border border-slate-200 bg-white p-4">
+            <summary className="cursor-pointer text-sm font-bold text-slate-900">
+              عرض رمز استلام الطلبية
+            </summary>
+            <div className="mt-3">
+              <OrderQr
+                payload={order.pickupQr}
+                code={order.code}
+                title="رمز استلام الطلبية"
+                hint="نفس الرمز المعروض لدى المحل — للمطابقة عند الاستلام."
+              />
+            </div>
+          </details>
+        )}
 
         {/* محتوى الطلب */}
         <section className="rounded-2xl border border-slate-200 bg-white p-4">

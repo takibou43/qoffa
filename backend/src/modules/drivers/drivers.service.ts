@@ -1,5 +1,6 @@
 import { forbidden, notFound } from '../../lib/errors.js';
 import { prisma } from '../../lib/prisma.js';
+import { buildQrPayload } from '../../services/orderQr.js';
 
 export const driverProfileSelect = {
   id: true,
@@ -143,6 +144,9 @@ export async function getCurrentDelivery(driverProfileId: string) {
       assignedAt: true,
       pickedUpAt: true,
       outForDeliveryAt: true,
+      pickupToken: true,
+      pickupVerifiedAt: true,
+      deliveryVerifiedAt: true,
       items: { select: { nameSnapshot: true, quantity: true, unitSnapshot: true } },
       customer: { select: { fullName: true, phone: true } },
       shop: {
@@ -158,7 +162,10 @@ export async function getCurrentDelivery(driverProfileId: string) {
       },
     },
   });
-  return order;
+  if (!order) return null;
+  // الرمز الخام لا يُرسل؛ يُرسل حمولة QR الجاهزة (رمز الاستلام فقط — رمز التسليم عند الزبون وحده)
+  const { pickupToken, ...rest } = order;
+  return { ...rest, pickupQr: buildQrPayload('P', pickupToken) };
 }
 
 /** يتأكد أن الطلب مُسند فعلًا لهذا الموصّل */
