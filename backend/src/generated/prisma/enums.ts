@@ -123,6 +123,16 @@ export const CategoryKind = {
 export type CategoryKind = (typeof CategoryKind)[keyof typeof CategoryKind]
 
 
+export const ProductImageSource = {
+  OPEN_FOOD_FACTS: 'OPEN_FOOD_FACTS',
+  UPCITEMDB: 'UPCITEMDB',
+  SHOP_UPLOAD: 'SHOP_UPLOAD',
+  ADMIN_UPLOAD: 'ADMIN_UPLOAD'
+} as const
+
+export type ProductImageSource = (typeof ProductImageSource)[keyof typeof ProductImageSource]
+
+
 export const ReviewTargetType = {
   SHOP: 'SHOP',
   DRIVER: 'DRIVER'

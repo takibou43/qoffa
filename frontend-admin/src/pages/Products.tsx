@@ -9,6 +9,13 @@ import type { AdminProduct } from '../lib/types';
 
 type ImageFilter = 'all' | 'with' | 'without';
 
+const IMAGE_SOURCE_LABEL: Record<NonNullable<AdminProduct['imageSource']>, string> = {
+  OPEN_FOOD_FACTS: 'Open Food Facts',
+  UPCITEMDB: 'UPCitemdb',
+  SHOP_UPLOAD: 'رفع محل',
+  ADMIN_UPLOAD: 'رفع الإدارة',
+};
+
 /**
  * كتالوج المنتجات العالمي: الصورة مرتبطة بالمنتج نفسه وتظهر عند كل المحلات التي تعرضه.
  * تغيير الصورة أو حذفها من صلاحية الإدارة (ويُسجَّل في سجل العمليات)، ولا يمس أسعار المحلات أو الطلبات.
@@ -112,6 +119,8 @@ export default function Products() {
       render: (p) => (
         <div className="space-y-1 text-xs text-slate-600">
           <Chip tone={p.imageUrl ? 'ok' : 'warn'}>{p.imageUrl ? 'له صورة' : 'بلا صورة'}</Chip>
+          {p.imageUrl && p.imageSource && <p>المصدر: {IMAGE_SOURCE_LABEL[p.imageSource]}</p>}
+          <p className="font-mono text-[10px] text-slate-400" dir="ltr">ID: {p.id}</p>
           <p>{p.shopsCount ?? 0} محل يعرضه</p>
           {p.category && <p>{p.category.name}</p>}
         </div>

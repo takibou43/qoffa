@@ -45,6 +45,9 @@ export interface Shop {
 
 export interface Product {
   id: string;
+  /** باركود المنتج العالمي (للمقارنة بين المحلات) */
+  barcode?: string | null;
+  brand?: string | null;
   name: string;
   description: string | null;
   imageUrl: string | null;
@@ -134,4 +137,23 @@ export interface User {
 export interface Paginated<T> {
   items: T[];
   meta: { page: number; limit: number; total: number; totalPages: number; hasNext: boolean };
+}
+
+/** المنتج العالمي ومحلات قُفّة التي تعرضه (سعر كل محل مستقل) */
+export interface CatalogEntry {
+  product: {
+    id: string;
+    barcode: string | null;
+    name: string;
+    brand: string | null;
+    description: string | null;
+    imageUrl: string | null;
+    unit: string;
+  };
+  shops: {
+    listingId: string;
+    price: number;
+    isAvailable: boolean;
+    shop: { id: string; name: string; city: string; isOpen: boolean };
+  }[];
 }

@@ -72,15 +72,29 @@ export interface GlobalProduct {
   brand: string | null;
   description: string | null;
   imageUrl: string | null;
+  imageSource?: 'OPEN_FOOD_FACTS' | 'UPCITEMDB' | 'SHOP_UPLOAD' | 'ADMIN_UPLOAD' | null;
   unit: string;
   categoryId: string | null;
   category: { id: string; name: string; slug: string } | null;
 }
 
+export type LookupSource = 'QOFFA' | 'OPEN_FOOD_FACTS' | 'UPCITEMDB' | 'MANUAL';
+
+/** من أين جاءت النتيجة (قُفّة أولًا، ثم المصادر الخارجية) */
+export interface LookupInfo {
+  source: Exclude<LookupSource, 'MANUAL'>;
+  createdFromExternal: boolean;
+  imageFound: boolean;
+}
+
 export type BarcodeLookup =
-  | { status: 'NEW'; barcode: string }
-  | { status: 'AVAILABLE_TO_ADD'; product: GlobalProduct }
-  | { status: 'ALREADY_LISTED'; product: GlobalProduct; listing: Product };
+  | {
+      status: 'NEW';
+      barcode: string;
+      lookup?: { source: 'MANUAL'; externalTried: boolean; externalUnavailable: boolean };
+    }
+  | { status: 'AVAILABLE_TO_ADD'; product: GlobalProduct; lookup?: LookupInfo }
+  | { status: 'ALREADY_LISTED'; product: GlobalProduct; listing: Product; lookup?: LookupInfo };
 
 export interface OrderItem {
   id: string;

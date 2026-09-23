@@ -1972,6 +1972,8 @@ export const ProductScalarFieldEnum = {
   brand: 'brand',
   description: 'description',
   imageUrl: 'imageUrl',
+  imageSource: 'imageSource',
+  externalLookupAt: 'externalLookupAt',
   unit: 'unit',
   categoryId: 'categoryId',
   createdAt: 'createdAt',
@@ -2368,6 +2370,20 @@ export type EnumCategoryKindFieldRefInput<$PrismaModel> = FieldRefInputType<$Pri
  * Reference to a field of type 'CategoryKind[]'
  */
 export type ListEnumCategoryKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CategoryKind[]'>
+    
+
+
+/**
+ * Reference to a field of type 'ProductImageSource'
+ */
+export type EnumProductImageSourceFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ProductImageSource'>
+    
+
+
+/**
+ * Reference to a field of type 'ProductImageSource[]'
+ */
+export type ListEnumProductImageSourceFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ProductImageSource[]'>
     
 
 

@@ -270,6 +270,23 @@ export type EnumCategoryKindWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedEnumCategoryKindFilter<$PrismaModel>
 }
 
+export type EnumProductImageSourceNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.ProductImageSource | Prisma.EnumProductImageSourceFieldRefInput<$PrismaModel> | null
+  in?: $Enums.ProductImageSource[] | Prisma.ListEnumProductImageSourceFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.ProductImageSource[] | Prisma.ListEnumProductImageSourceFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumProductImageSourceNullableFilter<$PrismaModel> | $Enums.ProductImageSource | null
+}
+
+export type EnumProductImageSourceNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.ProductImageSource | Prisma.EnumProductImageSourceFieldRefInput<$PrismaModel> | null
+  in?: $Enums.ProductImageSource[] | Prisma.ListEnumProductImageSourceFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.ProductImageSource[] | Prisma.ListEnumProductImageSourceFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumProductImageSourceNullableWithAggregatesFilter<$PrismaModel> | $Enums.ProductImageSource | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumProductImageSourceNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumProductImageSourceNullableFilter<$PrismaModel>
+}
+
 export type IntNullableFilter<$PrismaModel = never> = {
   equals?: number | Prisma.IntFieldRefInput<$PrismaModel> | null
   in?: number[] | Prisma.ListIntFieldRefInput<$PrismaModel> | null
@@ -869,6 +886,23 @@ export type NestedEnumCategoryKindWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumCategoryKindFilter<$PrismaModel>
   _max?: Prisma.NestedEnumCategoryKindFilter<$PrismaModel>
+}
+
+export type NestedEnumProductImageSourceNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.ProductImageSource | Prisma.EnumProductImageSourceFieldRefInput<$PrismaModel> | null
+  in?: $Enums.ProductImageSource[] | Prisma.ListEnumProductImageSourceFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.ProductImageSource[] | Prisma.ListEnumProductImageSourceFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumProductImageSourceNullableFilter<$PrismaModel> | $Enums.ProductImageSource | null
+}
+
+export type NestedEnumProductImageSourceNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.ProductImageSource | Prisma.EnumProductImageSourceFieldRefInput<$PrismaModel> | null
+  in?: $Enums.ProductImageSource[] | Prisma.ListEnumProductImageSourceFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.ProductImageSource[] | Prisma.ListEnumProductImageSourceFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumProductImageSourceNullableWithAggregatesFilter<$PrismaModel> | $Enums.ProductImageSource | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumProductImageSourceNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumProductImageSourceNullableFilter<$PrismaModel>
 }
 
 export type NestedIntNullableWithAggregatesFilter<$PrismaModel = never> = {

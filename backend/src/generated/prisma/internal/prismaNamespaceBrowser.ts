@@ -180,6 +180,8 @@ export const ProductScalarFieldEnum = {
   brand: 'brand',
   description: 'description',
   imageUrl: 'imageUrl',
+  imageSource: 'imageSource',
+  externalLookupAt: 'externalLookupAt',
   unit: 'unit',
   categoryId: 'categoryId',
   createdAt: 'createdAt',

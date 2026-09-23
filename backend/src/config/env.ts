@@ -33,6 +33,10 @@ const schema = z.object({
   SUPABASE_URL: z.string().optional(),
   SUPABASE_SECRET_KEY: z.string().optional(),
   STORAGE_BUCKET: z.string().regex(/^[a-z0-9-]{3,63}$/).default('product-images'),
+  /** جلب بيانات المنتج وصورته بالباركود من Open Food Facts ثم UPCitemdb ("off" لتعطيله) */
+  EXTERNAL_BARCODE_LOOKUP: z.enum(['on', 'off']).default('on'),
+  /** اختياري: مفتاح UPCitemdb (الخطة المدفوعة). بدونه تُستعمل الخطة التجريبية المجانية (100 طلب/يوم) */
+  UPCITEMDB_API_KEY: z.string().optional(),
 
   PLATFORM_OWNER_EMAIL: z.string().email().optional().or(z.literal('')),
   PLATFORM_OWNER_PHONE: z.string().optional(),

@@ -7,6 +7,7 @@ import Account from './pages/Account';
 import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
 import Home from './pages/Home';
+import ProductCompare from './pages/ProductCompare';
 import Login from './pages/Login';
 import Notifications from './pages/Notifications';
 import OrderDetail from './pages/OrderDetail';
@@ -26,6 +27,7 @@ export default function App() {
             <Route element={<Layout />}>
               <Route index element={<Home />} />
               <Route path="shops/:shopId" element={<ShopPage />} />
+              <Route path="products/:barcode" element={<ProductCompare />} />
               <Route path="cart" element={<Cart />} />
               <Route
                 path="checkout"

@@ -7,6 +7,7 @@ import type {
   Product,
   Shop,
   User,
+  CatalogEntry,
 } from './types';
 
 const BASE = import.meta.env.VITE_API_URL || '/api';
@@ -121,6 +122,10 @@ export const api = {
 
   shop: (shopId: string, lat?: number, lon?: number) =>
     request<{ shop: Shop }>(`/shops/${shopId}`, { query: { lat, lon } }),
+
+  /** نفس المنتج (بالباركود) عبر المحلات: الصورة الواحدة + سعر كل محل */
+  catalogByBarcode: (barcode: string) =>
+    request<CatalogEntry>(`/catalog/barcode/${encodeURIComponent(barcode)}`, { auth: false }),
 
   shopProducts: (shopId: string, params: { q?: string; categoryId?: string; page?: number; limit?: number }) =>
     request<Paginated<Product>>(`/shops/${shopId}/products`, { query: params }),

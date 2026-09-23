@@ -106,6 +106,7 @@ export interface AdminProduct {
   brand: string | null;
   description: string | null;
   imageUrl: string | null;
+  imageSource?: 'OPEN_FOOD_FACTS' | 'UPCITEMDB' | 'SHOP_UPLOAD' | 'ADMIN_UPLOAD' | null;
   unit: string;
   categoryId: string | null;
   category: { id: string; name: string; slug: string } | null;

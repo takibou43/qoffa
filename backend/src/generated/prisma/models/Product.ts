@@ -32,6 +32,8 @@ export type ProductMinAggregateOutputType = {
   brand: string | null
   description: string | null
   imageUrl: string | null
+  imageSource: $Enums.ProductImageSource | null
+  externalLookupAt: Date | null
   unit: string | null
   categoryId: string | null
   createdAt: Date | null
@@ -45,6 +47,8 @@ export type ProductMaxAggregateOutputType = {
   brand: string | null
   description: string | null
   imageUrl: string | null
+  imageSource: $Enums.ProductImageSource | null
+  externalLookupAt: Date | null
   unit: string | null
   categoryId: string | null
   createdAt: Date | null
@@ -58,6 +62,8 @@ export type ProductCountAggregateOutputType = {
   brand: number
   description: number
   imageUrl: number
+  imageSource: number
+  externalLookupAt: number
   unit: number
   categoryId: number
   createdAt: number
@@ -73,6 +79,8 @@ export type ProductMinAggregateInputType = {
   brand?: true
   description?: true
   imageUrl?: true
+  imageSource?: true
+  externalLookupAt?: true
   unit?: true
   categoryId?: true
   createdAt?: true
@@ -86,6 +94,8 @@ export type ProductMaxAggregateInputType = {
   brand?: true
   description?: true
   imageUrl?: true
+  imageSource?: true
+  externalLookupAt?: true
   unit?: true
   categoryId?: true
   createdAt?: true
@@ -99,6 +109,8 @@ export type ProductCountAggregateInputType = {
   brand?: true
   description?: true
   imageUrl?: true
+  imageSource?: true
+  externalLookupAt?: true
   unit?: true
   categoryId?: true
   createdAt?: true
@@ -185,6 +197,8 @@ export type ProductGroupByOutputType = {
   brand: string | null
   description: string | null
   imageUrl: string | null
+  imageSource: $Enums.ProductImageSource | null
+  externalLookupAt: Date | null
   unit: string
   categoryId: string | null
   createdAt: Date
@@ -219,6 +233,8 @@ export type ProductWhereInput = {
   brand?: Prisma.StringNullableFilter<"Product"> | string | null
   description?: Prisma.StringNullableFilter<"Product"> | string | null
   imageUrl?: Prisma.StringNullableFilter<"Product"> | string | null
+  imageSource?: Prisma.EnumProductImageSourceNullableFilter<"Product"> | $Enums.ProductImageSource | null
+  externalLookupAt?: Prisma.DateTimeNullableFilter<"Product"> | Date | string | null
   unit?: Prisma.StringFilter<"Product"> | string
   categoryId?: Prisma.StringNullableFilter<"Product"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Product"> | Date | string
@@ -234,6 +250,8 @@ export type ProductOrderByWithRelationInput = {
   brand?: Prisma.SortOrderInput | Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
   imageUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  imageSource?: Prisma.SortOrderInput | Prisma.SortOrder
+  externalLookupAt?: Prisma.SortOrderInput | Prisma.SortOrder
   unit?: Prisma.SortOrder
   categoryId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -252,6 +270,8 @@ export type ProductWhereUniqueInput = Prisma.AtLeast<{
   brand?: Prisma.StringNullableFilter<"Product"> | string | null
   description?: Prisma.StringNullableFilter<"Product"> | string | null
   imageUrl?: Prisma.StringNullableFilter<"Product"> | string | null
+  imageSource?: Prisma.EnumProductImageSourceNullableFilter<"Product"> | $Enums.ProductImageSource | null
+  externalLookupAt?: Prisma.DateTimeNullableFilter<"Product"> | Date | string | null
   unit?: Prisma.StringFilter<"Product"> | string
   categoryId?: Prisma.StringNullableFilter<"Product"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Product"> | Date | string
@@ -267,6 +287,8 @@ export type ProductOrderByWithAggregationInput = {
   brand?: Prisma.SortOrderInput | Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
   imageUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  imageSource?: Prisma.SortOrderInput | Prisma.SortOrder
+  externalLookupAt?: Prisma.SortOrderInput | Prisma.SortOrder
   unit?: Prisma.SortOrder
   categoryId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -286,6 +308,8 @@ export type ProductScalarWhereWithAggregatesInput = {
   brand?: Prisma.StringNullableWithAggregatesFilter<"Product"> | string | null
   description?: Prisma.StringNullableWithAggregatesFilter<"Product"> | string | null
   imageUrl?: Prisma.StringNullableWithAggregatesFilter<"Product"> | string | null
+  imageSource?: Prisma.EnumProductImageSourceNullableWithAggregatesFilter<"Product"> | $Enums.ProductImageSource | null
+  externalLookupAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Product"> | Date | string | null
   unit?: Prisma.StringWithAggregatesFilter<"Product"> | string
   categoryId?: Prisma.StringNullableWithAggregatesFilter<"Product"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Product"> | Date | string
@@ -299,6 +323,8 @@ export type ProductCreateInput = {
   brand?: string | null
   description?: string | null
   imageUrl?: string | null
+  imageSource?: $Enums.ProductImageSource | null
+  externalLookupAt?: Date | string | null
   unit?: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -313,6 +339,8 @@ export type ProductUncheckedCreateInput = {
   brand?: string | null
   description?: string | null
   imageUrl?: string | null
+  imageSource?: $Enums.ProductImageSource | null
+  externalLookupAt?: Date | string | null
   unit?: string
   categoryId?: string | null
   createdAt?: Date | string
@@ -327,6 +355,8 @@ export type ProductUpdateInput = {
   brand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageSource?: Prisma.NullableEnumProductImageSourceFieldUpdateOperationsInput | $Enums.ProductImageSource | null
+  externalLookupAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   unit?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -341,6 +371,8 @@ export type ProductUncheckedUpdateInput = {
   brand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageSource?: Prisma.NullableEnumProductImageSourceFieldUpdateOperationsInput | $Enums.ProductImageSource | null
+  externalLookupAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   unit?: Prisma.StringFieldUpdateOperationsInput | string
   categoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -355,6 +387,8 @@ export type ProductCreateManyInput = {
   brand?: string | null
   description?: string | null
   imageUrl?: string | null
+  imageSource?: $Enums.ProductImageSource | null
+  externalLookupAt?: Date | string | null
   unit?: string
   categoryId?: string | null
   createdAt?: Date | string
@@ -368,6 +402,8 @@ export type ProductUpdateManyMutationInput = {
   brand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageSource?: Prisma.NullableEnumProductImageSourceFieldUpdateOperationsInput | $Enums.ProductImageSource | null
+  externalLookupAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   unit?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -380,6 +416,8 @@ export type ProductUncheckedUpdateManyInput = {
   brand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageSource?: Prisma.NullableEnumProductImageSourceFieldUpdateOperationsInput | $Enums.ProductImageSource | null
+  externalLookupAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   unit?: Prisma.StringFieldUpdateOperationsInput | string
   categoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -403,6 +441,8 @@ export type ProductCountOrderByAggregateInput = {
   brand?: Prisma.SortOrder
   description?: Prisma.SortOrder
   imageUrl?: Prisma.SortOrder
+  imageSource?: Prisma.SortOrder
+  externalLookupAt?: Prisma.SortOrder
   unit?: Prisma.SortOrder
   categoryId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -416,6 +456,8 @@ export type ProductMaxOrderByAggregateInput = {
   brand?: Prisma.SortOrder
   description?: Prisma.SortOrder
   imageUrl?: Prisma.SortOrder
+  imageSource?: Prisma.SortOrder
+  externalLookupAt?: Prisma.SortOrder
   unit?: Prisma.SortOrder
   categoryId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -429,6 +471,8 @@ export type ProductMinOrderByAggregateInput = {
   brand?: Prisma.SortOrder
   description?: Prisma.SortOrder
   imageUrl?: Prisma.SortOrder
+  imageSource?: Prisma.SortOrder
+  externalLookupAt?: Prisma.SortOrder
   unit?: Prisma.SortOrder
   categoryId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -482,6 +526,10 @@ export type ProductUncheckedUpdateManyWithoutCategoryNestedInput = {
   deleteMany?: Prisma.ProductScalarWhereInput | Prisma.ProductScalarWhereInput[]
 }
 
+export type NullableEnumProductImageSourceFieldUpdateOperationsInput = {
+  set?: $Enums.ProductImageSource | null
+}
+
 export type ProductCreateNestedOneWithoutListingsInput = {
   create?: Prisma.XOR<Prisma.ProductCreateWithoutListingsInput, Prisma.ProductUncheckedCreateWithoutListingsInput>
   connectOrCreate?: Prisma.ProductCreateOrConnectWithoutListingsInput
@@ -503,6 +551,8 @@ export type ProductCreateWithoutCategoryInput = {
   brand?: string | null
   description?: string | null
   imageUrl?: string | null
+  imageSource?: $Enums.ProductImageSource | null
+  externalLookupAt?: Date | string | null
   unit?: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -516,6 +566,8 @@ export type ProductUncheckedCreateWithoutCategoryInput = {
   brand?: string | null
   description?: string | null
   imageUrl?: string | null
+  imageSource?: $Enums.ProductImageSource | null
+  externalLookupAt?: Date | string | null
   unit?: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -558,6 +610,8 @@ export type ProductScalarWhereInput = {
   brand?: Prisma.StringNullableFilter<"Product"> | string | null
   description?: Prisma.StringNullableFilter<"Product"> | string | null
   imageUrl?: Prisma.StringNullableFilter<"Product"> | string | null
+  imageSource?: Prisma.EnumProductImageSourceNullableFilter<"Product"> | $Enums.ProductImageSource | null
+  externalLookupAt?: Prisma.DateTimeNullableFilter<"Product"> | Date | string | null
   unit?: Prisma.StringFilter<"Product"> | string
   categoryId?: Prisma.StringNullableFilter<"Product"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Product"> | Date | string
@@ -571,6 +625,8 @@ export type ProductCreateWithoutListingsInput = {
   brand?: string | null
   description?: string | null
   imageUrl?: string | null
+  imageSource?: $Enums.ProductImageSource | null
+  externalLookupAt?: Date | string | null
   unit?: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -584,6 +640,8 @@ export type ProductUncheckedCreateWithoutListingsInput = {
   brand?: string | null
   description?: string | null
   imageUrl?: string | null
+  imageSource?: $Enums.ProductImageSource | null
+  externalLookupAt?: Date | string | null
   unit?: string
   categoryId?: string | null
   createdAt?: Date | string
@@ -613,6 +671,8 @@ export type ProductUpdateWithoutListingsInput = {
   brand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageSource?: Prisma.NullableEnumProductImageSourceFieldUpdateOperationsInput | $Enums.ProductImageSource | null
+  externalLookupAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   unit?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -626,6 +686,8 @@ export type ProductUncheckedUpdateWithoutListingsInput = {
   brand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageSource?: Prisma.NullableEnumProductImageSourceFieldUpdateOperationsInput | $Enums.ProductImageSource | null
+  externalLookupAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   unit?: Prisma.StringFieldUpdateOperationsInput | string
   categoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -639,6 +701,8 @@ export type ProductCreateManyCategoryInput = {
   brand?: string | null
   description?: string | null
   imageUrl?: string | null
+  imageSource?: $Enums.ProductImageSource | null
+  externalLookupAt?: Date | string | null
   unit?: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -651,6 +715,8 @@ export type ProductUpdateWithoutCategoryInput = {
   brand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageSource?: Prisma.NullableEnumProductImageSourceFieldUpdateOperationsInput | $Enums.ProductImageSource | null
+  externalLookupAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   unit?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -664,6 +730,8 @@ export type ProductUncheckedUpdateWithoutCategoryInput = {
   brand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageSource?: Prisma.NullableEnumProductImageSourceFieldUpdateOperationsInput | $Enums.ProductImageSource | null
+  externalLookupAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   unit?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -677,6 +745,8 @@ export type ProductUncheckedUpdateManyWithoutCategoryInput = {
   brand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageSource?: Prisma.NullableEnumProductImageSourceFieldUpdateOperationsInput | $Enums.ProductImageSource | null
+  externalLookupAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   unit?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -720,6 +790,8 @@ export type ProductSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   brand?: boolean
   description?: boolean
   imageUrl?: boolean
+  imageSource?: boolean
+  externalLookupAt?: boolean
   unit?: boolean
   categoryId?: boolean
   createdAt?: boolean
@@ -736,6 +808,8 @@ export type ProductSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   brand?: boolean
   description?: boolean
   imageUrl?: boolean
+  imageSource?: boolean
+  externalLookupAt?: boolean
   unit?: boolean
   categoryId?: boolean
   createdAt?: boolean
@@ -750,6 +824,8 @@ export type ProductSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   brand?: boolean
   description?: boolean
   imageUrl?: boolean
+  imageSource?: boolean
+  externalLookupAt?: boolean
   unit?: boolean
   categoryId?: boolean
   createdAt?: boolean
@@ -764,13 +840,15 @@ export type ProductSelectScalar = {
   brand?: boolean
   description?: boolean
   imageUrl?: boolean
+  imageSource?: boolean
+  externalLookupAt?: boolean
   unit?: boolean
   categoryId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type ProductOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "barcode" | "name" | "brand" | "description" | "imageUrl" | "unit" | "categoryId" | "createdAt" | "updatedAt", ExtArgs["result"]["product"]>
+export type ProductOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "barcode" | "name" | "brand" | "description" | "imageUrl" | "imageSource" | "externalLookupAt" | "unit" | "categoryId" | "createdAt" | "updatedAt", ExtArgs["result"]["product"]>
 export type ProductInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   category?: boolean | Prisma.Product$categoryArgs<ExtArgs>
   listings?: boolean | Prisma.Product$listingsArgs<ExtArgs>
@@ -799,6 +877,14 @@ export type $ProductPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     brand: string | null
     description: string | null
     imageUrl: string | null
+    /**
+     * من أين جاءت الصورة الحالية (null = لا صورة، أو صورة قديمة قبل هذه الميزة)
+     */
+    imageSource: $Enums.ProductImageSource | null
+    /**
+     * آخر بحث خارجي عن بيانات/صورة هذا الباركود — يمنع تكرار استدعاء المصادر الخارجية
+     */
+    externalLookupAt: Date | null
     /**
      * الوحدة/الحجم: قطعة، كغ، لتر، 1L...
      */
@@ -1237,6 +1323,8 @@ export interface ProductFieldRefs {
   readonly brand: Prisma.FieldRef<"Product", 'String'>
   readonly description: Prisma.FieldRef<"Product", 'String'>
   readonly imageUrl: Prisma.FieldRef<"Product", 'String'>
+  readonly imageSource: Prisma.FieldRef<"Product", 'ProductImageSource'>
+  readonly externalLookupAt: Prisma.FieldRef<"Product", 'DateTime'>
   readonly unit: Prisma.FieldRef<"Product", 'String'>
   readonly categoryId: Prisma.FieldRef<"Product", 'String'>
   readonly createdAt: Prisma.FieldRef<"Product", 'DateTime'>

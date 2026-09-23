@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { PageHeader } from '../components/Layout';
 import { CameraScanner, isCameraScanSupported } from '../components/CameraScanner';
 import { ProductImage } from '../components/ProductImage';
@@ -13,6 +13,7 @@ import {
 import { ApiError, api } from '../lib/api';
 import { formatDzd } from '../lib/format';
 import { ACCEPT_ATTR, prepareImage } from '../lib/imageUpload';
+import { lookupNotice } from '../lib/barcodeLookup';
 import type { Category, Product } from '../lib/types';
 
 type Filter = 'all' | 'available' | 'unavailable' | 'hidden';
@@ -92,6 +93,9 @@ export default function Products() {
   const [saving, setSaving] = useState(false);
   const [scanning, setScanning] = useState(false);
   const [imageBusy, setImageBusy] = useState(false);
+  const [searching, setSearching] = useState(false);
+  /** بحث واحد جارٍ فقط: الضغط المتكرر أو قراءات الكاميرا المتتالية لا تُرسل طلبات مكررة */
+  const lookupInFlight = useRef<string | null>(null);
   const cameraSupported = isCameraScanSupported();
 
   useEffect(() => {
@@ -261,13 +265,16 @@ export default function Products() {
       setFormError('أدخل الباركود، أو اختر «بدون باركود».');
       return;
     }
-    setSaving(true);
+    if (lookupInFlight.current !== null) return;
+    lookupInFlight.current = code;
+    setSearching(true);
     try {
       const r = await api.lookupBarcode(code);
+      const notice = lookupNotice(r);
       setForm((prev) => {
         const base = prev ?? EMPTY_FORM;
         if (r.status === 'NEW') {
-          return { ...base, barcode: r.barcode, step: 'form', locked: false, notice: 'منتج جديد في المنصة: أدخل بياناته وسعرك.' };
+          return { ...base, barcode: r.barcode, step: 'form', locked: false, notice };
         }
         if (r.status === 'AVAILABLE_TO_ADD') {
           const p = r.product;
@@ -276,9 +283,7 @@ export default function Products() {
             barcode: p.barcode ?? code,
             step: 'form',
             locked: true,
-            notice: p.imageUrl
-              ? 'أدخل سعرك وكميتك وتوفّرك فقط — بيانات المنتج وصورته مشتركة.'
-              : 'أدخل سعرك وكميتك وتوفّرك. المنتج بلا صورة بعد — يمكنك إضافة صورته.',
+            notice,
             name: p.name,
             brand: p.brand ?? '',
             unit: p.unit,
@@ -287,7 +292,7 @@ export default function Products() {
             description: p.description ?? '',
           };
         }
-        return { ...editForm(r.listing), notice: 'هذا المنتج موجود في محلك بالفعل — يمكنك تعديل سعره وكميته.' };
+        return { ...editForm(r.listing), notice };
       });
     } catch (e) {
       setFormError(
@@ -298,7 +303,8 @@ export default function Products() {
             : 'تعذّر البحث بالباركود.',
       );
     } finally {
-      setSaving(false);
+      lookupInFlight.current = null;
+      setSearching(false);
     }
   }
 
@@ -498,8 +504,8 @@ export default function Products() {
                 )}
                 {formError && <Alert>{formError}</Alert>}
                 <div className="flex gap-2 pt-1">
-                  <Button className="flex-1" onClick={lookup} loading={saving}>
-                    بحث
+                  <Button className="flex-1" onClick={lookup} loading={searching}>
+                    {searching ? 'جاري البحث عن المنتج…' : 'بحث'}
                   </Button>
                   <Button variant="secondary" className="flex-1" onClick={closeForm}>
                     إلغاء

@@ -42,3 +42,19 @@ export const writeLimiter = rateLimit({
     error: { code: 'TOO_MANY_REQUESTS', message: 'عدد كبير من العمليات، حاول بعد قليل' },
   },
 });
+
+/**
+ * البحث بالباركود قد يستدعي مصادر خارجية بحدود صارمة (Open Food Facts: 15 طلب/دقيقة لكل IP).
+ * حد لكل مستخدم يمنع الضغط المتكرر على «بحث» عشرات المرات دون أن يبطئ الاستعمال العادي.
+ */
+export const barcodeLookupLimiter = rateLimit({
+  windowMs: 60_000,
+  limit: 30,
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  skip: () => disabled,
+  keyGenerator: (req) => (req as { auth?: { userId?: string } }).auth?.userId ?? req.ip ?? 'anon',
+  message: {
+    error: { code: 'TOO_MANY_REQUESTS', message: 'بحث كثير بالباركود خلال دقيقة، انتظر قليلًا ثم حاول' },
+  },
+});

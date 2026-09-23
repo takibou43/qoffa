@@ -41,7 +41,17 @@ function ProductRow({
 
       <div className="min-w-0 flex-1">
         <h3 className="truncate text-sm font-semibold text-slate-900">{product.name}</h3>
-        <p className="text-xs text-slate-500">{product.unit}</p>
+        <p className="text-xs text-slate-500">
+          {[product.brand, product.unit].filter(Boolean).join(' · ')}
+          {product.barcode && (
+            <>
+              {' · '}
+              <Link to={`/products/${encodeURIComponent(product.barcode)}`} className="text-brand-700 underline-offset-2 hover:underline">
+                قارن الأسعار
+              </Link>
+            </>
+          )}
+        </p>
         <p className="mt-1 text-sm font-bold text-brand-700">{formatDzd(product.price)}</p>
       </div>
 

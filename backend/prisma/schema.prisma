@@ -106,6 +106,14 @@ enum CategoryKind {
   PRODUCT
 }
 
+/// مصدر صورة المنتج العالمي (للإدارة): من رفعها أو من أين جُلبت
+enum ProductImageSource {
+  OPEN_FOOD_FACTS
+  UPCITEMDB
+  SHOP_UPLOAD
+  ADMIN_UPLOAD
+}
+
 enum ReviewTargetType {
   SHOP
   DRIVER
@@ -280,6 +288,10 @@ model Product {
   brand       String?
   description String?
   imageUrl    String?
+  /// من أين جاءت الصورة الحالية (null = لا صورة، أو صورة قديمة قبل هذه الميزة)
+  imageSource ProductImageSource?
+  /// آخر بحث خارجي عن بيانات/صورة هذا الباركود — يمنع تكرار استدعاء المصادر الخارجية
+  externalLookupAt DateTime?
   /// الوحدة/الحجم: قطعة، كغ، لتر، 1L...
   unit        String    @default("قطعة")
   categoryId  String?
