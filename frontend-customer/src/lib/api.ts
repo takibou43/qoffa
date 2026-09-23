@@ -154,6 +154,8 @@ export const api = {
     addressId?: string;
     address?: { addressLine: string; city: string; latitude: number; longitude: number };
     customerNote?: string | null;
+    /** مفتاح منع التكرار: إعادة الإرسال بنفس المفتاح تعيد نفس الطلب */
+    clientRequestId?: string;
   }) => request<{ order: Order }>('/orders', { method: 'POST', body: input, auth: true }),
 
   /** سعر التوصيل التقديري — يحسبه الخادم بمعاملات الإدارة */

@@ -259,6 +259,8 @@ export const OrderScalarFieldEnum = {
   outForDeliveryAt: 'outForDeliveryAt',
   deliveredAt: 'deliveredAt',
   closedAt: 'closedAt',
+  stockReserved: 'stockReserved',
+  clientRequestId: 'clientRequestId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -274,7 +276,8 @@ export const OrderItemScalarFieldEnum = {
   unitSnapshot: 'unitSnapshot',
   unitPrice: 'unitPrice',
   quantity: 'quantity',
-  lineTotal: 'lineTotal'
+  lineTotal: 'lineTotal',
+  reservedQty: 'reservedQty'
 } as const
 
 export type OrderItemScalarFieldEnum = (typeof OrderItemScalarFieldEnum)[keyof typeof OrderItemScalarFieldEnum]

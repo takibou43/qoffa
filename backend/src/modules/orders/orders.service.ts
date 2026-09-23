@@ -17,6 +17,7 @@ import {
   loadPricingConfig,
   type DeliveryQuote,
 } from '../../services/deliveryPricing.js';
+import { releaseStock, reserveStock, shouldRestock } from '../../services/stock.js';
 import { settleDeliveredOrder } from '../../services/wallet.js';
 import type { CreateOrderInput, ListOrdersQuery } from './orders.schema.js';
 
@@ -109,7 +110,20 @@ export async function quoteDelivery(
   return { ...quote, maxKm: pricing.maxKm };
 }
 
+/** طلب سابق بنفس مفتاح منع التكرار (إعادة إرسال/retry) */
+async function findByClientRequestId(customerId: string, clientRequestId?: string) {
+  if (!clientRequestId) return null;
+  return prisma.order.findUnique({
+    where: { customerId_clientRequestId: { customerId, clientRequestId } },
+    select: customerOrderSelect,
+  });
+}
+
 export async function createOrder(customerId: string, input: CreateOrderInput) {
+  // إعادة إرسال نفس الطلب: نعيد الطلب الموجود دون إنشاء جديد ودون خصم ثانٍ للمخزون
+  const existing = await findByClientRequestId(customerId, input.clientRequestId);
+  if (existing) return existing;
+
   const shop = await prisma.shop.findUnique({
     where: { id: input.shopId },
     select: {
@@ -167,12 +181,27 @@ export async function createOrder(customerId: string, input: CreateOrderInput) {
     quantities.set(item.productId, (quantities.get(item.productId) ?? 0) + item.quantity);
   }
 
-  // التوفر والكمية خاصان بعرض هذا المحل (ShopProduct)
-  const unavailable = products
-    .filter((p) => !p.isAvailable || (p.stock !== null && p.stock < (quantities.get(p.id) ?? 0)))
-    .map((p) => p.product.name);
+  // التوفر خاص بعرض هذا المحل (ShopProduct)
+  const unavailable = products.filter((p) => !p.isAvailable).map((p) => p.product.name);
   if (unavailable.length > 0) {
     throw conflict('بعض المنتجات غير متوفرة حاليًا', { products: unavailable });
+  }
+  // فحص مبدئي سريع للكمية؛ الفحص الحاسم هو الخصم الذري داخل المعاملة (reserveStock)
+  const shortage = products.find(
+    (p) => p.stock !== null && p.stock < (quantities.get(p.id) ?? 0),
+  );
+  if (shortage) {
+    const available = Math.max(0, shortage.stock ?? 0);
+    throw conflict(
+      available === 0
+        ? `نفدت كمية «${shortage.product.name}» من المخزون`
+        : `الكمية المطلوبة من «${shortage.product.name}» غير متوفرة. المتوفر حاليًا: ${available}`,
+      {
+        products: products
+          .filter((p) => p.stock !== null && p.stock < (quantities.get(p.id) ?? 0))
+          .map((p) => p.product.name),
+      },
+    );
   }
 
   const items = [...quantities.entries()].map(([productId, quantity]) => {
@@ -210,10 +239,22 @@ export async function createOrder(customerId: string, input: CreateOrderInput) {
     select: { phone: true },
   });
 
-  const orderId = await prisma.$transaction(async (tx) => {
+  const createOrderTx = async (tx: Prisma.TransactionClient) => {
+    // الخصم الذري للمخزون أولًا: إن نقصت أي كمية تُرجَع المعاملة كلها ولا يُنشأ الطلب
+    const reserved = await reserveStock(
+      tx,
+      items.map((i) => ({ shopProductId: i.productId, quantity: i.quantity, name: i.nameSnapshot })),
+    );
+    const itemsWithReservation = items.map((i) => ({
+      ...i,
+      reservedQty: reserved.get(i.productId) ?? 0,
+    }));
+
     // داخل المعاملة نُنشئ بأقل قدر من الحقول؛ القراءة الكاملة بعلاقاتها تتم بعد الالتزام
     const created = await tx.order.create({
       data: {
+        clientRequestId: input.clientRequestId ?? null,
+        stockReserved: itemsWithReservation.some((i) => i.reservedQty > 0),
         code: generateOrderCode(),
         customerId,
         shopId: shop.id,
@@ -230,7 +271,7 @@ export async function createOrder(customerId: string, input: CreateOrderInput) {
         deliveryLongitude: delivery.longitude,
         customerPhone: customer.phone,
         distanceMeters,
-        items: { createMany: { data: items } },
+        items: { createMany: { data: itemsWithReservation } },
       },
       select: { id: true, code: true, total: true },
     });
@@ -263,7 +304,19 @@ export async function createOrder(customerId: string, input: CreateOrderInput) {
     ]);
 
     return created.id;
-  });
+  };
+
+  let orderId: string;
+  try {
+    orderId = await prisma.$transaction(createOrderTx);
+  } catch (err) {
+    // إرسالان متزامنان بنفس المفتاح: الثاني يصطدم بالقيد الفريد وتُرجَع معاملته (بما فيها الخصم)
+    if ((err as { code?: string })?.code === 'P2002' && input.clientRequestId) {
+      const winner = await findByClientRequestId(customerId, input.clientRequestId);
+      if (winner) return winner;
+    }
+    throw err;
+  }
 
   return prisma.order.findUniqueOrThrow({
     where: { id: orderId },
@@ -370,6 +423,11 @@ async function runTransition(
   });
 
   // ── الآثار الجانبية ──
+  // الرفض/الإلغاء قبل خروج البضاعة من المحل يعيد الكمية المحجوزة (مرة واحدة فقط)
+  if (shouldRestock(order.status, to)) {
+    await releaseStock(tx, orderId);
+  }
+
   const driverIdNow = (data.driverId as string | undefined) ?? order.driverId;
 
   if (to === 'PICKED_UP' && driverIdNow) {

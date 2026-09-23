@@ -428,6 +428,11 @@ model Order {
   deliveredAt      DateTime?
   closedAt         DateTime?
 
+  /// true = كمية هذا الطلب مخصومة حاليًا من ShopProduct.stock (تُعاد مرة واحدة عند الرفض/الإلغاء قبل الاستلام)
+  stockReserved   Boolean @default(false)
+  /// مفتاح منع التكرار من الواجهة: إعادة الإرسال بنفس المفتاح تعيد نفس الطلب بلا خصم ثانٍ
+  clientRequestId String?
+
   items         OrderItem[]
   delivery      Delivery?
   offers        DeliveryOffer[]
@@ -439,6 +444,7 @@ model Order {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@unique([customerId, clientRequestId])
   @@index([customerId, createdAt])
   @@index([shopId, status, createdAt])
   @@index([driverId, status])
@@ -460,6 +466,8 @@ model OrderItem {
   unitPrice    Int
   quantity     Int
   lineTotal    Int
+  /// الكمية المخصومة فعلًا من المخزون لهذا السطر (0 إن كان المخزون غير متتبَّع) — هي ما يُعاد عند الإلغاء
+  reservedQty  Int @default(0)
 
   @@index([orderId])
 }

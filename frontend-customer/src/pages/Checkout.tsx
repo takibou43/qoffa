@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '../components/Layout';
 import { Alert, Button, Field, LoadingBlock, inputClass } from '../components/ui';
@@ -8,6 +8,13 @@ import { useCart } from '../lib/cart';
 import { formatDzd } from '../lib/format';
 import { useLocation as useGeo } from '../lib/location';
 import type { Address } from '../lib/types';
+
+function newRequestId(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`;
+}
 
 export default function Checkout() {
   const cart = useCart();
@@ -22,6 +29,8 @@ export default function Checkout() {
   const [note, setNote] = useState('');
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  // مفتاح ثابت لهذه العملية: الضغط المزدوج أو إعادة المحاولة بعد انقطاع الشبكة لا ينشئ طلبًا ثانيًا
+  const requestIdRef = useRef(newRequestId());
   const [error, setError] = useState<string | null>(null);
   const [quote, setQuote] = useState<{
     distanceKm: number;
@@ -130,6 +139,7 @@ export default function Checkout() {
             }
           : { addressId: selectedId! }),
         customerNote: note.trim() || null,
+        clientRequestId: requestIdRef.current,
       });
 
       cart.clear();

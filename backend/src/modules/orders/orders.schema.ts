@@ -40,6 +40,14 @@ export const createOrderSchema = z
     address: manualAddress.optional(),
     customerNote: z.string().trim().max(300).nullable().optional(),
     paymentMethod: z.literal('CASH_ON_DELIVERY').default('CASH_ON_DELIVERY'),
+    /** مفتاح منع التكرار (يولّده الواجهة مرة لكل عملية دفع) — إعادة الإرسال لا تنشئ طلبًا ثانيًا */
+    clientRequestId: z
+      .string()
+      .trim()
+      .min(8)
+      .max(100)
+      .regex(/^[A-Za-z0-9_-]+$/)
+      .optional(),
   })
   .refine((v) => Boolean(v.addressId) || Boolean(v.address), {
     message: 'يجب اختيار عنوان تسليم أو إدخاله يدويًا',

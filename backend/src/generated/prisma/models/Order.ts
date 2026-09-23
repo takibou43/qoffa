@@ -83,6 +83,8 @@ export type OrderMinAggregateOutputType = {
   outForDeliveryAt: Date | null
   deliveredAt: Date | null
   closedAt: Date | null
+  stockReserved: boolean | null
+  clientRequestId: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -120,6 +122,8 @@ export type OrderMaxAggregateOutputType = {
   outForDeliveryAt: Date | null
   deliveredAt: Date | null
   closedAt: Date | null
+  stockReserved: boolean | null
+  clientRequestId: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -157,6 +161,8 @@ export type OrderCountAggregateOutputType = {
   outForDeliveryAt: number
   deliveredAt: number
   closedAt: number
+  stockReserved: number
+  clientRequestId: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -220,6 +226,8 @@ export type OrderMinAggregateInputType = {
   outForDeliveryAt?: true
   deliveredAt?: true
   closedAt?: true
+  stockReserved?: true
+  clientRequestId?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -257,6 +265,8 @@ export type OrderMaxAggregateInputType = {
   outForDeliveryAt?: true
   deliveredAt?: true
   closedAt?: true
+  stockReserved?: true
+  clientRequestId?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -294,6 +304,8 @@ export type OrderCountAggregateInputType = {
   outForDeliveryAt?: true
   deliveredAt?: true
   closedAt?: true
+  stockReserved?: true
+  clientRequestId?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -418,6 +430,8 @@ export type OrderGroupByOutputType = {
   outForDeliveryAt: Date | null
   deliveredAt: Date | null
   closedAt: Date | null
+  stockReserved: boolean
+  clientRequestId: string | null
   createdAt: Date
   updatedAt: Date
   _count: OrderCountAggregateOutputType | null
@@ -478,6 +492,8 @@ export type OrderWhereInput = {
   outForDeliveryAt?: Prisma.DateTimeNullableFilter<"Order"> | Date | string | null
   deliveredAt?: Prisma.DateTimeNullableFilter<"Order"> | Date | string | null
   closedAt?: Prisma.DateTimeNullableFilter<"Order"> | Date | string | null
+  stockReserved?: Prisma.BoolFilter<"Order"> | boolean
+  clientRequestId?: Prisma.StringNullableFilter<"Order"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Order"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Order"> | Date | string
   customer?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
@@ -526,6 +542,8 @@ export type OrderOrderByWithRelationInput = {
   outForDeliveryAt?: Prisma.SortOrderInput | Prisma.SortOrder
   deliveredAt?: Prisma.SortOrderInput | Prisma.SortOrder
   closedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  stockReserved?: Prisma.SortOrder
+  clientRequestId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   customer?: Prisma.UserOrderByWithRelationInput
@@ -544,6 +562,7 @@ export type OrderOrderByWithRelationInput = {
 export type OrderWhereUniqueInput = Prisma.AtLeast<{
   id?: string
   code?: string
+  customerId_clientRequestId?: Prisma.OrderCustomerIdClientRequestIdCompoundUniqueInput
   AND?: Prisma.OrderWhereInput | Prisma.OrderWhereInput[]
   OR?: Prisma.OrderWhereInput[]
   NOT?: Prisma.OrderWhereInput | Prisma.OrderWhereInput[]
@@ -577,6 +596,8 @@ export type OrderWhereUniqueInput = Prisma.AtLeast<{
   outForDeliveryAt?: Prisma.DateTimeNullableFilter<"Order"> | Date | string | null
   deliveredAt?: Prisma.DateTimeNullableFilter<"Order"> | Date | string | null
   closedAt?: Prisma.DateTimeNullableFilter<"Order"> | Date | string | null
+  stockReserved?: Prisma.BoolFilter<"Order"> | boolean
+  clientRequestId?: Prisma.StringNullableFilter<"Order"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Order"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Order"> | Date | string
   customer?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
@@ -590,7 +611,7 @@ export type OrderWhereUniqueInput = Prisma.AtLeast<{
   notifications?: Prisma.NotificationListRelationFilter
   statusEvents?: Prisma.OrderStatusEventListRelationFilter
   walletTxs?: Prisma.WalletTransactionListRelationFilter
-}, "id" | "code">
+}, "id" | "code" | "customerId_clientRequestId">
 
 export type OrderOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -625,6 +646,8 @@ export type OrderOrderByWithAggregationInput = {
   outForDeliveryAt?: Prisma.SortOrderInput | Prisma.SortOrder
   deliveredAt?: Prisma.SortOrderInput | Prisma.SortOrder
   closedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  stockReserved?: Prisma.SortOrder
+  clientRequestId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.OrderCountOrderByAggregateInput
@@ -670,6 +693,8 @@ export type OrderScalarWhereWithAggregatesInput = {
   outForDeliveryAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Order"> | Date | string | null
   deliveredAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Order"> | Date | string | null
   closedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Order"> | Date | string | null
+  stockReserved?: Prisma.BoolWithAggregatesFilter<"Order"> | boolean
+  clientRequestId?: Prisma.StringNullableWithAggregatesFilter<"Order"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Order"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Order"> | Date | string
 }
@@ -703,6 +728,8 @@ export type OrderCreateInput = {
   outForDeliveryAt?: Date | string | null
   deliveredAt?: Date | string | null
   closedAt?: Date | string | null
+  stockReserved?: boolean
+  clientRequestId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   customer: Prisma.UserCreateNestedOneWithoutOrdersInput
@@ -751,6 +778,8 @@ export type OrderUncheckedCreateInput = {
   outForDeliveryAt?: Date | string | null
   deliveredAt?: Date | string | null
   closedAt?: Date | string | null
+  stockReserved?: boolean
+  clientRequestId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   items?: Prisma.OrderItemUncheckedCreateNestedManyWithoutOrderInput
@@ -791,6 +820,8 @@ export type OrderUpdateInput = {
   outForDeliveryAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  stockReserved?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  clientRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   customer?: Prisma.UserUpdateOneRequiredWithoutOrdersNestedInput
@@ -839,6 +870,8 @@ export type OrderUncheckedUpdateInput = {
   outForDeliveryAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  stockReserved?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  clientRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   items?: Prisma.OrderItemUncheckedUpdateManyWithoutOrderNestedInput
@@ -883,6 +916,8 @@ export type OrderCreateManyInput = {
   outForDeliveryAt?: Date | string | null
   deliveredAt?: Date | string | null
   closedAt?: Date | string | null
+  stockReserved?: boolean
+  clientRequestId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -916,6 +951,8 @@ export type OrderUpdateManyMutationInput = {
   outForDeliveryAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  stockReserved?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  clientRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -953,6 +990,8 @@ export type OrderUncheckedUpdateManyInput = {
   outForDeliveryAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  stockReserved?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  clientRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -965,6 +1004,11 @@ export type OrderListRelationFilter = {
 
 export type OrderOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
+}
+
+export type OrderCustomerIdClientRequestIdCompoundUniqueInput = {
+  customerId: string
+  clientRequestId: string
 }
 
 export type OrderCountOrderByAggregateInput = {
@@ -1000,6 +1044,8 @@ export type OrderCountOrderByAggregateInput = {
   outForDeliveryAt?: Prisma.SortOrder
   deliveredAt?: Prisma.SortOrder
   closedAt?: Prisma.SortOrder
+  stockReserved?: Prisma.SortOrder
+  clientRequestId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -1049,6 +1095,8 @@ export type OrderMaxOrderByAggregateInput = {
   outForDeliveryAt?: Prisma.SortOrder
   deliveredAt?: Prisma.SortOrder
   closedAt?: Prisma.SortOrder
+  stockReserved?: Prisma.SortOrder
+  clientRequestId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -1086,6 +1134,8 @@ export type OrderMinOrderByAggregateInput = {
   outForDeliveryAt?: Prisma.SortOrder
   deliveredAt?: Prisma.SortOrder
   closedAt?: Prisma.SortOrder
+  stockReserved?: Prisma.SortOrder
+  clientRequestId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -1423,6 +1473,8 @@ export type OrderCreateWithoutCustomerInput = {
   outForDeliveryAt?: Date | string | null
   deliveredAt?: Date | string | null
   closedAt?: Date | string | null
+  stockReserved?: boolean
+  clientRequestId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   shop: Prisma.ShopCreateNestedOneWithoutOrdersInput
@@ -1469,6 +1521,8 @@ export type OrderUncheckedCreateWithoutCustomerInput = {
   outForDeliveryAt?: Date | string | null
   deliveredAt?: Date | string | null
   closedAt?: Date | string | null
+  stockReserved?: boolean
+  clientRequestId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   items?: Prisma.OrderItemUncheckedCreateNestedManyWithoutOrderInput
@@ -1542,6 +1596,8 @@ export type OrderScalarWhereInput = {
   outForDeliveryAt?: Prisma.DateTimeNullableFilter<"Order"> | Date | string | null
   deliveredAt?: Prisma.DateTimeNullableFilter<"Order"> | Date | string | null
   closedAt?: Prisma.DateTimeNullableFilter<"Order"> | Date | string | null
+  stockReserved?: Prisma.BoolFilter<"Order"> | boolean
+  clientRequestId?: Prisma.StringNullableFilter<"Order"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Order"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Order"> | Date | string
 }
@@ -1575,6 +1631,8 @@ export type OrderCreateWithoutAddressInput = {
   outForDeliveryAt?: Date | string | null
   deliveredAt?: Date | string | null
   closedAt?: Date | string | null
+  stockReserved?: boolean
+  clientRequestId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   customer: Prisma.UserCreateNestedOneWithoutOrdersInput
@@ -1621,6 +1679,8 @@ export type OrderUncheckedCreateWithoutAddressInput = {
   outForDeliveryAt?: Date | string | null
   deliveredAt?: Date | string | null
   closedAt?: Date | string | null
+  stockReserved?: boolean
+  clientRequestId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   items?: Prisma.OrderItemUncheckedCreateNestedManyWithoutOrderInput
@@ -1687,6 +1747,8 @@ export type OrderCreateWithoutShopInput = {
   outForDeliveryAt?: Date | string | null
   deliveredAt?: Date | string | null
   closedAt?: Date | string | null
+  stockReserved?: boolean
+  clientRequestId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   customer: Prisma.UserCreateNestedOneWithoutOrdersInput
@@ -1733,6 +1795,8 @@ export type OrderUncheckedCreateWithoutShopInput = {
   outForDeliveryAt?: Date | string | null
   deliveredAt?: Date | string | null
   closedAt?: Date | string | null
+  stockReserved?: boolean
+  clientRequestId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   items?: Prisma.OrderItemUncheckedCreateNestedManyWithoutOrderInput
@@ -1799,6 +1863,8 @@ export type OrderCreateWithoutDriverInput = {
   outForDeliveryAt?: Date | string | null
   deliveredAt?: Date | string | null
   closedAt?: Date | string | null
+  stockReserved?: boolean
+  clientRequestId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   customer: Prisma.UserCreateNestedOneWithoutOrdersInput
@@ -1845,6 +1911,8 @@ export type OrderUncheckedCreateWithoutDriverInput = {
   outForDeliveryAt?: Date | string | null
   deliveredAt?: Date | string | null
   closedAt?: Date | string | null
+  stockReserved?: boolean
+  clientRequestId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   items?: Prisma.OrderItemUncheckedCreateNestedManyWithoutOrderInput
@@ -1911,6 +1979,8 @@ export type OrderCreateWithoutItemsInput = {
   outForDeliveryAt?: Date | string | null
   deliveredAt?: Date | string | null
   closedAt?: Date | string | null
+  stockReserved?: boolean
+  clientRequestId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   customer: Prisma.UserCreateNestedOneWithoutOrdersInput
@@ -1958,6 +2028,8 @@ export type OrderUncheckedCreateWithoutItemsInput = {
   outForDeliveryAt?: Date | string | null
   deliveredAt?: Date | string | null
   closedAt?: Date | string | null
+  stockReserved?: boolean
+  clientRequestId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   delivery?: Prisma.DeliveryUncheckedCreateNestedOneWithoutOrderInput
@@ -2013,6 +2085,8 @@ export type OrderUpdateWithoutItemsInput = {
   outForDeliveryAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  stockReserved?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  clientRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   customer?: Prisma.UserUpdateOneRequiredWithoutOrdersNestedInput
@@ -2060,6 +2134,8 @@ export type OrderUncheckedUpdateWithoutItemsInput = {
   outForDeliveryAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  stockReserved?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  clientRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   delivery?: Prisma.DeliveryUncheckedUpdateOneWithoutOrderNestedInput
@@ -2099,6 +2175,8 @@ export type OrderCreateWithoutStatusEventsInput = {
   outForDeliveryAt?: Date | string | null
   deliveredAt?: Date | string | null
   closedAt?: Date | string | null
+  stockReserved?: boolean
+  clientRequestId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   customer: Prisma.UserCreateNestedOneWithoutOrdersInput
@@ -2146,6 +2224,8 @@ export type OrderUncheckedCreateWithoutStatusEventsInput = {
   outForDeliveryAt?: Date | string | null
   deliveredAt?: Date | string | null
   closedAt?: Date | string | null
+  stockReserved?: boolean
+  clientRequestId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   items?: Prisma.OrderItemUncheckedCreateNestedManyWithoutOrderInput
@@ -2201,6 +2281,8 @@ export type OrderUpdateWithoutStatusEventsInput = {
   outForDeliveryAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  stockReserved?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  clientRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   customer?: Prisma.UserUpdateOneRequiredWithoutOrdersNestedInput
@@ -2248,6 +2330,8 @@ export type OrderUncheckedUpdateWithoutStatusEventsInput = {
   outForDeliveryAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  stockReserved?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  clientRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   items?: Prisma.OrderItemUncheckedUpdateManyWithoutOrderNestedInput
@@ -2287,6 +2371,8 @@ export type OrderCreateWithoutDeliveryInput = {
   outForDeliveryAt?: Date | string | null
   deliveredAt?: Date | string | null
   closedAt?: Date | string | null
+  stockReserved?: boolean
+  clientRequestId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   customer: Prisma.UserCreateNestedOneWithoutOrdersInput
@@ -2334,6 +2420,8 @@ export type OrderUncheckedCreateWithoutDeliveryInput = {
   outForDeliveryAt?: Date | string | null
   deliveredAt?: Date | string | null
   closedAt?: Date | string | null
+  stockReserved?: boolean
+  clientRequestId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   items?: Prisma.OrderItemUncheckedCreateNestedManyWithoutOrderInput
@@ -2389,6 +2477,8 @@ export type OrderUpdateWithoutDeliveryInput = {
   outForDeliveryAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  stockReserved?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  clientRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   customer?: Prisma.UserUpdateOneRequiredWithoutOrdersNestedInput
@@ -2436,6 +2526,8 @@ export type OrderUncheckedUpdateWithoutDeliveryInput = {
   outForDeliveryAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  stockReserved?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  clientRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   items?: Prisma.OrderItemUncheckedUpdateManyWithoutOrderNestedInput
@@ -2475,6 +2567,8 @@ export type OrderCreateWithoutOffersInput = {
   outForDeliveryAt?: Date | string | null
   deliveredAt?: Date | string | null
   closedAt?: Date | string | null
+  stockReserved?: boolean
+  clientRequestId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   customer: Prisma.UserCreateNestedOneWithoutOrdersInput
@@ -2522,6 +2616,8 @@ export type OrderUncheckedCreateWithoutOffersInput = {
   outForDeliveryAt?: Date | string | null
   deliveredAt?: Date | string | null
   closedAt?: Date | string | null
+  stockReserved?: boolean
+  clientRequestId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   items?: Prisma.OrderItemUncheckedCreateNestedManyWithoutOrderInput
@@ -2577,6 +2673,8 @@ export type OrderUpdateWithoutOffersInput = {
   outForDeliveryAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  stockReserved?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  clientRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   customer?: Prisma.UserUpdateOneRequiredWithoutOrdersNestedInput
@@ -2624,6 +2722,8 @@ export type OrderUncheckedUpdateWithoutOffersInput = {
   outForDeliveryAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  stockReserved?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  clientRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   items?: Prisma.OrderItemUncheckedUpdateManyWithoutOrderNestedInput
@@ -2663,6 +2763,8 @@ export type OrderCreateWithoutReviewsInput = {
   outForDeliveryAt?: Date | string | null
   deliveredAt?: Date | string | null
   closedAt?: Date | string | null
+  stockReserved?: boolean
+  clientRequestId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   customer: Prisma.UserCreateNestedOneWithoutOrdersInput
@@ -2710,6 +2812,8 @@ export type OrderUncheckedCreateWithoutReviewsInput = {
   outForDeliveryAt?: Date | string | null
   deliveredAt?: Date | string | null
   closedAt?: Date | string | null
+  stockReserved?: boolean
+  clientRequestId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   items?: Prisma.OrderItemUncheckedCreateNestedManyWithoutOrderInput
@@ -2765,6 +2869,8 @@ export type OrderUpdateWithoutReviewsInput = {
   outForDeliveryAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  stockReserved?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  clientRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   customer?: Prisma.UserUpdateOneRequiredWithoutOrdersNestedInput
@@ -2812,6 +2918,8 @@ export type OrderUncheckedUpdateWithoutReviewsInput = {
   outForDeliveryAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  stockReserved?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  clientRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   items?: Prisma.OrderItemUncheckedUpdateManyWithoutOrderNestedInput
@@ -2851,6 +2959,8 @@ export type OrderCreateWithoutWalletTxsInput = {
   outForDeliveryAt?: Date | string | null
   deliveredAt?: Date | string | null
   closedAt?: Date | string | null
+  stockReserved?: boolean
+  clientRequestId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   customer: Prisma.UserCreateNestedOneWithoutOrdersInput
@@ -2898,6 +3008,8 @@ export type OrderUncheckedCreateWithoutWalletTxsInput = {
   outForDeliveryAt?: Date | string | null
   deliveredAt?: Date | string | null
   closedAt?: Date | string | null
+  stockReserved?: boolean
+  clientRequestId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   items?: Prisma.OrderItemUncheckedCreateNestedManyWithoutOrderInput
@@ -2953,6 +3065,8 @@ export type OrderUpdateWithoutWalletTxsInput = {
   outForDeliveryAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  stockReserved?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  clientRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   customer?: Prisma.UserUpdateOneRequiredWithoutOrdersNestedInput
@@ -3000,6 +3114,8 @@ export type OrderUncheckedUpdateWithoutWalletTxsInput = {
   outForDeliveryAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  stockReserved?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  clientRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   items?: Prisma.OrderItemUncheckedUpdateManyWithoutOrderNestedInput
@@ -3039,6 +3155,8 @@ export type OrderCreateWithoutNotificationsInput = {
   outForDeliveryAt?: Date | string | null
   deliveredAt?: Date | string | null
   closedAt?: Date | string | null
+  stockReserved?: boolean
+  clientRequestId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   customer: Prisma.UserCreateNestedOneWithoutOrdersInput
@@ -3086,6 +3204,8 @@ export type OrderUncheckedCreateWithoutNotificationsInput = {
   outForDeliveryAt?: Date | string | null
   deliveredAt?: Date | string | null
   closedAt?: Date | string | null
+  stockReserved?: boolean
+  clientRequestId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   items?: Prisma.OrderItemUncheckedCreateNestedManyWithoutOrderInput
@@ -3141,6 +3261,8 @@ export type OrderUpdateWithoutNotificationsInput = {
   outForDeliveryAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  stockReserved?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  clientRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   customer?: Prisma.UserUpdateOneRequiredWithoutOrdersNestedInput
@@ -3188,6 +3310,8 @@ export type OrderUncheckedUpdateWithoutNotificationsInput = {
   outForDeliveryAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  stockReserved?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  clientRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   items?: Prisma.OrderItemUncheckedUpdateManyWithoutOrderNestedInput
@@ -3230,6 +3354,8 @@ export type OrderCreateManyCustomerInput = {
   outForDeliveryAt?: Date | string | null
   deliveredAt?: Date | string | null
   closedAt?: Date | string | null
+  stockReserved?: boolean
+  clientRequestId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -3263,6 +3389,8 @@ export type OrderUpdateWithoutCustomerInput = {
   outForDeliveryAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  stockReserved?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  clientRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   shop?: Prisma.ShopUpdateOneRequiredWithoutOrdersNestedInput
@@ -3309,6 +3437,8 @@ export type OrderUncheckedUpdateWithoutCustomerInput = {
   outForDeliveryAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  stockReserved?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  clientRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   items?: Prisma.OrderItemUncheckedUpdateManyWithoutOrderNestedInput
@@ -3352,6 +3482,8 @@ export type OrderUncheckedUpdateManyWithoutCustomerInput = {
   outForDeliveryAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  stockReserved?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  clientRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -3388,6 +3520,8 @@ export type OrderCreateManyAddressInput = {
   outForDeliveryAt?: Date | string | null
   deliveredAt?: Date | string | null
   closedAt?: Date | string | null
+  stockReserved?: boolean
+  clientRequestId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -3421,6 +3555,8 @@ export type OrderUpdateWithoutAddressInput = {
   outForDeliveryAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  stockReserved?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  clientRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   customer?: Prisma.UserUpdateOneRequiredWithoutOrdersNestedInput
@@ -3467,6 +3603,8 @@ export type OrderUncheckedUpdateWithoutAddressInput = {
   outForDeliveryAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  stockReserved?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  clientRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   items?: Prisma.OrderItemUncheckedUpdateManyWithoutOrderNestedInput
@@ -3510,6 +3648,8 @@ export type OrderUncheckedUpdateManyWithoutAddressInput = {
   outForDeliveryAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  stockReserved?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  clientRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -3546,6 +3686,8 @@ export type OrderCreateManyShopInput = {
   outForDeliveryAt?: Date | string | null
   deliveredAt?: Date | string | null
   closedAt?: Date | string | null
+  stockReserved?: boolean
+  clientRequestId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -3579,6 +3721,8 @@ export type OrderUpdateWithoutShopInput = {
   outForDeliveryAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  stockReserved?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  clientRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   customer?: Prisma.UserUpdateOneRequiredWithoutOrdersNestedInput
@@ -3625,6 +3769,8 @@ export type OrderUncheckedUpdateWithoutShopInput = {
   outForDeliveryAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  stockReserved?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  clientRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   items?: Prisma.OrderItemUncheckedUpdateManyWithoutOrderNestedInput
@@ -3668,6 +3814,8 @@ export type OrderUncheckedUpdateManyWithoutShopInput = {
   outForDeliveryAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  stockReserved?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  clientRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -3704,6 +3852,8 @@ export type OrderCreateManyDriverInput = {
   outForDeliveryAt?: Date | string | null
   deliveredAt?: Date | string | null
   closedAt?: Date | string | null
+  stockReserved?: boolean
+  clientRequestId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -3737,6 +3887,8 @@ export type OrderUpdateWithoutDriverInput = {
   outForDeliveryAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  stockReserved?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  clientRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   customer?: Prisma.UserUpdateOneRequiredWithoutOrdersNestedInput
@@ -3783,6 +3935,8 @@ export type OrderUncheckedUpdateWithoutDriverInput = {
   outForDeliveryAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  stockReserved?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  clientRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   items?: Prisma.OrderItemUncheckedUpdateManyWithoutOrderNestedInput
@@ -3826,6 +3980,8 @@ export type OrderUncheckedUpdateManyWithoutDriverInput = {
   outForDeliveryAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  stockReserved?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  clientRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -3939,6 +4095,8 @@ export type OrderSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   outForDeliveryAt?: boolean
   deliveredAt?: boolean
   closedAt?: boolean
+  stockReserved?: boolean
+  clientRequestId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   customer?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -3988,6 +4146,8 @@ export type OrderSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   outForDeliveryAt?: boolean
   deliveredAt?: boolean
   closedAt?: boolean
+  stockReserved?: boolean
+  clientRequestId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   customer?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -4029,6 +4189,8 @@ export type OrderSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   outForDeliveryAt?: boolean
   deliveredAt?: boolean
   closedAt?: boolean
+  stockReserved?: boolean
+  clientRequestId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   customer?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -4070,11 +4232,13 @@ export type OrderSelectScalar = {
   outForDeliveryAt?: boolean
   deliveredAt?: boolean
   closedAt?: boolean
+  stockReserved?: boolean
+  clientRequestId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type OrderOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "code" | "customerId" | "shopId" | "driverId" | "status" | "subtotal" | "deliveryFee" | "total" | "commissionAmount" | "driverEarning" | "paymentMethod" | "customerNote" | "addressId" | "deliveryAddressLine" | "deliveryCity" | "deliveryLatitude" | "deliveryLongitude" | "customerPhone" | "distanceMeters" | "rejectionReason" | "cancelReason" | "cancelledBy" | "offerAttempts" | "acceptedAt" | "preparingAt" | "readyAt" | "assignedAt" | "pickedUpAt" | "outForDeliveryAt" | "deliveredAt" | "closedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["order"]>
+export type OrderOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "code" | "customerId" | "shopId" | "driverId" | "status" | "subtotal" | "deliveryFee" | "total" | "commissionAmount" | "driverEarning" | "paymentMethod" | "customerNote" | "addressId" | "deliveryAddressLine" | "deliveryCity" | "deliveryLatitude" | "deliveryLongitude" | "customerPhone" | "distanceMeters" | "rejectionReason" | "cancelReason" | "cancelledBy" | "offerAttempts" | "acceptedAt" | "preparingAt" | "readyAt" | "assignedAt" | "pickedUpAt" | "outForDeliveryAt" | "deliveredAt" | "closedAt" | "stockReserved" | "clientRequestId" | "createdAt" | "updatedAt", ExtArgs["result"]["order"]>
 export type OrderInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   customer?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   shop?: boolean | Prisma.ShopDefaultArgs<ExtArgs>
@@ -4168,6 +4332,14 @@ export type $OrderPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     outForDeliveryAt: Date | null
     deliveredAt: Date | null
     closedAt: Date | null
+    /**
+     * true = كمية هذا الطلب مخصومة حاليًا من ShopProduct.stock (تُعاد مرة واحدة عند الرفض/الإلغاء قبل الاستلام)
+     */
+    stockReserved: boolean
+    /**
+     * مفتاح منع التكرار من الواجهة: إعادة الإرسال بنفس المفتاح تعيد نفس الطلب بلا خصم ثانٍ
+     */
+    clientRequestId: string | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["order"]>
@@ -4636,6 +4808,8 @@ export interface OrderFieldRefs {
   readonly outForDeliveryAt: Prisma.FieldRef<"Order", 'DateTime'>
   readonly deliveredAt: Prisma.FieldRef<"Order", 'DateTime'>
   readonly closedAt: Prisma.FieldRef<"Order", 'DateTime'>
+  readonly stockReserved: Prisma.FieldRef<"Order", 'Boolean'>
+  readonly clientRequestId: Prisma.FieldRef<"Order", 'String'>
   readonly createdAt: Prisma.FieldRef<"Order", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Order", 'DateTime'>
 }
