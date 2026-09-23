@@ -4,6 +4,8 @@ import { ApiError, api } from '../lib/api';
 import { formatDistance } from '../lib/format';
 import { useLocation as useGeo } from '../lib/location';
 import type { Category, Shop } from '../lib/types';
+import { categoryEmoji } from '../lib/visuals';
+import { SearchIcon } from '../components/icons';
 import {
   Alert,
   Button,
@@ -117,20 +119,23 @@ export default function Home() {
 
   return (
     <div>
-      <header className="bg-brand-700 px-4 pt-5 pb-4 text-white">
-        <p className="text-xs opacity-90">قُفّة</p>
+      <header className="rounded-b-[2rem] bg-gradient-to-bl from-brand-600 to-brand-800 px-4 pt-5 pb-5 text-white">
+        <p className="text-xs font-semibold opacity-90">قُفّة 🧺</p>
         <h1 className="text-xl font-bold">من حانوتك إلى بابك</h1>
 
-        <div className="mt-3">
+        <label className="relative mt-3 block">
+          <span className="pointer-events-none absolute inset-y-0 right-3.5 grid place-items-center text-slate-400">
+            <SearchIcon />
+          </span>
           <input
             type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="ابحث عن محل…"
             aria-label="ابحث عن محل"
-            className="min-h-11 w-full rounded-xl border-0 bg-white px-4 text-sm text-slate-900 outline-none placeholder:text-slate-400"
+            className="min-h-12 w-full rounded-2xl border-0 bg-white pr-11 pl-4 text-[15px] text-slate-900 shadow-sm outline-none placeholder:text-slate-400"
           />
-        </div>
+        </label>
 
         <p className="mt-2 text-[11px] opacity-90">{locationHint}</p>
       </header>
@@ -159,7 +164,7 @@ export default function Home() {
             <button
               type="button"
               onClick={() => setCategoryId(undefined)}
-              className={`shrink-0 rounded-full px-3.5 py-1.5 text-xs font-medium ${
+              className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold whitespace-nowrap ${
                 !categoryId ? 'bg-brand-700 text-white' : 'bg-white text-slate-600 ring-1 ring-slate-200'
               }`}
             >
@@ -170,12 +175,13 @@ export default function Home() {
                 key={c.id}
                 type="button"
                 onClick={() => setCategoryId(categoryId === c.id ? undefined : c.id)}
-                className={`shrink-0 rounded-full px-3.5 py-1.5 text-xs font-medium ${
+                className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold whitespace-nowrap ${
                   categoryId === c.id
                     ? 'bg-brand-700 text-white'
                     : 'bg-white text-slate-600 ring-1 ring-slate-200'
                 }`}
               >
+                <span aria-hidden className="ml-1">{categoryEmoji(c, '🏪')}</span>
                 {c.name}
               </button>
             ))}

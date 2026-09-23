@@ -1,97 +1,30 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { CartBar } from '../components/CartBar';
+import { BackIcon, ClockIcon, CloseIcon, PinIcon, ScooterIcon, SearchIcon } from '../components/icons';
+import { ProductCard, ProductCardSkeleton } from '../components/ProductCard';
+import { ProductSheet } from '../components/ProductSheet';
+import { Alert, EmptyState, ErrorState, LoadingBlock, OpenBadge, Rating } from '../components/ui';
 import { ApiError, api } from '../lib/api';
 import { useCart } from '../lib/cart';
-import { formatDistance, formatDzd } from '../lib/format';
+import { formatDistance } from '../lib/format';
 import { useLocation as useGeo } from '../lib/location';
 import type { Product, Shop } from '../lib/types';
-import { ProductImage } from '../components/ProductImage';
-import {
-  Alert,
-  Button,
-  EmptyState,
-  ErrorState,
-  LoadingBlock,
-  OpenBadge,
-  Rating,
-  SkeletonCard,
-} from '../components/ui';
+import { categoryEmoji } from '../lib/visuals';
 
-function ProductRow({
-  product,
-  shop,
-  onReplaced,
-}: {
-  product: Product;
-  shop: Shop;
-  onReplaced: () => void;
-}) {
-  const cart = useCart();
-  const line = cart.lines.find((l) => l.productId === product.id);
-  const quantity = cart.shopId === shop.id ? (line?.quantity ?? 0) : 0;
+const PAGE_SIZE = 50; // الحد الأقصى المسموح في الـAPI
 
-  const add = () => {
-    const { replaced } = cart.add({ id: shop.id, name: shop.name }, product);
-    if (replaced) onReplaced();
-  };
+/** تطبيع بسيط للبحث الفوري: بلا تشكيل، والهمزات والتاء المربوطة موحّدة */
+const normalize = (s: string) =>
+  s
+    .toLowerCase()
+    .replace(/[ً-ْـ]/g, '')
+    .replace(/[أإآ]/g, 'ا')
+    .replace(/ة/g, 'ه')
+    .replace(/ى/g, 'ي')
+    .trim();
 
-  return (
-    <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-3">
-      <ProductImage src={product.imageUrl} className="size-16" />
-
-      <div className="min-w-0 flex-1">
-        <h3 className="truncate text-sm font-semibold text-slate-900">{product.name}</h3>
-        <p className="text-xs text-slate-500">
-          {[product.brand, product.unit].filter(Boolean).join(' · ')}
-          {product.barcode && (
-            <>
-              {' · '}
-              <Link to={`/products/${encodeURIComponent(product.barcode)}`} className="text-brand-700 underline-offset-2 hover:underline">
-                قارن الأسعار
-              </Link>
-            </>
-          )}
-        </p>
-        <p className="mt-1 text-sm font-bold text-brand-700">{formatDzd(product.price)}</p>
-      </div>
-
-      {!product.isAvailable ? (
-        <span className="rounded-lg bg-slate-100 px-2.5 py-1.5 text-xs font-medium text-slate-500">
-          غير متوفر
-        </span>
-      ) : quantity === 0 ? (
-        <button
-          type="button"
-          onClick={add}
-          aria-label={`إضافة ${product.name} إلى السلة`}
-          className="size-10 shrink-0 rounded-xl bg-brand-700 text-xl font-bold text-white active:scale-95"
-        >
-          +
-        </button>
-      ) : (
-        <div className="flex shrink-0 items-center gap-1 rounded-xl bg-brand-50 p-1">
-          <button
-            type="button"
-            onClick={() => cart.setQuantity(product.id, quantity - 1)}
-            aria-label="إنقاص الكمية"
-            className="size-8 rounded-lg bg-white text-lg font-bold text-brand-700 active:scale-95"
-          >
-            −
-          </button>
-          <span className="w-6 text-center text-sm font-bold text-brand-800">{quantity}</span>
-          <button
-            type="button"
-            onClick={() => cart.setQuantity(product.id, quantity + 1)}
-            aria-label="زيادة الكمية"
-            className="size-8 rounded-lg bg-white text-lg font-bold text-brand-700 active:scale-95"
-          >
-            +
-          </button>
-        </div>
-      )}
-    </div>
-  );
-}
+type Cat = { id: string; name: string; slug: string };
 
 export default function ShopPage() {
   const { shopId = '' } = useParams();
@@ -99,14 +32,24 @@ export default function ShopPage() {
   const cart = useCart();
 
   const [shop, setShop] = useState<Shop | null>(null);
+  const [loadingShop, setLoadingShop] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   const [products, setProducts] = useState<Product[]>([]);
+  const [page, setPage] = useState(1);
+  const [hasNext, setHasNext] = useState(false);
+  const [loadingProducts, setLoadingProducts] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+
   const [query, setQuery] = useState('');
   const [search, setSearch] = useState('');
   const [categoryId, setCategoryId] = useState<string | undefined>();
-  const [loadingShop, setLoadingShop] = useState(true);
-  const [loadingProducts, setLoadingProducts] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  /** تصنيفات منتجات هذا المحل — تُجمع من النتائج غير المصفّاة فتبقى ثابتة عند اختيار تصنيف */
+  const [cats, setCats] = useState<Cat[]>([]);
+
   const [replacedNotice, setReplacedNotice] = useState(false);
+  const [openProduct, setOpenProduct] = useState<Product | null>(null);
+  const requestSeq = useRef(0);
 
   useEffect(() => {
     setLoadingShop(true);
@@ -117,157 +60,285 @@ export default function ShopPage() {
       .finally(() => setLoadingShop(false));
   }, [shopId, coords?.lat, coords?.lon]);
 
+  // بحث الخادم بعد توقف الكتابة؛ وأثناء الكتابة نصفّي المحمّل محليًا فورًا
   useEffect(() => {
-    const timer = setTimeout(() => setSearch(query.trim()), 350);
+    const timer = setTimeout(() => setSearch(query.trim()), 300);
     return () => clearTimeout(timer);
   }, [query]);
 
+  // الصفحة الأولى عند تغيّر المحل/البحث/التصنيف
   useEffect(() => {
+    const seq = ++requestSeq.current;
     setLoadingProducts(true);
     api
-      .shopProducts(shopId, { q: search || undefined, categoryId, limit: 50 })
-      .then((r) => setProducts(r.items))
-      .catch(() => setProducts([]))
-      .finally(() => setLoadingProducts(false));
+      .shopProducts(shopId, { q: search || undefined, categoryId, limit: PAGE_SIZE, page: 1 })
+      .then((r) => {
+        if (seq !== requestSeq.current) return; // نتيجة قديمة
+        setProducts(r.items);
+        setPage(1);
+        setHasNext(r.meta.hasNext);
+        if (!search && !categoryId) {
+          setCats((prev) => mergeCats(prev, r.items));
+        }
+      })
+      .catch(() => {
+        if (seq === requestSeq.current) {
+          setProducts([]);
+          setHasNext(false);
+        }
+      })
+      .finally(() => {
+        if (seq === requestSeq.current) setLoadingProducts(false);
+      });
   }, [shopId, search, categoryId]);
 
-  const productCategories = useMemo(() => {
-    const map = new Map<string, string>();
-    for (const p of products) if (p.category) map.set(p.category.id, p.category.name);
-    return [...map.entries()].map(([id, name]) => ({ id, name }));
-  }, [products]);
+  const loadMore = () => {
+    const seq = requestSeq.current;
+    setLoadingMore(true);
+    api
+      .shopProducts(shopId, { q: search || undefined, categoryId, limit: PAGE_SIZE, page: page + 1 })
+      .then((r) => {
+        if (seq !== requestSeq.current) return;
+        setProducts((prev) => {
+          const seen = new Set(prev.map((p) => p.id));
+          return [...prev, ...r.items.filter((p) => !seen.has(p.id))];
+        });
+        setPage((p) => p + 1);
+        setHasNext(r.meta.hasNext);
+        if (!search && !categoryId) setCats((prev) => mergeCats(prev, r.items));
+      })
+      .catch(() => undefined)
+      .finally(() => setLoadingMore(false));
+  };
+
+  const typing = query.trim() !== search;
+  const visible = useMemo(() => {
+    if (!typing || !query.trim()) return products;
+    const q = normalize(query);
+    return products.filter((p) => normalize(`${p.name} ${p.brand ?? ''}`).includes(q) || p.barcode === query.trim());
+  }, [products, query, typing]);
+
+  const quantities = useMemo(() => {
+    const map = new Map<string, number>();
+    if (cart.shopId === shopId) for (const l of cart.lines) map.set(l.productId, l.quantity);
+    return map;
+  }, [cart.lines, cart.shopId, shopId]);
+
+  const { add, setQuantity } = cart;
+  const handleAdd = useCallback(
+    (product: Product, qty = 1) => {
+      if (!shop) return;
+      const { replaced } = add({ id: shop.id, name: shop.name }, product, qty);
+      if (replaced) setReplacedNotice(true);
+    },
+    [add, shop],
+  );
+  const handleOpen = useCallback((p: Product) => setOpenProduct(p), []);
+  const closeSheet = useCallback(() => setOpenProduct(null), []);
 
   if (loadingShop) return <LoadingBlock />;
   if (error || !shop) return <ErrorState message={error ?? 'المحل غير متاح'} />;
 
   const distance = formatDistance(shop.distanceMeters);
-  const cartHasThisShop = cart.shopId === shop.id && cart.itemCount > 0;
+  const filtered = !!search || !!categoryId || !!query.trim();
 
   return (
-    <div className="pb-24">
-      <div className="relative h-40 bg-brand-100">
-        {shop.imageUrl ? (
-          <img src={shop.imageUrl} alt="" className="size-full object-cover" />
-        ) : (
-          <div className="grid size-full place-items-center text-6xl" aria-hidden>
-            🏪
-          </div>
-        )}
-        <Link
-          to="/"
-          aria-label="رجوع"
-          className="absolute top-3 right-3 grid size-10 place-items-center rounded-full bg-white/90 text-lg shadow"
-        >
-          ←
-        </Link>
-      </div>
-
-      <div className="border-b border-slate-200 bg-white px-4 py-4">
-        <div className="flex items-start justify-between gap-3">
-          <h1 className="text-lg font-bold text-slate-900">{shop.name}</h1>
-          <OpenBadge isOpenNow={shop.isOpenNow} />
-        </div>
-        {shop.description && <p className="mt-1 text-sm text-slate-600">{shop.description}</p>}
-
-        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-600">
-          <Rating value={shop.ratingAvg} count={shop.ratingCount} />
-          {distance && <span>📍 {distance}</span>}
-          <span>🛵 التوصيل حسب المسافة (يظهر السعر عند إتمام الطلب)</span>
-          <span>
-            🕐 {shop.openingTime} — {shop.closingTime}
-          </span>
-        </div>
-        <p className="mt-1 text-xs text-slate-500">{shop.addressLine}، {shop.city}</p>
-
-        {!shop.isOpenNow && (
-          <div className="mt-3">
-            <Alert kind="info">
-              المحل مغلق حاليًا. يمكنك تصفّح المنتجات، لكن لا يمكن إرسال الطلب حتى يفتح.
-            </Alert>
-          </div>
-        )}
-      </div>
-
-      <div className="px-4 py-3">
-        {replacedNotice && (
-          <div className="mb-3">
-            <Alert kind="info">
-              سلتك كانت تحتوي منتجات من محل آخر، فتم استبدالها. الطلب الواحد من محل واحد.
-            </Alert>
-          </div>
-        )}
-
-        <input
-          type="search"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="ابحث داخل منتجات المحل…"
-          aria-label="ابحث داخل المنتجات"
-          className="min-h-11 w-full rounded-xl border border-slate-300 bg-white px-4 text-sm outline-none focus:border-brand-600"
-        />
-
-        {productCategories.length > 1 && (
-          <div className="no-scrollbar -mx-4 mt-3 flex gap-2 overflow-x-auto px-4">
-            <button
-              type="button"
-              onClick={() => setCategoryId(undefined)}
-              className={`shrink-0 rounded-full px-3.5 py-1.5 text-xs font-medium ${
-                !categoryId ? 'bg-brand-700 text-white' : 'bg-white text-slate-600 ring-1 ring-slate-200'
-              }`}
-            >
-              كل المنتجات
-            </button>
-            {productCategories.map((c) => (
-              <button
-                key={c.id}
-                type="button"
-                onClick={() => setCategoryId(categoryId === c.id ? undefined : c.id)}
-                className={`shrink-0 rounded-full px-3.5 py-1.5 text-xs font-medium ${
-                  categoryId === c.id
-                    ? 'bg-brand-700 text-white'
-                    : 'bg-white text-slate-600 ring-1 ring-slate-200'
-                }`}
-              >
-                {c.name}
-              </button>
-            ))}
-          </div>
-        )}
-
-        <div className="mt-3 space-y-2.5">
-          {loadingProducts ? (
-            <>
-              <SkeletonCard />
-              <SkeletonCard />
-            </>
-          ) : products.length === 0 ? (
-            <EmptyState
-              icon="🛒"
-              title="لا توجد منتجات"
-              description={search ? 'لم نجد منتجًا بهذا الاسم.' : 'لم يُضف هذا المحل منتجات بعد.'}
-            />
+    <div className="pb-28">
+      {/* رأس المحل — مضغوط حتى تظهر المنتجات بسرعة */}
+      <div className="bg-white">
+        <div className="relative h-32 bg-brand-100">
+          {shop.imageUrl ? (
+            <img src={shop.imageUrl} alt="" className="size-full object-cover" />
           ) : (
-            products.map((product) => (
-              <ProductRow
-                key={product.id}
-                product={product}
-                shop={shop}
-                onReplaced={() => setReplacedNotice(true)}
-              />
-            ))
+            <div className="grid size-full place-items-center bg-gradient-to-l from-brand-600 to-brand-500 text-5xl" aria-hidden>
+              🏪
+            </div>
+          )}
+          <Link
+            to="/"
+            aria-label="رجوع"
+            className="absolute top-3 right-3 grid size-10 place-items-center rounded-full bg-white/95 text-slate-800 shadow"
+          >
+            <BackIcon />
+          </Link>
+        </div>
+
+        <div className="px-4 pt-3 pb-3">
+          <div className="flex items-start justify-between gap-3">
+            <h1 className="min-w-0 break-words text-lg leading-snug font-bold text-slate-900">{shop.name}</h1>
+            <OpenBadge isOpenNow={shop.isOpenNow} />
+          </div>
+          <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
+            <Rating value={shop.ratingAvg} count={shop.ratingCount} />
+            {distance && (
+              <span className="inline-flex items-center gap-1">
+                <PinIcon className="size-3.5" /> {distance}
+              </span>
+            )}
+            <span className="inline-flex items-center gap-1">
+              <ClockIcon className="size-3.5" /> {shop.openingTime} — {shop.closingTime}
+            </span>
+            <span className="inline-flex items-center gap-1">
+              <ScooterIcon className="size-3.5" /> التوصيل حسب المسافة
+            </span>
+          </div>
+          {!shop.isOpenNow && (
+            <div className="mt-3">
+              <Alert kind="info">المحل مغلق حاليًا. يمكنك التصفّح، لكن لا يمكن إرسال الطلب حتى يفتح.</Alert>
+            </div>
           )}
         </div>
       </div>
 
-      {cartHasThisShop && (
-        <div className="pb-safe fixed inset-x-0 bottom-16 z-20 mx-auto w-full max-w-2xl px-4">
-          <Link to="/cart" className="block">
-            <Button className="w-full shadow-lg">
-              عرض السلة · {cart.itemCount} منتج · {formatDzd(cart.subtotal)}
-            </Button>
-          </Link>
+      {/* البحث والتصنيفات — ثابتة أعلى الشاشة أثناء التمرير */}
+      <div className="sticky top-0 z-20 border-b border-slate-100 bg-slate-50/95 pt-3 pb-2 backdrop-blur">
+        <div className="px-4">
+          <label className="relative block">
+            <span className="pointer-events-none absolute inset-y-0 right-3.5 grid place-items-center text-slate-400">
+              <SearchIcon />
+            </span>
+            <input
+              type="search"
+              inputMode="search"
+              enterKeyHint="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="ماذا تريد أن تشتري؟"
+              aria-label="ابحث في منتجات المحل"
+              className="min-h-12 w-full rounded-2xl border border-slate-200 bg-white pr-11 pl-11 text-[15px] shadow-sm outline-none placeholder:text-slate-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-100 [&::-webkit-search-cancel-button]:hidden"
+            />
+            {query && (
+              <button
+                type="button"
+                onClick={() => setQuery('')}
+                aria-label="مسح البحث"
+                className="absolute inset-y-0 left-1.5 my-auto grid size-9 place-items-center rounded-full text-slate-400 active:bg-slate-100"
+              >
+                <CloseIcon className="size-4" />
+              </button>
+            )}
+          </label>
         </div>
+
+        {cats.length > 0 && (
+          <div className="no-scrollbar mt-2.5 flex gap-2 overflow-x-auto scroll-px-4 px-4 pb-1" role="tablist" aria-label="التصنيفات">
+            <CatChip active={!categoryId} onClick={() => setCategoryId(undefined)} label="الكل" emoji="🧺" />
+            {cats.map((c) => (
+              <CatChip
+                key={c.id}
+                active={categoryId === c.id}
+                onClick={() => setCategoryId(categoryId === c.id ? undefined : c.id)}
+                label={c.name}
+                emoji={categoryEmoji(c)}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="px-3 pt-3">
+        {replacedNotice && (
+          <div className="mb-3">
+            <Alert kind="info">سلتك كانت تحتوي منتجات من محل آخر، فتم استبدالها. الطلب الواحد من محل واحد.</Alert>
+          </div>
+        )}
+
+        {loadingProducts && visible.length === 0 ? (
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+            {Array.from({ length: 6 }, (_, i) => (
+              <ProductCardSkeleton key={i} />
+            ))}
+          </div>
+        ) : visible.length === 0 ? (
+          <EmptyState
+            icon="🔍"
+            title={filtered ? 'لا توجد نتائج' : 'لا توجد منتجات'}
+            description={filtered ? 'جرّب كلمة أخرى أو تصنيفًا آخر.' : 'لم يُضف هذا المحل منتجات متوفرة بعد.'}
+          />
+        ) : (
+          <>
+            <div
+              className={`grid grid-cols-2 gap-3 transition-opacity sm:grid-cols-3 ${loadingProducts ? 'opacity-60' : ''}`}
+              data-testid="product-grid"
+            >
+              {visible.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  quantity={quantities.get(product.id) ?? 0}
+                  onAdd={handleAdd}
+                  onSetQuantity={setQuantity}
+                  onOpen={handleOpen}
+                />
+              ))}
+            </div>
+            {hasNext && !typing && (
+              <button
+                type="button"
+                onClick={loadMore}
+                disabled={loadingMore}
+                className="mt-4 min-h-12 w-full rounded-2xl border border-slate-200 bg-white text-sm font-semibold text-brand-700 active:bg-slate-50 disabled:opacity-60"
+              >
+                {loadingMore ? 'جاري التحميل…' : 'عرض المزيد من المنتجات'}
+              </button>
+            )}
+          </>
+        )}
+      </div>
+
+      <CartBar />
+
+      {openProduct && (
+        <ProductSheet
+          key={openProduct.id}
+          product={openProduct}
+          inCart={quantities.get(openProduct.id) ?? 0}
+          shopOpen={shop.isOpenNow}
+          onClose={closeSheet}
+          onConfirm={(product, qty) => {
+            if ((quantities.get(product.id) ?? 0) > 0) setQuantity(product.id, qty);
+            else handleAdd(product, qty);
+            setOpenProduct(null);
+          }}
+        />
       )}
     </div>
+  );
+}
+
+function mergeCats(prev: Cat[], items: Product[]): Cat[] {
+  const map = new Map(prev.map((c) => [c.id, c]));
+  for (const p of items) if (p.category && !map.has(p.category.id)) map.set(p.category.id, p.category);
+  return map.size === prev.length ? prev : [...map.values()];
+}
+
+function CatChip({
+  active,
+  onClick,
+  label,
+  emoji,
+}: {
+  active: boolean;
+  onClick: () => void;
+  label: string;
+  emoji: string;
+}) {
+  return (
+    <button
+      type="button"
+      role="tab"
+      aria-selected={active}
+      onClick={onClick}
+      className={`inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-full px-4 text-sm font-semibold whitespace-nowrap transition ${
+        active
+          ? 'bg-brand-600 text-white shadow-sm shadow-brand-600/30'
+          : 'bg-white text-slate-600 ring-1 ring-slate-200 active:bg-slate-100'
+      }`}
+    >
+      <span aria-hidden className="text-base leading-none">
+        {emoji}
+      </span>
+      {label}
+    </button>
   );
 }

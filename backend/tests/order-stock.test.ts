@@ -282,3 +282,41 @@ describe('إعادة المخزون عند الرفض/الإلغاء', () => {
     expect(await stockOf(p.id)).toBeNull();
   });
 });
+
+describe('إخفاء المنتجات النافدة عن الزبون', () => {
+  const customerNames = async () => {
+    const res = await request(app).get(`/api/shops/${shop.shop.id}/products?limit=50`);
+    expect(res.status).toBe(200);
+    return (res.body.items as { name: string }[]).map((p) => p.name);
+  };
+
+  it('stock = 0 لا يظهر للزبون، وstock > 0 أو غير متتبَّع يظهر', async () => {
+    await createProduct(shop.shop.id, { name: 'نافد', stock: 0 });
+    await createProduct(shop.shop.id, { name: 'متوفر', stock: 3 });
+    await createProduct(shop.shop.id, { name: 'غير متتبع', stock: null });
+    const names = await customerNames();
+    expect(names).not.toContain('نافد');
+    expect(names).toContain('متوفر');
+    expect(names).toContain('غير متتبع');
+  });
+
+  it('يبقى ظاهرًا للمحل، ويعود للزبون عند إعادة التعبئة', async () => {
+    const p = await createProduct(shop.shop.id, { name: 'زيت نافد', stock: 0 });
+    const mine = await request(app).get('/api/products?limit=50').set(bearer(shop.token));
+    expect(mine.status).toBe(200);
+    expect((mine.body.items as { id: string }[]).some((i) => i.id === p.id)).toBe(true);
+
+    expect(await customerNames()).not.toContain('زيت نافد');
+    await prisma.shopProduct.update({ where: { id: p.id }, data: { stock: 5 } });
+    expect(await customerNames()).toContain('زيت نافد');
+  });
+
+  it('نفاد المخزون بعد طلب يخفي المنتج مباشرة', async () => {
+    const p = await createProduct(shop.shop.id, { name: 'آخر قطعة', stock: 1 });
+    expect((await order([{ productId: p.id, quantity: 1 }])).status).toBe(201);
+    expect(await customerNames()).not.toContain('آخر قطعة');
+    // ومحاولة الطلب بتجاوز الواجهة تُرفض
+    const again = await order([{ productId: p.id, quantity: 1 }]);
+    expect(again.status).toBe(409);
+  });
+});

@@ -93,7 +93,7 @@ export default function Cart() {
         </button>
       </div>
 
-      <div className="pb-safe fixed inset-x-0 bottom-16 z-20 mx-auto w-full max-w-2xl border-t border-slate-200 bg-white px-4 pt-3">
+      <div className="fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom)+0.5rem)] z-20 pb-3 mx-auto w-full max-w-2xl border-t border-slate-200 bg-white px-4 pt-3">
         <dl className="mb-3 space-y-1 text-sm">
           <div className="flex justify-between text-slate-600">
             <dt>المنتجات</dt>
