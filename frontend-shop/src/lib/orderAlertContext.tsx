@@ -58,14 +58,16 @@ export function OrderAlertProvider({ children }: { children: ReactNode }) {
     const onVisible = () => {
       if (document.visibilityState === 'visible') resync();
     };
-    // أي ضغطة/لمسة أولى في التطبيق تفتح الصوت إن أمكن (سياسة autoplay تسمح بذلك بعد تفاعل المستخدم)
+    // أي ضغطة/لمسة أولى في التطبيق تفتح الصوت إن أمكن (سياسة autoplay تسمح بذلك بعد تفاعل المستخدم).
+    // نستعمل click لا pointerdown: فتح الصوت يُخفي شريط «الصوت غير مفعّل» فتنزاح الصفحة للأعلى؛
+    // لو حدث ذلك بين pointerdown و pointerup لضاعت أول ضغطة للمستخدم (أو وقعت على زر آخر).
     const onGesture = () => {
       void unlockAudio().then(() => controller.audioUnlocked());
     };
     window.addEventListener('online', resync);
     window.addEventListener('focus', resync);
     document.addEventListener('visibilitychange', onVisible);
-    window.addEventListener('pointerdown', onGesture, { once: true });
+    window.addEventListener('click', onGesture, { once: true });
     window.addEventListener('keydown', onGesture, { once: true });
 
     return () => {
@@ -73,7 +75,7 @@ export function OrderAlertProvider({ children }: { children: ReactNode }) {
       window.removeEventListener('online', resync);
       window.removeEventListener('focus', resync);
       document.removeEventListener('visibilitychange', onVisible);
-      window.removeEventListener('pointerdown', onGesture);
+      window.removeEventListener('click', onGesture);
       window.removeEventListener('keydown', onGesture);
     };
   }, [controller]);

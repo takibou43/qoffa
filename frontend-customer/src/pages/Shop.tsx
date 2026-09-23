@@ -5,6 +5,7 @@ import { useCart } from '../lib/cart';
 import { formatDistance, formatDzd } from '../lib/format';
 import { useLocation as useGeo } from '../lib/location';
 import type { Product, Shop } from '../lib/types';
+import { ProductImage } from '../components/ProductImage';
 import {
   Alert,
   Button,
@@ -36,15 +37,7 @@ function ProductRow({
 
   return (
     <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-3">
-      <div className="size-16 shrink-0 overflow-hidden rounded-xl bg-slate-100">
-        {product.imageUrl ? (
-          <img src={product.imageUrl} alt="" loading="lazy" className="size-full object-cover" />
-        ) : (
-          <div className="grid size-full place-items-center text-2xl" aria-hidden>
-            🛒
-          </div>
-        )}
-      </div>
+      <ProductImage src={product.imageUrl} className="size-16" />
 
       <div className="min-w-0 flex-1">
         <h3 className="truncate text-sm font-semibold text-slate-900">{product.name}</h3>

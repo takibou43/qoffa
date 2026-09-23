@@ -7,6 +7,7 @@ const NAV = [
   { to: '/', label: 'اللوحة', icon: '📊', end: true },
   { to: '/orders', label: 'الطلبات', icon: '🧾', end: false },
   { to: '/shops', label: 'المحلات', icon: '🏪', end: false },
+  { to: '/products', label: 'المنتجات', icon: '📦', end: false },
   { to: '/drivers', label: 'الموصّلون', icon: '🛵', end: false },
   { to: '/users', label: 'المستخدمون', icon: '👥', end: false },
   { to: '/delivery-pricing', label: 'أسعار التوصيل', icon: '💰', end: false },

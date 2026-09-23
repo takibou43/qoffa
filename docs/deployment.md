@@ -157,3 +157,47 @@ SELECT 'jwt_secret', encode(extensions.gen_random_bytes(48), 'hex') ON CONFLICT 
 يمكن أن يحمل `DATABASE_URL` كلمة المرور وحدها (دون `postgresql://`) إذا ضُبطت أجزاء الاتصال غير السرية
 بأسماء libpq القياسية: `PGHOST` و`PGPORT` و`PGUSER` و`PGDATABASE`. هكذا يبقى السر الوحيد في لوحة الاستضافة
 هو كلمة المرور، ولا يلزم ترميز رموزها الخاصة. رسائل الخطأ تصف شكل القيمة فقط ولا تطبعها أبدًا.
+
+## صور المنتجات (Supabase Storage)
+
+الصورة مرتبطة بالمنتج العالمي `Product.imageUrl` (لا بـ`ShopProduct`): كل المحلات التي تعرض نفس الباركود
+تُظهر نفس الصورة، والسعر/الكمية/التوفر تبقى خاصة بكل محل. الملف نفسه لا يُخزَّن في PostgreSQL؛
+يُرفع إلى **Supabase Storage** في نفس مشروع `qoffa` ويُحفظ رابطه العام فقط. لا package جديد (REST عبر `fetch`).
+
+| العنصر | القيمة |
+|---|---|
+| الدلو | `product-images` — عام للقراءة، حد 2MB، أنواع `image/jpeg,image/png,image/webp` |
+| الكتابة | من الخادم فقط بمفتاح Supabase **سري** (`sb_secret_…` أو `service_role`) |
+| الإعداد | `SUPABASE_URL` + `SUPABASE_SECRET_KEY` في الاستضافة، **أو** في `qoffa_private.app_secret` بالمفتاحين `supabase_url` و`supabase_secret_key` (نفس نمط مفتاح JWT) |
+| بلا إعداد | مسارات الرفع تعيد `503 STORAGE_UNAVAILABLE` بوضوح، وكل شيء آخر يعمل (المنتجات تظهر ببديل بلا صورة) |
+
+إنشاء الدلو (مرة واحدة):
+
+```sql
+INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+VALUES ('product-images', 'product-images', true, 2097152, ARRAY['image/jpeg','image/png','image/webp'])
+ON CONFLICT (id) DO NOTHING;
+```
+
+ضبط المفتاح دون لمس لوحة Vercel (من Supabase → SQL Editor؛ المفتاح من **Settings → API Keys → Secret keys**):
+
+```sql
+INSERT INTO qoffa_private.app_secret (key, value) VALUES
+  ('supabase_url', 'https://jtblwrecajqttaurerxg.supabase.co'),
+  ('supabase_secret_key', '<الصق المفتاح السري هنا>')
+ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value;
+```
+
+المسارات:
+
+| المسار | من | ماذا |
+|---|---|---|
+| `PUT /api/products/:listingId/image` | المحل | أول صورة لمنتج بلا صورة، أو استبدال صورة منتج **خاص** بالمحل (بلا باركود ولا يعرضه غيره) |
+| `DELETE /api/products/:listingId/image` | المحل | منتج خاص بالمحل فقط |
+| `GET /api/admin/products` | الإدارة | الكتالوج العالمي (`?q=` و`?image=with|without`) |
+| `PUT /api/admin/products/:productId/image` | الإدارة | إضافة/استبدال — يُسجَّل في سجل العمليات |
+| `DELETE /api/admin/products/:productId/image` | الإدارة | حذف الصورة فقط (المنتج والعروض والطلبات تبقى) |
+
+جسم الرفع = بايتات الصورة نفسها مع `Content-Type` الصحيح. الخادم يتحقق من التوقيع الحقيقي للملف (لا الاسم
+ولا الترويسة وحدها)، ومن الأبعاد (64–4096 بكسل) والحجم (2MB). الواجهات تصغّر الصورة إلى 1024 بكسل WebP قبل
+الرفع (عادة < 150KB). الاستبدال آمن: رفع الجديدة ← تحديث ذري مشروط للرابط ← حذف القديمة إن لم تعد مستعملة.

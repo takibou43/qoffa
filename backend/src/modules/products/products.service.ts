@@ -1,9 +1,12 @@
 import { badRequest, conflict, forbidden, notFound } from '../../lib/errors.js';
+import { validateImage } from '../../lib/image.js';
 import { paginated, type Pagination } from '../../lib/pagination.js';
 import { prisma } from '../../lib/prisma.js';
+import { newProductImagePath, requireImageStorage, getImageStorage } from '../../lib/storage.js';
 import type { ShopProductsQuery } from '../shops/shops.schema.js';
 import type {
   AddProductInput,
+  AdminProductsQuery,
   MyProductsQuery,
   UpdateListingInput,
 } from './products.schema.js';
@@ -261,7 +264,8 @@ export async function addProductToShop(shopId: string, input: AddProductInput) {
         name: input.name,
         brand: input.brand ?? null,
         description: input.description ?? null,
-        imageUrl: input.imageUrl ?? null,
+        // الصورة تُضاف بعد الإنشاء عبر مسار رفع الصورة (ملف يُتحقق منه في الخادم)
+        imageUrl: null,
         unit: input.unit ?? 'قطعة',
         categoryId: input.categoryId ?? null,
       };
@@ -311,6 +315,16 @@ export async function addProductToShop(shopId: string, input: AddProductInput) {
   });
 }
 
+/**
+ * منتج «خاص» بمحل = بلا باركود ولا يعرضه أي محل آخر → لا يراه غيره، فيحق له تعديل بياناته العالمية.
+ * كل منتج بباركود (أو معروض لدى محل آخر) مشترك، وبياناته العالمية للإدارة فقط.
+ */
+async function isPrivateToShop(shopId: string, productId: string, barcode: string | null) {
+  if (barcode !== null) return false;
+  const others = await prisma.shopProduct.count({ where: { productId, shopId: { not: shopId } } });
+  return others === 0;
+}
+
 /** كل عمليات التعديل تمر عبر هذا التحقق: العرض يخص هذا المحل */
 async function getOwnedListingOrThrow(shopId: string, listingId: string) {
   const listing = await prisma.shopProduct.findFirst({
@@ -325,7 +339,8 @@ async function getOwnedListingOrThrow(shopId: string, listingId: string) {
   return listing;
 }
 
-const GLOBAL_FIELDS = ['name', 'brand', 'description', 'imageUrl', 'unit', 'categoryId', 'barcode'] as const;
+/** الصورة ليست هنا: لها مسارات مخصّصة بصلاحيات أدق (انظر قسم «صورة المنتج العالمي») */
+const GLOBAL_FIELDS = ['name', 'brand', 'description', 'unit', 'categoryId', 'barcode'] as const;
 
 /**
  * تعديل عرض المنتج في المحل.
@@ -344,12 +359,7 @@ export async function updateListing(shopId: string, listingId: string, input: Up
   }
 
   if (Object.keys(globalChanges).length > 0) {
-    const sharedWithOthers =
-      (await prisma.shopProduct.count({
-        where: { productId: listing.productId, shopId: { not: shopId } },
-      })) > 0;
-    const privateProduct = listing.product.barcode === null && !sharedWithOthers;
-    if (!privateProduct) {
+    if (!(await isPrivateToShop(shopId, listing.productId, listing.product.barcode))) {
       throw forbidden(
         'بيانات المنتج العالمي (الاسم، العلامة، الباركود، الصورة…) لا يعدّلها المحل لأنها تظهر عند كل المحلات. تواصل مع إدارة المنصة.',
       );
@@ -389,6 +399,200 @@ export async function updateListing(shopId: string, listingId: string, input: Up
 export async function deleteListing(shopId: string, listingId: string) {
   await getOwnedListingOrThrow(shopId, listingId);
   await prisma.shopProduct.delete({ where: { id: listingId } });
+}
+
+/* ───────────────────────── صورة المنتج العالمي ─────────────────────────
+ * الصورة مرتبطة بـProduct العالمي (لا بعرض المحل): كل المحلات التي تعرض المنتج تُظهر نفس الصورة.
+ * الصلاحيات (كلها في الخادم):
+ *   - المحل: يضيف صورة لمنتج في محله **ليست له صورة بعد** (أول صورة فقط، بشرط ذري في قاعدة البيانات).
+ *   - المحل: يستبدل/يحذف صورة منتج «خاص» به فقط (بلا باركود ولا يعرضه محل آخر).
+ *   - الإدارة: تستبدل أو تحذف صورة أي منتج عالمي.
+ * الترتيب الآمن للاستبدال: رفع الجديدة → تحديث الرابط في قاعدة البيانات → حذف القديمة إن لم تعد مستعملة.
+ * فشل أي خطوة قبل التحديث لا يمس الصورة الحالية أبدًا.
+ */
+
+type ImageMode = 'IF_EMPTY' | 'REPLACE';
+
+/** حذف ملف من التخزين إن كان من تخزيننا ولم يعد أي منتج/محل يستعمل رابطه. لا يُفشل الطلب أبدًا. */
+export async function removeStoredImageIfUnused(url: string | null | undefined) {
+  if (!url) return;
+  try {
+    const storage = await getImageStorage();
+    const path = storage?.pathFromUrl(url);
+    if (!storage || !path) return; // رابط خارجي قديم أو تخزين غير مهيأ: لا نحذف شيئًا
+    const [products, shops] = await Promise.all([
+      prisma.product.count({ where: { imageUrl: url } }),
+      prisma.shop.count({ where: { imageUrl: url } }),
+    ]);
+    if (products + shops > 0) return;
+    await storage.remove(path);
+  } catch (err) {
+    console.error('[storage] cleanup failed', (err as Error).message);
+  }
+}
+
+async function attachImage(
+  productId: string,
+  body: unknown,
+  contentType: string | undefined,
+  mode: ImageMode,
+) {
+  // 1) التحقق من الملف قبل أي رفع
+  const image = validateImage(body, contentType);
+  const current = await prisma.product.findUnique({
+    where: { id: productId },
+    select: { id: true, imageUrl: true },
+  });
+  if (!current) throw notFound('المنتج غير موجود');
+  if (mode === 'IF_EMPTY' && current.imageUrl) throw imageAlreadySet();
+
+  // 2) رفع الملف الجديد (مسار فريد؛ لا يكتب فوق أي ملف)
+  const storage = await requireImageStorage();
+  const stored = await storage.put(
+    newProductImagePath(productId, image.ext),
+    body as Buffer,
+    image.mime,
+  );
+
+  // 3) تحديث ذري مشروط: ينجح فقط إن لم تتغير الصورة منذ قراءتها (يمنع سباق محلين/مديرين)
+  let updated = 0;
+  try {
+    const res = await prisma.product.updateMany({
+      where: { id: productId, imageUrl: current.imageUrl },
+      data: { imageUrl: stored.url },
+    });
+    updated = res.count;
+  } catch (err) {
+    await storage.remove(stored.path).catch(() => undefined);
+    throw err;
+  }
+  if (updated === 0) {
+    // تغيّرت الصورة في الأثناء: نتراجع عن الرفع ولا نكتب فوق صورة غيرنا
+    await storage.remove(stored.path).catch(() => undefined);
+    throw mode === 'IF_EMPTY'
+      ? imageAlreadySet()
+      : conflict('تغيّرت صورة المنتج أثناء الرفع. أعد تحميل الصفحة ثم حاول مجددًا.');
+  }
+
+  // 4) بعد نجاح التحديث فقط: حذف الصورة القديمة إن لم تعد مستعملة
+  if (current.imageUrl && current.imageUrl !== stored.url) {
+    await removeStoredImageIfUnused(current.imageUrl);
+  }
+
+  const product = await prisma.product.findUniqueOrThrow({
+    where: { id: productId },
+    select: globalProductSelect,
+  });
+  return { product, previousImageUrl: current.imageUrl, image };
+}
+
+async function detachImage(productId: string) {
+  const current = await prisma.product.findUnique({
+    where: { id: productId },
+    select: { imageUrl: true },
+  });
+  if (!current) throw notFound('المنتج غير موجود');
+  if (current.imageUrl) {
+    // يُزال الرابط فقط — المنتج وعروض المحلات والطلبات لا تُمس
+    await prisma.product.updateMany({
+      where: { id: productId, imageUrl: current.imageUrl },
+      data: { imageUrl: null },
+    });
+    await removeStoredImageIfUnused(current.imageUrl);
+  }
+  const product = await prisma.product.findUniqueOrThrow({
+    where: { id: productId },
+    select: globalProductSelect,
+  });
+  return { product, previousImageUrl: current.imageUrl };
+}
+
+const imageAlreadySet = () =>
+  conflict(
+    'لهذا المنتج صورة بالفعل وتظهر عند كل المحلات. تغييرها من صلاحية إدارة المنصة.',
+    { reason: 'IMAGE_ALREADY_SET' },
+  );
+
+/** المحل يرفع صورة لمنتج في محله: أول صورة لأي منتج، أو استبدال لمنتج خاص به فقط */
+export async function shopSetProductImage(
+  shopId: string,
+  listingId: string,
+  body: unknown,
+  contentType: string | undefined,
+) {
+  const listing = await getOwnedListingOrThrow(shopId, listingId);
+  let mode: ImageMode = 'IF_EMPTY';
+  if (listing.product.imageUrl) {
+    if (!(await isPrivateToShop(shopId, listing.productId, listing.product.barcode))) {
+      throw forbidden(
+        'لهذا المنتج صورة بالفعل وتظهر عند كل المحلات، فلا يغيّرها المحل. تواصل مع إدارة المنصة لتغييرها.',
+      );
+    }
+    mode = 'REPLACE';
+  }
+  const { product } = await attachImage(listing.productId, body, contentType, mode);
+  return product;
+}
+
+/** المحل يحذف صورة منتج خاص به فقط */
+export async function shopRemoveProductImage(shopId: string, listingId: string) {
+  const listing = await getOwnedListingOrThrow(shopId, listingId);
+  if (!(await isPrivateToShop(shopId, listing.productId, listing.product.barcode))) {
+    throw forbidden('صورة المنتج العالمي لا يحذفها المحل لأنها تظهر عند كل المحلات. تواصل مع إدارة المنصة.');
+  }
+  const { product } = await detachImage(listing.productId);
+  return product;
+}
+
+/** الإدارة: استبدال/إضافة صورة أي منتج عالمي */
+export async function adminSetProductImage(
+  productId: string,
+  body: unknown,
+  contentType: string | undefined,
+) {
+  return attachImage(productId, body, contentType, 'REPLACE');
+}
+
+/** الإدارة: حذف صورة منتج عالمي (المنتج نفسه يبقى) */
+export async function adminRemoveProductImage(productId: string) {
+  return detachImage(productId);
+}
+
+/** الإدارة: قائمة المنتجات العالمية مع عدد المحلات التي تعرض كل منتج */
+export async function adminListProducts(query: AdminProductsQuery) {
+  const { page, limit, q, image } = query;
+  const where = {
+    AND: [
+      ...(image === 'with' ? [{ imageUrl: { not: null } }] : []),
+      ...(image === 'without' ? [{ imageUrl: null }] : []),
+      ...(q
+        ? [
+            {
+              OR: [
+                { name: { contains: q, mode: 'insensitive' as const } },
+                { brand: { contains: q, mode: 'insensitive' as const } },
+                { barcode: q },
+              ],
+            },
+          ]
+        : []),
+    ],
+  };
+  const [items, total] = await Promise.all([
+    prisma.product.findMany({
+      where,
+      select: { ...globalProductSelect, updatedAt: true, _count: { select: { listings: true } } },
+      orderBy: [{ updatedAt: 'desc' }],
+      skip: (page - 1) * limit,
+      take: limit,
+    }),
+    prisma.product.count({ where }),
+  ]);
+  return paginated(
+    items.map(({ _count, ...p }) => ({ ...p, shopsCount: _count.listings })),
+    total,
+    { page, limit },
+  );
 }
 
 /* ───────────────────────── الإدارة ───────────────────────── */

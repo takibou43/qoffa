@@ -2,6 +2,7 @@ import { request } from './apiCore';
 import type {
   AdminDriver,
   AdminOrder,
+  AdminProduct,
   AdminShop,
   ApprovalStatus,
   AuditLog,
@@ -57,6 +58,19 @@ export const api = {
 
   removeAdmin: (userId: string) =>
     request<{ ok: true }>(`/admin/admins/${userId}`, { method: 'DELETE' }),
+
+  /* ── المنتجات العالمية وصورها ── */
+  products: (params: { q?: string; image?: 'all' | 'with' | 'without'; page?: number; limit?: number }) =>
+    request<Paginated<AdminProduct>>('/admin/products', { query: params }),
+
+  setProductImage: (productId: string, image: Blob) =>
+    request<{ product: AdminProduct }>(`/admin/products/${productId}/image`, {
+      method: 'PUT',
+      raw: image,
+    }),
+
+  removeProductImage: (productId: string) =>
+    request<{ product: AdminProduct }>(`/admin/products/${productId}/image`, { method: 'DELETE' }),
 
   shops: (params: { status?: string; q?: string; page?: number; limit?: number }) =>
     request<Paginated<AdminShop>>('/admin/shops', { query: params }),

@@ -98,6 +98,22 @@ export interface Wallet {
   driver: { id: string; user: { fullName: string; phone: string } } | null;
 }
 
+/** المنتج العالمي (كتالوج المنصة): صورة واحدة لكل المحلات، بلا سعر */
+export interface AdminProduct {
+  id: string;
+  barcode: string | null;
+  name: string;
+  brand: string | null;
+  description: string | null;
+  imageUrl: string | null;
+  unit: string;
+  categoryId: string | null;
+  category: { id: string; name: string; slug: string } | null;
+  updatedAt?: string;
+  /** عدد المحلات التي تعرض المنتج */
+  shopsCount?: number;
+}
+
 export interface Paginated<T> {
   items: T[];
   meta: { page: number; limit: number; total: number; totalPages: number; hasNext: boolean };

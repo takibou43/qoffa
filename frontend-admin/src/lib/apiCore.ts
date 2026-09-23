@@ -21,10 +21,12 @@ interface RequestOptions {
   body?: unknown;
   auth?: boolean;
   query?: Record<string, string | number | boolean | undefined>;
+  /** جسم خام (مثل ملف صورة) يُرسل كما هو بنوعه — بدل JSON */
+  raw?: Blob;
 }
 
 export async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const { method = 'GET', body, auth = true, query } = options;
+  const { method = 'GET', body, auth = true, query, raw } = options;
 
   let url = `${BASE}${path}`;
   if (query) {
@@ -37,7 +39,8 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
   }
 
   const headers: Record<string, string> = {};
-  if (body !== undefined) headers['Content-Type'] = 'application/json';
+  if (raw) headers['Content-Type'] = raw.type || 'application/octet-stream';
+  else if (body !== undefined) headers['Content-Type'] = 'application/json';
   if (auth) {
     const token = getToken();
     if (token) headers.Authorization = `Bearer ${token}`;
@@ -48,7 +51,7 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
     response = await fetch(url, {
       method,
       headers,
-      body: body === undefined ? undefined : JSON.stringify(body),
+      body: raw ?? (body === undefined ? undefined : JSON.stringify(body)),
     });
   } catch {
     throw new ApiError(0, 'NETWORK', 'تعذّر الاتصال بالخادم. تحقّق من اتصالك بالإنترنت.');

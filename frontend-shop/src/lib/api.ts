@@ -2,6 +2,7 @@ import { request } from './apiCore';
 import type {
   BarcodeLookup,
   Category,
+  GlobalProduct,
   Notification,
   Order,
   OrderStatus,
@@ -90,6 +91,13 @@ export const api = {
 
   deleteProduct: (id: string) =>
     request<{ ok: true }>(`/products/${id}`, { method: 'DELETE' }),
+
+  /** صورة المنتج العالمي عبر عرض محلك (id = معرّف العرض). الخادم يقرر الصلاحية. */
+  uploadProductImage: (id: string, image: Blob) =>
+    request<{ product: GlobalProduct }>(`/products/${id}/image`, { method: 'PUT', raw: image }),
+
+  deleteProductImage: (id: string) =>
+    request<{ product: GlobalProduct }>(`/products/${id}/image`, { method: 'DELETE' }),
 
   /* ── الطلبات ── */
   orders: (params: {

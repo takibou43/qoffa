@@ -21,12 +21,15 @@ export const barcodeSchema = z.preprocess(
   z.string().regex(BARCODE_REGEX, BARCODE_MESSAGE).nullable(),
 );
 
-/** بيانات المنتج العالمي (تُقبل فقط عند إنشاء منتج جديد لباركود جديد) */
+/**
+ * بيانات المنتج العالمي (تُقبل فقط عند إنشاء منتج جديد لباركود جديد).
+ * الصورة ليست حقلًا نصيًا هنا: لا يُقبل رابط صورة من العميل إطلاقًا (حتى لا تُربط روابط خارجية
+ * عشوائية بمنتج يراه الجميع). الصورة تُرفع كملف عبر مسارات الصورة المخصّصة فقط، ويُتحقق منها في الخادم.
+ */
 const globalFields = {
   name: z.string().trim().min(2, 'اسم المنتج قصير جدًا').max(100).optional(),
   brand: z.string().trim().max(60).nullable().optional(),
   description: z.string().trim().max(400).nullable().optional(),
-  imageUrl: z.string().trim().url('رابط الصورة غير صالح').max(500).nullable().optional(),
   unit: z.string().trim().min(1).max(30).optional(),
   categoryId: z.string().nullable().optional(),
 };
@@ -64,11 +67,17 @@ export const adminUpdateProductSchema = z
     name: z.string().trim().min(2).max(100).optional(),
     brand: z.string().trim().max(60).nullable().optional(),
     description: z.string().trim().max(400).nullable().optional(),
-    imageUrl: z.string().trim().url().max(500).nullable().optional(),
     unit: z.string().trim().min(1).max(30).optional(),
     categoryId: z.string().nullable().optional(),
   })
   .refine((v) => Object.keys(v).length > 0, { message: 'لا توجد حقول للتعديل' });
+
+/** قائمة المنتجات العالمية في لوحة الإدارة */
+export const adminProductsQuery = paginationSchema.extend({
+  q: z.string().trim().max(60).optional(),
+  image: z.enum(['all', 'with', 'without']).default('all'),
+});
+export type AdminProductsQuery = z.infer<typeof adminProductsQuery>;
 
 export const myProductsQuery = paginationSchema.extend({
   q: z.string().trim().max(60).optional(),

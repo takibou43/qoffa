@@ -14,6 +14,8 @@ import {
   telUrl,
 } from '../lib/format';
 import type { Order, OrderStatus } from '../lib/types';
+import { ProductImage } from '../components/ProductImage';
+import { orderItemImage } from '../lib/images';
 
 /** الخط الزمني يعرض الحالات كما يرسلها الخادم — لا منطق انتقال هنا */
 function Timeline({ status }: { status: OrderStatus }) {
@@ -296,9 +298,12 @@ export default function OrderDetail() {
           <h2 className="mb-3 text-sm font-bold text-slate-900">المنتجات</h2>
           <ul className="space-y-2 text-sm">
             {order.items.map((item) => (
-              <li key={item.id} className="flex justify-between gap-3">
-                <span className="min-w-0 truncate text-slate-700">
-                  {item.nameSnapshot} × {item.quantity}
+              <li key={item.id} className="flex items-center justify-between gap-3">
+                <span className="flex min-w-0 items-center gap-2">
+                  <ProductImage src={orderItemImage(item)} className="size-9 rounded-lg" />
+                  <span className="min-w-0 truncate text-slate-700">
+                    {item.nameSnapshot} × {item.quantity}
+                  </span>
                 </span>
                 <span className="shrink-0 text-slate-600">{formatDzd(item.lineTotal)}</span>
               </li>

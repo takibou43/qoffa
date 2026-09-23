@@ -4,6 +4,7 @@ import { Alert, Button, EmptyState } from '../components/ui';
 import { useAuth } from '../lib/auth';
 import { useCart } from '../lib/cart';
 import { formatDzd } from '../lib/format';
+import { ProductImage } from '../components/ProductImage';
 
 export default function Cart() {
   const cart = useCart();
@@ -40,15 +41,7 @@ export default function Cart() {
             key={line.productId}
             className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-3"
           >
-            <div className="size-14 shrink-0 overflow-hidden rounded-xl bg-slate-100">
-              {line.imageUrl ? (
-                <img src={line.imageUrl} alt="" className="size-full object-cover" />
-              ) : (
-                <div className="grid size-full place-items-center text-xl" aria-hidden>
-                  🛒
-                </div>
-              )}
-            </div>
+            <ProductImage src={line.imageUrl} className="size-14" />
 
             <div className="min-w-0 flex-1">
               <h3 className="truncate text-sm font-semibold text-slate-900">{line.name}</h3>

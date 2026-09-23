@@ -8,6 +8,7 @@ import DeliveryPricingPage from './pages/DeliveryPricing';
 import Drivers from './pages/Drivers';
 import Login from './pages/Login';
 import Orders from './pages/Orders';
+import Products from './pages/Products';
 import Shops from './pages/Shops';
 import Users from './pages/Users';
 
@@ -27,6 +28,7 @@ export default function App() {
             <Route index element={<Dashboard />} />
             <Route path="users" element={<Users />} />
             <Route path="shops" element={<Shops />} />
+            <Route path="products" element={<Products />} />
             <Route path="drivers" element={<Drivers />} />
             <Route path="orders" element={<Orders />} />
             <Route path="delivery-pricing" element={<DeliveryPricingPage />} />

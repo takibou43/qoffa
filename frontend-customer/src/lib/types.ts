@@ -71,6 +71,8 @@ export interface OrderItem {
   unitPrice: number;
   quantity: number;
   lineTotal: number;
+  /** المنتج الحالي في المحل وصورته العالمية (null إن حُذف العرض) — للعرض فقط */
+  product?: { product: { imageUrl: string | null } } | null;
 }
 
 export interface Order {

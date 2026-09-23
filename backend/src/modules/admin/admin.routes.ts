@@ -1,4 +1,5 @@
-import { Router } from 'express';
+import express, { Router } from 'express';
+import { MAX_IMAGE_BYTES } from '../../lib/image.js';
 import { env } from '../../config/env.js';
 import { badRequest, notFound } from '../../lib/errors.js';
 import { clientIp, param } from '../../lib/http.js';
@@ -11,11 +12,18 @@ import { audit } from '../../services/audit.js';
 import { loadPricingConfig, savePricingConfig } from '../../services/deliveryPricing.js';
 import { transitionOrder } from '../orders/orders.service.js';
 import {
+  adminListProducts,
+  adminRemoveProductImage,
+  adminSetProductImage,
   adminUpdateGlobalProduct,
   flattenListing,
   listingSelect,
 } from '../products/products.service.js';
-import { adminUpdateProductSchema } from '../products/products.schema.js';
+import {
+  adminProductsQuery,
+  adminUpdateProductSchema,
+  type AdminProductsQuery,
+} from '../products/products.schema.js';
 import { adminForceStatusSchema } from '../orders/orders.schema.js';
 import {
   approvalSchema,
@@ -167,6 +175,56 @@ adminRouter.get(
     res.json({ items: items.map(flattenListing), meta: { ...pagination, total } });
   },
 );
+
+/** المنتجات العالمية (كتالوج المنصة) مع عدد المحلات التي تعرض كل منتج */
+adminRouter.get('/products', validate(adminProductsQuery, 'query'), async (_req, res) => {
+  res.json(await adminListProducts(validated<AdminProductsQuery>(res, 'query')));
+});
+
+/** استبدال/إضافة صورة المنتج العالمي — تظهر فورًا عند كل المحلات والزبائن */
+adminRouter.put(
+  '/products/:productId/image',
+  writeLimiter,
+  express.raw({ type: () => true, limit: MAX_IMAGE_BYTES }),
+  async (req, res) => {
+    const productId = param(req, 'productId');
+    const { product, previousImageUrl, image } = await adminSetProductImage(
+      productId,
+      req.body,
+      req.headers['content-type'],
+    );
+    await audit({
+      actorId: req.auth!.userId,
+      action: 'PRODUCT_UPDATED',
+      targetType: 'product',
+      targetId: productId,
+      metadata: {
+        barcode: product.barcode,
+        image: previousImageUrl ? 'replaced' : 'added',
+        before: previousImageUrl,
+        after: product.imageUrl,
+        bytes: image.bytes,
+      },
+      ipAddress: clientIp(req),
+    });
+    res.json({ product });
+  },
+);
+
+/** حذف صورة المنتج العالمي فقط — المنتج وعروض المحلات والطلبات القديمة تبقى كما هي */
+adminRouter.delete('/products/:productId/image', writeLimiter, async (req, res) => {
+  const productId = param(req, 'productId');
+  const { product, previousImageUrl } = await adminRemoveProductImage(productId);
+  await audit({
+    actorId: req.auth!.userId,
+    action: 'PRODUCT_UPDATED',
+    targetType: 'product',
+    targetId: productId,
+    metadata: { barcode: product.barcode, image: 'removed', before: previousImageUrl },
+    ipAddress: clientIp(req),
+  });
+  res.json({ product });
+});
 
 /** تعديل بيانات المنتج العالمي — يؤثر على كل المحلات التي تعرضه، لذا للإدارة فقط */
 adminRouter.patch(

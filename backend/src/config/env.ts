@@ -29,6 +29,11 @@ const schema = z.object({
   DRIVER_OFFER_TIMEOUT_SECONDS: intFromEnv(45),
   MAX_DRIVER_OFFERS: intFromEnv(6),
 
+  /** تخزين صور المنتجات (Supabase Storage). اختياريان: إن غابا يُقرآن من qoffa_private.app_secret */
+  SUPABASE_URL: z.string().optional(),
+  SUPABASE_SECRET_KEY: z.string().optional(),
+  STORAGE_BUCKET: z.string().regex(/^[a-z0-9-]{3,63}$/).default('product-images'),
+
   PLATFORM_OWNER_EMAIL: z.string().email().optional().or(z.literal('')),
   PLATFORM_OWNER_PHONE: z.string().optional(),
   PLATFORM_OWNER_NAME: z.string().optional(),

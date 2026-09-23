@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { PageHeader } from '../components/Layout';
 import { CameraScanner, isCameraScanSupported } from '../components/CameraScanner';
+import { ProductImage } from '../components/ProductImage';
 import {
   Alert,
   Button,
@@ -11,6 +12,7 @@ import {
 } from '../components/ui';
 import { ApiError, api } from '../lib/api';
 import { formatDzd } from '../lib/format';
+import { ACCEPT_ATTR, prepareImage } from '../lib/imageUpload';
 import type { Category, Product } from '../lib/types';
 
 type Filter = 'all' | 'available' | 'unavailable' | 'hidden';
@@ -28,7 +30,11 @@ interface FormState {
   price: string;
   unit: string;
   categoryId: string;
+  /** صورة المنتج العالمي الحالية (للعرض فقط — لا يُكتب رابط صورة يدويًا) */
   imageUrl: string;
+  /** صورة جديدة مختارة (مضغوطة) تُرفع بعد الحفظ */
+  imageFile: Blob | null;
+  imagePreview: string | null;
   description: string;
   isAvailable: boolean;
   isHidden: boolean;
@@ -54,10 +60,23 @@ const EMPTY_FORM: FormState = {
   unit: 'قطعة',
   categoryId: '',
   imageUrl: '',
+  imageFile: null,
+  imagePreview: null,
   description: '',
   isAvailable: true,
   isHidden: false,
 };
+
+/**
+ * هل يستطيع المحل اختيار صورة لهذا المنتج؟ (الخادم يعيد التحقق دائمًا)
+ *  - منتج جديد كليًا، أو منتج في المنصة بلا صورة بعد → نعم (أول صورة).
+ *  - منتج خاص بمحلك (بلا باركود) → نعم، يمكنك استبدال صورته.
+ *  - منتج مشترك له صورة → لا: تغييرها من صلاحية الإدارة.
+ */
+function imageEditable(form: FormState): boolean {
+  if (!form.imageUrl) return true;
+  return !form.locked && form.barcode === '';
+}
 
 export default function Products() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -72,6 +91,7 @@ export default function Products() {
   const [formError, setFormError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [scanning, setScanning] = useState(false);
+  const [imageBusy, setImageBusy] = useState(false);
   const cameraSupported = isCameraScanSupported();
 
   useEffect(() => {
@@ -133,16 +153,26 @@ export default function Products() {
           brand: form.brand.trim() || null,
           unit: form.unit.trim() || 'قطعة',
           categoryId: form.categoryId || null,
-          imageUrl: form.imageUrl.trim() || null,
           description: form.description.trim() || null,
         };
 
     setSaving(true);
     try {
-      if (form.id) await api.updateProduct(form.id, payload);
-      else await api.createProduct(payload);
-      setForm(null);
+      const saved = form.id
+        ? await api.updateProduct(form.id, payload)
+        : await api.createProduct(payload);
+      // الصورة تُرفع بعد حفظ المنتج وتُربط بالمنتج العالمي (نفس الصورة لكل المحلات)
+      let imageProblem: string | null = null;
+      if (form.imageFile) {
+        try {
+          await api.uploadProductImage(saved.product.id, form.imageFile);
+        } catch (e) {
+          imageProblem = e instanceof ApiError ? e.message : 'تعذّر رفع الصورة.';
+        }
+      }
+      closeForm();
       await load();
+      if (imageProblem) setError(`تم حفظ المنتج، لكن لم تُرفع الصورة: ${imageProblem}`);
     } catch (e) {
       if (e instanceof ApiError && e.details?.length) {
         setFormError(e.details.map((d) => d.message).join(' · '));
@@ -154,8 +184,52 @@ export default function Products() {
     }
   }
 
+  function closeForm() {
+    if (form?.imagePreview) URL.revokeObjectURL(form.imagePreview);
+    setForm(null);
+  }
+
+  async function pickImage(file: File | undefined) {
+    if (!form || !file) return;
+    setFormError(null);
+    setImageBusy(true);
+    try {
+      const blob = await prepareImage(file);
+      if (form.imagePreview) URL.revokeObjectURL(form.imagePreview);
+      setForm({ ...form, imageFile: blob, imagePreview: URL.createObjectURL(blob) });
+    } catch (e) {
+      setFormError(e instanceof Error ? e.message : 'تعذّر تجهيز الصورة.');
+    } finally {
+      setImageBusy(false);
+    }
+  }
+
+  function clearPickedImage() {
+    if (!form) return;
+    if (form.imagePreview) URL.revokeObjectURL(form.imagePreview);
+    setForm({ ...form, imageFile: null, imagePreview: null });
+  }
+
+  /** حذف صورة منتج خاص بمحلك (الخادم يرفض لمنتج مشترك) */
+  async function removeSavedImage() {
+    if (!form?.id || !confirm('حذف صورة هذا المنتج؟')) return;
+    setImageBusy(true);
+    setFormError(null);
+    try {
+      await api.deleteProductImage(form.id);
+      setForm({ ...form, imageUrl: '' });
+      await load();
+    } catch (e) {
+      setFormError(e instanceof ApiError ? e.message : 'تعذّر حذف الصورة.');
+    } finally {
+      setImageBusy(false);
+    }
+  }
+
   function editForm(product: Product): FormState {
     return {
+      imageFile: null,
+      imagePreview: null,
       id: product.id,
       barcode: product.barcode ?? '',
       brand: product.brand ?? '',
@@ -165,7 +239,9 @@ export default function Products() {
       locked: product.barcode !== null,
       notice:
         product.barcode !== null
-          ? 'بيانات المنتج (الاسم، الصورة…) مشتركة بين المحلات وتعدّلها الإدارة. يمكنك تعديل سعرك وكميتك وتوفرك.'
+          ? product.imageUrl
+            ? 'بيانات المنتج (الاسم، الصورة…) مشتركة بين المحلات وتعدّلها الإدارة. يمكنك تعديل سعرك وكميتك وتوفرك.'
+            : 'بيانات المنتج مشتركة بين المحلات. المنتج بلا صورة بعد — يمكنك إضافة صورته.'
           : null,
       name: product.name,
       price: String(product.price),
@@ -200,7 +276,9 @@ export default function Products() {
             barcode: p.barcode ?? code,
             step: 'form',
             locked: true,
-            notice: 'هذا المنتج موجود في المنصة — أدخل سعرك وكميتك فقط.',
+            notice: p.imageUrl
+              ? 'أدخل سعرك وكميتك وتوفّرك فقط — بيانات المنتج وصورته مشتركة.'
+              : 'أدخل سعرك وكميتك وتوفّرك. المنتج بلا صورة بعد — يمكنك إضافة صورته.',
             name: p.name,
             brand: p.brand ?? '',
             unit: p.unit,
@@ -308,18 +386,18 @@ export default function Products() {
             products.map((product) => (
               <div key={product.id} className="rounded-2xl border border-slate-200 bg-white p-3">
                 <div className="flex gap-3">
-                  <div className="size-14 shrink-0 overflow-hidden rounded-xl bg-slate-100">
-                    {product.imageUrl ? (
-                      <img src={product.imageUrl} alt="" className="size-full object-cover" />
-                    ) : (
-                      <div className="grid size-full place-items-center text-xl" aria-hidden>📦</div>
-                    )}
-                  </div>
+                  <ProductImage src={product.imageUrl} className="size-14" />
                   <div className="min-w-0 flex-1">
                     <h3 className="truncate text-sm font-semibold text-slate-900">{product.name}</h3>
                     <p className="text-xs text-slate-500">
                       {formatDzd(product.price)} / {product.unit}
+                      {product.stock !== null && <> · المخزون: {product.stock}</>}
                     </p>
+                    {product.barcode && (
+                      <p className="text-[11px] text-slate-400" dir="ltr">
+                        {product.barcode}
+                      </p>
+                    )}
                     <div className="mt-1 flex flex-wrap gap-1.5">
                       {product.isHidden && (
                         <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[11px] text-slate-600">مخفي</span>
@@ -384,7 +462,7 @@ export default function Products() {
         <div className="fixed inset-0 z-40 flex items-end justify-center bg-black/40 sm:items-center">
           <div className="max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-t-3xl bg-white p-5 sm:rounded-3xl">
             <h2 className="mb-4 text-lg font-bold text-slate-900">
-              {form.id ? 'تعديل منتج' : 'منتج جديد'}
+              {form.id ? 'تعديل منتج' : form.locked ? 'إضافة منتج إلى محلك' : 'منتج جديد'}
             </h2>
 
             {form.step === 'scan' ? (
@@ -423,7 +501,7 @@ export default function Products() {
                   <Button className="flex-1" onClick={lookup} loading={saving}>
                     بحث
                   </Button>
-                  <Button variant="secondary" className="flex-1" onClick={() => setForm(null)}>
+                  <Button variant="secondary" className="flex-1" onClick={closeForm}>
                     إلغاء
                   </Button>
                 </div>
@@ -439,17 +517,82 @@ export default function Products() {
             <div className="space-y-3">
               {form.notice && <Alert kind="info">{form.notice}</Alert>}
 
-              {form.barcode && (
-                <p className="text-xs text-slate-500" dir="ltr">
-                  Barcode: {form.barcode}
+              {form.locked ? (
+                /* منتج موجود في المنصة: نعرض بياناته العالمية وصورته للقراءة فقط */
+                <div className="flex gap-3 rounded-2xl border border-brand-100 bg-brand-50/50 p-3">
+                  <ProductImage src={form.imagePreview ?? form.imageUrl} className="size-20" />
+                  <div className="min-w-0 flex-1 text-sm">
+                    <p className="text-[11px] font-medium text-brand-700">المنتج موجود بالفعل في قُفّة</p>
+                    <p className="truncate font-semibold text-slate-900">{form.name}</p>
+                    {form.brand && <p className="text-xs text-slate-600">العلامة: {form.brand}</p>}
+                    <p className="text-xs text-slate-600">الحجم/الوحدة: {form.unit}</p>
+                    {form.barcode && (
+                      <p className="text-xs text-slate-500" dir="ltr">
+                        Barcode: {form.barcode}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                form.barcode && (
+                  <p className="text-xs text-slate-500" dir="ltr">
+                    Barcode: {form.barcode}
+                  </p>
+                )
+              )}
+
+              {/* صورة المنتج العالمي */}
+              {imageEditable(form) ? (
+                <Field
+                  label={form.imageUrl ? 'صورة المنتج' : form.locked ? 'إضافة صورة للمنتج (اختياري)' : 'صورة المنتج (اختياري)'}
+                  hint="JPEG أو PNG أو WebP — تُضغط تلقائيًا، وتظهر لكل المحلات التي تبيع هذا المنتج"
+                >
+                  <div className="flex items-center gap-3">
+                    {!form.locked && (
+                      <ProductImage src={form.imagePreview ?? form.imageUrl} className="size-16" />
+                    )}
+                    <div className="flex flex-wrap gap-2">
+                      <label
+                        className={`cursor-pointer rounded-lg bg-slate-100 px-3 py-2 text-xs font-medium text-slate-700 ${
+                          imageBusy ? 'pointer-events-none opacity-60' : ''
+                        }`}
+                      >
+                        {imageBusy ? 'جارٍ التجهيز…' : form.imageFile || form.imageUrl ? 'تغيير الصورة' : '📷 رفع صورة'}
+                        <input
+                          type="file"
+                          accept={ACCEPT_ATTR}
+                          className="sr-only"
+                          onChange={(e) => {
+                            void pickImage(e.target.files?.[0]);
+                            e.target.value = '';
+                          }}
+                        />
+                      </label>
+                      {form.imageFile && (
+                        <button type="button" onClick={clearPickedImage} className="rounded-lg px-3 py-2 text-xs text-slate-500">
+                          إلغاء الصورة المختارة
+                        </button>
+                      )}
+                      {!form.imageFile && form.imageUrl && form.id && (
+                        <button type="button" onClick={removeSavedImage} className="rounded-lg px-3 py-2 text-xs text-red-600">
+                          حذف الصورة
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </Field>
+              ) : (
+                <p className="text-xs text-slate-500">
+                  صورة هذا المنتج مشتركة بين كل المحلات؛ تغييرها من صلاحية إدارة المنصة.
                 </p>
               )}
 
+              {!form.locked && (
+              <>
               <Field label="اسم المنتج">
                 <input
                   className={inputClass}
                   value={form.name}
-                  disabled={form.locked}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
                 />
               </Field>
@@ -458,12 +601,13 @@ export default function Products() {
                 <input
                   className={inputClass}
                   value={form.brand}
-                  disabled={form.locked}
                   onChange={(e) => setForm({ ...form, brand: e.target.value })}
                 />
               </Field>
+              </>
+              )}
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className={form.locked ? '' : 'grid grid-cols-2 gap-3'}>
                 <Field label="السعر (دج)" hint="عدد صحيح">
                   <input
                     className={inputClass}
@@ -475,15 +619,16 @@ export default function Products() {
                     onChange={(e) => setForm({ ...form, price: e.target.value })}
                   />
                 </Field>
-                <Field label="الوحدة">
-                  <input
-                    className={inputClass}
-                    value={form.unit}
-                    disabled={form.locked}
-                    onChange={(e) => setForm({ ...form, unit: e.target.value })}
-                    placeholder="قطعة / كغ / لتر"
-                  />
-                </Field>
+                {!form.locked && (
+                  <Field label="الوحدة / الحجم">
+                    <input
+                      className={inputClass}
+                      value={form.unit}
+                      onChange={(e) => setForm({ ...form, unit: e.target.value })}
+                      placeholder="قطعة / كغ / 1L"
+                    />
+                  </Field>
+                )}
               </div>
 
               <Field label="الكمية المتوفرة عندك (اختياري)" hint="اتركها فارغة إن لم تتتبّع الكمية">
@@ -498,11 +643,12 @@ export default function Products() {
                 />
               </Field>
 
+              {!form.locked && (
+              <>
               <Field label="التصنيف">
                 <select
                   className={inputClass}
                   value={form.categoryId}
-                  disabled={form.locked}
                   onChange={(e) => setForm({ ...form, categoryId: e.target.value })}
                 >
                   <option value="">بدون تصنيف</option>
@@ -514,26 +660,15 @@ export default function Products() {
                 </select>
               </Field>
 
-              <Field label="رابط الصورة (اختياري)" hint="رابط صورة على الإنترنت">
-                <input
-                  className={inputClass}
-                  type="url"
-                  dir="ltr"
-                  value={form.imageUrl}
-                  disabled={form.locked}
-                  onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
-                  placeholder="https://…"
-                />
-              </Field>
-
               <Field label="وصف (اختياري)">
                 <input
                   className={inputClass}
                   value={form.description}
-                  disabled={form.locked}
                   onChange={(e) => setForm({ ...form, description: e.target.value })}
                 />
               </Field>
+              </>
+              )}
 
               <div className="flex gap-4">
                 <label className="flex items-center gap-2 text-sm">
@@ -562,7 +697,7 @@ export default function Products() {
                 <Button className="flex-1" onClick={save} loading={saving}>
                   حفظ
                 </Button>
-                <Button variant="secondary" className="flex-1" onClick={() => setForm(null)}>
+                <Button variant="secondary" className="flex-1" onClick={closeForm}>
                   إلغاء
                 </Button>
               </div>

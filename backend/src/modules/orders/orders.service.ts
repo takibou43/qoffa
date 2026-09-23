@@ -30,6 +30,8 @@ export const orderItemSelect = {
   unitPrice: true,
   quantity: true,
   lineTotal: true,
+  // صورة المنتج العالمي الحالية للعرض فقط؛ لقطة الطلب (الاسم/السعر) لا تتأثر بتغيير الصورة أو حذفها
+  product: { select: { product: { select: { imageUrl: true } } } },
 } as const;
 
 /** ما يراه الزبون */

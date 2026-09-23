@@ -1,4 +1,5 @@
-import { Router } from 'express';
+import express, { Router } from 'express';
+import { MAX_IMAGE_BYTES } from '../../lib/image.js';
 import { requireAuth, requireRole } from '../../middleware/auth.js';
 import { param } from '../../lib/http.js';
 import { writeLimiter } from '../../middleware/rateLimit.js';
@@ -60,4 +61,29 @@ productsRouter.delete('/:productId', writeLimiter, async (req, res) => {
   const shop = await getOwnedShopOrThrow(req.auth!.userId);
   await service.deleteListing(shop.id, param(req, 'productId'));
   res.json({ ok: true });
+});
+
+/**
+ * صورة المنتج العالمي من لوحة المحل. الجسم = بايتات الصورة نفسها (Content-Type: image/jpeg|png|webp)،
+ * بلا multipart ولا package إضافي. الحد الأقصى للحجم يُفرض هنا قبل قراءة الملف كاملًا (413).
+ * الصلاحيات في الخدمة: أول صورة فقط لمنتج مشترك، والاستبدال/الحذف لمنتج خاص بالمحل فقط.
+ */
+const rawImage = express.raw({ type: () => true, limit: MAX_IMAGE_BYTES });
+
+productsRouter.put('/:productId/image', writeLimiter, rawImage, async (req, res) => {
+  const shop = await getOwnedShopOrThrow(req.auth!.userId);
+  assertShopApproved(shop.status);
+  const product = await service.shopSetProductImage(
+    shop.id,
+    param(req, 'productId'),
+    req.body,
+    req.headers['content-type'],
+  );
+  res.json({ product });
+});
+
+productsRouter.delete('/:productId/image', writeLimiter, async (req, res) => {
+  const shop = await getOwnedShopOrThrow(req.auth!.userId);
+  const product = await service.shopRemoveProductImage(shop.id, param(req, 'productId'));
+  res.json({ product });
 });
