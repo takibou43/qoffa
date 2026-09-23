@@ -158,7 +158,7 @@ describe('7–13 + 22: QR واستلام الموصّل للطلب من المح
     expect(parseQrPayload(qrA)?.kind).toBe('P');
     expect(qrA).not.toContain(a.id);
     expect(qrA).not.toContain(a.code);
-    expect(qrA).not.toMatch(/\d{9,}/); // لا رقم هاتف
+    expect(qrA).toMatch(/^QOFFA:P:[a-f0-9]{64}$/); // رمز عشوائي فقط — لا هاتف ولا عنوان
     if (b) expect(await pickupQrFor(b.id)).not.toBe(qrA);
   });
 
@@ -275,14 +275,15 @@ describe('7–13 + 22: QR واستلام الموصّل للطلب من المح
 
 describe('14–20: رسوم التوصيل والحساب حسب الطرف', () => {
   it('18+19+20: حساب ما يدفعه الموصّل للمحل وما يقبضه من الزبون وأجرته', () => {
-    expect(orderSettlement({ subtotal: 2000, deliveryFee: 200, total: 2200 })).toEqual({
+    expect(orderSettlement({ subtotal: 2000, deliveryFee: 200, total: 2200, platformFee: 30 })).toEqual({
       productsAmount: 2000,
       deliveryFee: 200,
       discount: 0,
       total: 2200,
       driverPaysShop: 2000,
       driverCollectsFromCustomer: 2200,
-      driverKeeps: 200,
+      platformFee: 30,
+      driverKeeps: 170,
     });
   });
 
@@ -313,7 +314,7 @@ describe('14–20: رسوم التوصيل والحساب حسب الطرف', ()
       expect(o).not.toHaveProperty('deliveryPin');
       const text = JSON.stringify(o);
       expect(text).not.toContain('2200');
-      expect(text).not.toMatch(/deliveryFee|driverCollects|driverKeeps/);
+      expect(text).not.toMatch(/deliveryFee|driverCollects|driverKeeps|platformFee/);
     }
     // إشعار الطلب الجديد للمحل بقيمة المنتجات فقط
     const note = await prisma.notification.findFirstOrThrow({
@@ -341,7 +342,8 @@ describe('14–20: رسوم التوصيل والحساب حسب الطرف', ()
       total: 2200,
       driverPaysShop: 2000,
       driverCollectsFromCustomer: 2200,
-      driverKeeps: 200,
+      driverKeeps: 170,
+      platformFee: 30,
     };
     const cur = await request(app).get('/api/drivers/me/current').set(bearer(driver.token));
     expect(cur.body.order.settlement).toMatchObject(expected);
@@ -363,7 +365,8 @@ describe('14–20: رسوم التوصيل والحساب حسب الطرف', ()
       total: 2200,
       driverPaysShop: 2000,
       driverCollectsFromCustomer: 2200,
-      driverKeeps: 200,
+      driverKeeps: 170,
+      platformFee: 30,
     });
     expect(parseQrPayload(d.pickupQr)?.kind).toBe('P');
     expect(d.customer.fullName).toBeTruthy();
@@ -379,7 +382,8 @@ describe('14–20: رسوم التوصيل والحساب حسب الطرف', ()
     const row = list.body.items.find((o: { id: string }) => o.id === order.id);
     expect(row.settlement.driverPaysShop).toBe(2000);
     expect(row.settlement.driverCollectsFromCustomer).toBe(2200);
-    expect(row.settlement.driverKeeps).toBe(200);
+    expect(row.settlement.driverKeeps).toBe(170);
+    expect(row.settlement.platformFee).toBe(30);
     expect(row.pickedUpAt).toBeTruthy();
   });
 });
@@ -489,5 +493,87 @@ describe('23: التسليم النهائي', () => {
     const r = await deliver(order.id, { pin: await deliveryPinFor(order.id) }, intruder.token);
     expect(r.status).toBe(404);
     expect((await prisma.order.findUniqueOrThrow({ where: { id: order.id } })).status).toBe('OUT_FOR_DELIVERY');
+  });
+});
+
+describe('حصة قفة الثابتة من رسوم التوصيل', () => {
+  const setPlatformFee = (token: string, platformFee: number) =>
+    request(app).put('/api/admin/delivery-pricing').set(bearer(token)).send({
+      baseFee: FEE,
+      baseKm: 15,
+      perKmFee: 30,
+      maxKm: 15,
+      roadFactor: 1.3,
+      platformFee,
+    });
+
+  it('القيمة الافتراضية 30 دج وتظهر في إعدادات الإدارة', async () => {
+    await prisma.platformSetting.deleteMany({ where: { key: 'delivery.platformFee' } });
+    const res = await request(app).get('/api/admin/delivery-pricing').set(bearer(admin.token));
+    expect(res.body.pricing.platformFee).toBe(30);
+  });
+
+  it('تُثبَّت في الطلب عند إنشائه: توصيل 200 → قفة 30 والموصّل 170', async () => {
+    const order = await newAssignedOrder();
+    const db = await prisma.order.findUniqueOrThrow({ where: { id: order.id } });
+    expect(db.platformFee).toBe(30);
+    await pickup(order.id, await pickupQrFor(order.id));
+    await deliver(order.id, { pin: await deliveryPinFor(order.id) });
+    const done = await prisma.order.findUniqueOrThrow({ where: { id: order.id } });
+    expect(done.driverEarning).toBe(170);
+    const tx = await prisma.walletTransaction.findFirstOrThrow({ where: { orderId: order.id, type: 'DELIVERY_EARNING' } });
+    expect(tx.amount).toBe(170);
+  });
+
+  it('تغيير الإدارة للقيمة لا يمسّ الطلبات القديمة', async () => {
+    const superAdmin = await createAdmin('SUPER_ADMIN');
+    const old = await newAssignedOrder(); // أُنشئ بـ 30
+    const r = await setPlatformFee(superAdmin.token, 50);
+    expect(r.status).toBe(200);
+    expect(r.body.pricing.platformFee).toBe(50);
+
+    const fresh = (await placeOrder(1)).body.order as { id: string };
+    expect((await prisma.order.findUniqueOrThrow({ where: { id: fresh.id } })).platformFee).toBe(50);
+
+    await pickup(old.id, await pickupQrFor(old.id));
+    await deliver(old.id, { pin: await deliveryPinFor(old.id) });
+    const done = await prisma.order.findUniqueOrThrow({ where: { id: old.id } });
+    expect(done.platformFee).toBe(30);
+    expect(done.driverEarning).toBe(170);
+  });
+
+  it('المدير العادي لا يغيّر حصة قفة، والقيمة السالبة أو الكسرية مرفوضة', async () => {
+    expect((await setPlatformFee(admin.token, 40)).status).toBe(403);
+    const superAdmin = await createAdmin('SUPER_ADMIN');
+    expect((await setPlatformFee(superAdmin.token, -1)).status).toBe(400);
+    expect((await setPlatformFee(superAdmin.token, 12.5)).status).toBe(400);
+  });
+
+  it('لا تتجاوز حصة قفة رسوم التوصيل', async () => {
+    const superAdmin = await createAdmin('SUPER_ADMIN');
+    await setPlatformFee(superAdmin.token, 500);
+    const o = (await placeOrder(1)).body.order as { id: string };
+    const db = await prisma.order.findUniqueOrThrow({ where: { id: o.id } });
+    expect(db.platformFee).toBe(FEE);
+    expect(orderSettlement(db).driverKeeps).toBe(0);
+  });
+
+  it('الموصّل والإدارة يرون الحصة؛ الزبون يرى الإجمالي فقط؛ المحل لا يرى شيئًا منها', async () => {
+    const order = await newAssignedOrder();
+    const cur = await request(app).get('/api/drivers/me/current').set(bearer(driver.token));
+    expect(cur.body.order.settlement).toMatchObject({ platformFee: 30, driverKeeps: 170, driverPaysShop: 2000 });
+    expect((await view(order.id, admin.token)).body.order.settlement.platformFee).toBe(30);
+
+    const c = (await view(order.id, customer.token)).body.order;
+    expect(c.amounts).toEqual({ productsAmount: 2000, deliveryFee: 200, discount: 0, total: 2200 });
+    expect(c).not.toHaveProperty('platformFee');
+
+    const s = (await view(order.id, shop.token)).body.order;
+    expect(s).not.toHaveProperty('platformFee');
+    expect(s.amountFromDriver).toBe(2000);
+    expect(JSON.stringify(s)).not.toMatch(/platformFee|driverKeeps/);
+
+    const inv = (await request(app).get(`/api/orders/${order.id}/invoice`).set(bearer(customer.token))).body.invoice;
+    expect(inv).toMatchObject({ productsTotal: 2000, deliveryFee: 200, total: 2200 });
   });
 });

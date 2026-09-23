@@ -216,7 +216,8 @@ function OrderDetailBody({ order }: { order: AdminOrder }) {
       <dl className="space-y-2 rounded-xl bg-slate-50 p-3">
         <Row label="دفعه الموصّل للمحل">{pickupScan || order.pickedUpAt ? formatDzd(s.driverPaysShop) : `${formatDzd(s.driverPaysShop)} (عند الاستلام)`}</Row>
         <Row label="قبضه الموصّل من الزبون">{order.deliveredAt ? formatDzd(s.driverCollectsFromCustomer) : `${formatDzd(s.driverCollectsFromCustomer)} (عند التسليم)`}</Row>
-        <Row label="أجرة التوصيل (نقدًا مع الموصّل)">{formatDzd(s.driverKeeps)}</Row>
+        <Row label="حصة قفة من التوصيل">{formatDzd(s.platformFee)}</Row>
+        <Row label="أجرة الموصّل (التوصيل − حصة قفة)">{formatDzd(s.driverKeeps)}</Row>
         <Row label="عمولة المنصة">{formatDzd(order.commissionAmount)}</Row>
         <Row label="استحقاق الموصّل في المحفظة">{formatDzd(order.driverEarning)}</Row>
       </dl>

@@ -409,6 +409,8 @@ model Order {
   commissionAmount Int @default(0)
   /// نصيب الموصل من رسوم التوصيل
   driverEarning    Int @default(0)
+  /// حصة قفة الثابتة من رسوم التوصيل — تُثبَّت عند إنشاء الطلب (لا تتأثر بتغيير الإدارة لاحقًا)
+  platformFee      Int @default(0)
 
   paymentMethod PaymentMethod @default(CASH_ON_DELIVERY)
   customerNote  String?

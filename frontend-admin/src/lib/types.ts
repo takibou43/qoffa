@@ -76,6 +76,9 @@ export interface Settlement {
   total: number;
   driverPaysShop: number;
   driverCollectsFromCustomer: number;
+  /** حصة قفة من رسوم التوصيل (مثبّتة عند إنشاء الطلب) */
+  platformFee: number;
+  /** أجرة الموصّل = رسوم التوصيل − حصة قفة */
   driverKeeps: number;
 }
 
@@ -156,4 +159,6 @@ export interface DeliveryPricing {
   perKmFee: number;
   maxKm: number;
   roadFactor: number;
+  /** حصة قفة الثابتة من رسوم التوصيل لكل طلبية (دج) */
+  platformFee: number;
 }

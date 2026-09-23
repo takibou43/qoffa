@@ -29,6 +29,7 @@ const CONFIG: DeliveryPricingConfig = {
   perKmFee: 40,
   maxKm: 10,
   roadFactor: 1.5,
+  platformFee: 30,
 };
 
 describe('computeDeliveryFee (دالة نقية)', () => {

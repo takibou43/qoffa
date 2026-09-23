@@ -4,7 +4,7 @@
  * مثال: منتجات 2000 + توصيل 200 = 2200
  *   - الموصّل يدفع للمحل عند الاستلام: 2000 (قيمة المنتجات فقط)
  *   - الموصّل يقبض من الزبون عند التسليم: 2200 (الإجمالي)
- *   - يبقى مع الموصّل نقدًا: 200 (رسوم التوصيل)
+ *   - رسوم التوصيل 200 = حصة قفة الثابتة (مثلًا 30) + أجرة الموصّل (170)
  *
  * المحل لا يرى رسوم التوصيل ولا الإجمالي إطلاقًا — انظر toShopOrderView.
  * كل المبالغ أعداد صحيحة بالدينار.
@@ -14,6 +14,8 @@ export interface OrderAmounts {
   subtotal: number;
   deliveryFee: number;
   total: number;
+  /** حصة قفة المثبّتة في الطلب عند إنشائه */
+  platformFee: number;
 }
 
 export interface OrderSettlement {
@@ -29,12 +31,15 @@ export interface OrderSettlement {
   driverPaysShop: number;
   /** ما يقبضه الموصّل من الزبون عند التسليم */
   driverCollectsFromCustomer: number;
-  /** ما يبقى مع الموصّل نقدًا (أجرة التوصيل) */
+  /** حصة قفة من رسوم التوصيل (يسلّمها الموصّل للمنصة) */
+  platformFee: number;
+  /** أجرة الموصّل = رسوم التوصيل − حصة قفة */
   driverKeeps: number;
 }
 
 export function orderSettlement(order: OrderAmounts): OrderSettlement {
   const discount = Math.max(0, order.subtotal + order.deliveryFee - order.total);
+  const platformFee = Math.min(Math.max(0, order.platformFee), order.deliveryFee);
   return {
     productsAmount: order.subtotal,
     deliveryFee: order.deliveryFee,
@@ -42,7 +47,8 @@ export function orderSettlement(order: OrderAmounts): OrderSettlement {
     total: order.total,
     driverPaysShop: order.subtotal,
     driverCollectsFromCustomer: order.total,
-    driverKeeps: order.total - order.subtotal,
+    platformFee,
+    driverKeeps: order.deliveryFee - platformFee,
   };
 }
 
@@ -51,6 +57,7 @@ const SHOP_HIDDEN_FIELDS = [
   'deliveryFee',
   'total',
   'driverEarning',
+  'platformFee',
   'commissionAmount',
   'settlement',
   'deliveryPin',

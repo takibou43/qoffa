@@ -32,6 +32,7 @@ export type OrderAvgAggregateOutputType = {
   total: number | null
   commissionAmount: number | null
   driverEarning: number | null
+  platformFee: number | null
   deliveryLatitude: number | null
   deliveryLongitude: number | null
   distanceMeters: number | null
@@ -45,6 +46,7 @@ export type OrderSumAggregateOutputType = {
   total: number | null
   commissionAmount: number | null
   driverEarning: number | null
+  platformFee: number | null
   deliveryLatitude: number | null
   deliveryLongitude: number | null
   distanceMeters: number | null
@@ -64,6 +66,7 @@ export type OrderMinAggregateOutputType = {
   total: number | null
   commissionAmount: number | null
   driverEarning: number | null
+  platformFee: number | null
   paymentMethod: $Enums.PaymentMethod | null
   customerNote: string | null
   addressId: string | null
@@ -109,6 +112,7 @@ export type OrderMaxAggregateOutputType = {
   total: number | null
   commissionAmount: number | null
   driverEarning: number | null
+  platformFee: number | null
   paymentMethod: $Enums.PaymentMethod | null
   customerNote: string | null
   addressId: string | null
@@ -154,6 +158,7 @@ export type OrderCountAggregateOutputType = {
   total: number
   commissionAmount: number
   driverEarning: number
+  platformFee: number
   paymentMethod: number
   customerNote: number
   addressId: number
@@ -195,6 +200,7 @@ export type OrderAvgAggregateInputType = {
   total?: true
   commissionAmount?: true
   driverEarning?: true
+  platformFee?: true
   deliveryLatitude?: true
   deliveryLongitude?: true
   distanceMeters?: true
@@ -208,6 +214,7 @@ export type OrderSumAggregateInputType = {
   total?: true
   commissionAmount?: true
   driverEarning?: true
+  platformFee?: true
   deliveryLatitude?: true
   deliveryLongitude?: true
   distanceMeters?: true
@@ -227,6 +234,7 @@ export type OrderMinAggregateInputType = {
   total?: true
   commissionAmount?: true
   driverEarning?: true
+  platformFee?: true
   paymentMethod?: true
   customerNote?: true
   addressId?: true
@@ -272,6 +280,7 @@ export type OrderMaxAggregateInputType = {
   total?: true
   commissionAmount?: true
   driverEarning?: true
+  platformFee?: true
   paymentMethod?: true
   customerNote?: true
   addressId?: true
@@ -317,6 +326,7 @@ export type OrderCountAggregateInputType = {
   total?: true
   commissionAmount?: true
   driverEarning?: true
+  platformFee?: true
   paymentMethod?: true
   customerNote?: true
   addressId?: true
@@ -449,6 +459,7 @@ export type OrderGroupByOutputType = {
   total: number
   commissionAmount: number
   driverEarning: number
+  platformFee: number
   paymentMethod: $Enums.PaymentMethod
   customerNote: string | null
   addressId: string | null
@@ -517,6 +528,7 @@ export type OrderWhereInput = {
   total?: Prisma.IntFilter<"Order"> | number
   commissionAmount?: Prisma.IntFilter<"Order"> | number
   driverEarning?: Prisma.IntFilter<"Order"> | number
+  platformFee?: Prisma.IntFilter<"Order"> | number
   paymentMethod?: Prisma.EnumPaymentMethodFilter<"Order"> | $Enums.PaymentMethod
   customerNote?: Prisma.StringNullableFilter<"Order"> | string | null
   addressId?: Prisma.StringNullableFilter<"Order"> | string | null
@@ -574,6 +586,7 @@ export type OrderOrderByWithRelationInput = {
   total?: Prisma.SortOrder
   commissionAmount?: Prisma.SortOrder
   driverEarning?: Prisma.SortOrder
+  platformFee?: Prisma.SortOrder
   paymentMethod?: Prisma.SortOrder
   customerNote?: Prisma.SortOrderInput | Prisma.SortOrder
   addressId?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -637,6 +650,7 @@ export type OrderWhereUniqueInput = Prisma.AtLeast<{
   total?: Prisma.IntFilter<"Order"> | number
   commissionAmount?: Prisma.IntFilter<"Order"> | number
   driverEarning?: Prisma.IntFilter<"Order"> | number
+  platformFee?: Prisma.IntFilter<"Order"> | number
   paymentMethod?: Prisma.EnumPaymentMethodFilter<"Order"> | $Enums.PaymentMethod
   customerNote?: Prisma.StringNullableFilter<"Order"> | string | null
   addressId?: Prisma.StringNullableFilter<"Order"> | string | null
@@ -692,6 +706,7 @@ export type OrderOrderByWithAggregationInput = {
   total?: Prisma.SortOrder
   commissionAmount?: Prisma.SortOrder
   driverEarning?: Prisma.SortOrder
+  platformFee?: Prisma.SortOrder
   paymentMethod?: Prisma.SortOrder
   customerNote?: Prisma.SortOrderInput | Prisma.SortOrder
   addressId?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -745,6 +760,7 @@ export type OrderScalarWhereWithAggregatesInput = {
   total?: Prisma.IntWithAggregatesFilter<"Order"> | number
   commissionAmount?: Prisma.IntWithAggregatesFilter<"Order"> | number
   driverEarning?: Prisma.IntWithAggregatesFilter<"Order"> | number
+  platformFee?: Prisma.IntWithAggregatesFilter<"Order"> | number
   paymentMethod?: Prisma.EnumPaymentMethodWithAggregatesFilter<"Order"> | $Enums.PaymentMethod
   customerNote?: Prisma.StringNullableWithAggregatesFilter<"Order"> | string | null
   addressId?: Prisma.StringNullableWithAggregatesFilter<"Order"> | string | null
@@ -787,6 +803,7 @@ export type OrderCreateInput = {
   total: number
   commissionAmount?: number
   driverEarning?: number
+  platformFee?: number
   paymentMethod?: $Enums.PaymentMethod
   customerNote?: string | null
   deliveryAddressLine: string
@@ -843,6 +860,7 @@ export type OrderUncheckedCreateInput = {
   total: number
   commissionAmount?: number
   driverEarning?: number
+  platformFee?: number
   paymentMethod?: $Enums.PaymentMethod
   customerNote?: string | null
   addressId?: string | null
@@ -893,6 +911,7 @@ export type OrderUpdateInput = {
   total?: Prisma.IntFieldUpdateOperationsInput | number
   commissionAmount?: Prisma.IntFieldUpdateOperationsInput | number
   driverEarning?: Prisma.IntFieldUpdateOperationsInput | number
+  platformFee?: Prisma.IntFieldUpdateOperationsInput | number
   paymentMethod?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
   customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deliveryAddressLine?: Prisma.StringFieldUpdateOperationsInput | string
@@ -949,6 +968,7 @@ export type OrderUncheckedUpdateInput = {
   total?: Prisma.IntFieldUpdateOperationsInput | number
   commissionAmount?: Prisma.IntFieldUpdateOperationsInput | number
   driverEarning?: Prisma.IntFieldUpdateOperationsInput | number
+  platformFee?: Prisma.IntFieldUpdateOperationsInput | number
   paymentMethod?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
   customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   addressId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1002,6 +1022,7 @@ export type OrderCreateManyInput = {
   total: number
   commissionAmount?: number
   driverEarning?: number
+  platformFee?: number
   paymentMethod?: $Enums.PaymentMethod
   customerNote?: string | null
   addressId?: string | null
@@ -1044,6 +1065,7 @@ export type OrderUpdateManyMutationInput = {
   total?: Prisma.IntFieldUpdateOperationsInput | number
   commissionAmount?: Prisma.IntFieldUpdateOperationsInput | number
   driverEarning?: Prisma.IntFieldUpdateOperationsInput | number
+  platformFee?: Prisma.IntFieldUpdateOperationsInput | number
   paymentMethod?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
   customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deliveryAddressLine?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1088,6 +1110,7 @@ export type OrderUncheckedUpdateManyInput = {
   total?: Prisma.IntFieldUpdateOperationsInput | number
   commissionAmount?: Prisma.IntFieldUpdateOperationsInput | number
   driverEarning?: Prisma.IntFieldUpdateOperationsInput | number
+  platformFee?: Prisma.IntFieldUpdateOperationsInput | number
   paymentMethod?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
   customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   addressId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1148,6 +1171,7 @@ export type OrderCountOrderByAggregateInput = {
   total?: Prisma.SortOrder
   commissionAmount?: Prisma.SortOrder
   driverEarning?: Prisma.SortOrder
+  platformFee?: Prisma.SortOrder
   paymentMethod?: Prisma.SortOrder
   customerNote?: Prisma.SortOrder
   addressId?: Prisma.SortOrder
@@ -1187,6 +1211,7 @@ export type OrderAvgOrderByAggregateInput = {
   total?: Prisma.SortOrder
   commissionAmount?: Prisma.SortOrder
   driverEarning?: Prisma.SortOrder
+  platformFee?: Prisma.SortOrder
   deliveryLatitude?: Prisma.SortOrder
   deliveryLongitude?: Prisma.SortOrder
   distanceMeters?: Prisma.SortOrder
@@ -1206,6 +1231,7 @@ export type OrderMaxOrderByAggregateInput = {
   total?: Prisma.SortOrder
   commissionAmount?: Prisma.SortOrder
   driverEarning?: Prisma.SortOrder
+  platformFee?: Prisma.SortOrder
   paymentMethod?: Prisma.SortOrder
   customerNote?: Prisma.SortOrder
   addressId?: Prisma.SortOrder
@@ -1251,6 +1277,7 @@ export type OrderMinOrderByAggregateInput = {
   total?: Prisma.SortOrder
   commissionAmount?: Prisma.SortOrder
   driverEarning?: Prisma.SortOrder
+  platformFee?: Prisma.SortOrder
   paymentMethod?: Prisma.SortOrder
   customerNote?: Prisma.SortOrder
   addressId?: Prisma.SortOrder
@@ -1290,6 +1317,7 @@ export type OrderSumOrderByAggregateInput = {
   total?: Prisma.SortOrder
   commissionAmount?: Prisma.SortOrder
   driverEarning?: Prisma.SortOrder
+  platformFee?: Prisma.SortOrder
   deliveryLatitude?: Prisma.SortOrder
   deliveryLongitude?: Prisma.SortOrder
   distanceMeters?: Prisma.SortOrder
@@ -1612,6 +1640,7 @@ export type OrderCreateWithoutCustomerInput = {
   total: number
   commissionAmount?: number
   driverEarning?: number
+  platformFee?: number
   paymentMethod?: $Enums.PaymentMethod
   customerNote?: string | null
   deliveryAddressLine: string
@@ -1666,6 +1695,7 @@ export type OrderUncheckedCreateWithoutCustomerInput = {
   total: number
   commissionAmount?: number
   driverEarning?: number
+  platformFee?: number
   paymentMethod?: $Enums.PaymentMethod
   customerNote?: string | null
   addressId?: string | null
@@ -1748,6 +1778,7 @@ export type OrderScalarWhereInput = {
   total?: Prisma.IntFilter<"Order"> | number
   commissionAmount?: Prisma.IntFilter<"Order"> | number
   driverEarning?: Prisma.IntFilter<"Order"> | number
+  platformFee?: Prisma.IntFilter<"Order"> | number
   paymentMethod?: Prisma.EnumPaymentMethodFilter<"Order"> | $Enums.PaymentMethod
   customerNote?: Prisma.StringNullableFilter<"Order"> | string | null
   addressId?: Prisma.StringNullableFilter<"Order"> | string | null
@@ -1790,6 +1821,7 @@ export type OrderCreateWithoutAddressInput = {
   total: number
   commissionAmount?: number
   driverEarning?: number
+  platformFee?: number
   paymentMethod?: $Enums.PaymentMethod
   customerNote?: string | null
   deliveryAddressLine: string
@@ -1845,6 +1877,7 @@ export type OrderUncheckedCreateWithoutAddressInput = {
   total: number
   commissionAmount?: number
   driverEarning?: number
+  platformFee?: number
   paymentMethod?: $Enums.PaymentMethod
   customerNote?: string | null
   deliveryAddressLine: string
@@ -1920,6 +1953,7 @@ export type OrderCreateWithoutShopInput = {
   total: number
   commissionAmount?: number
   driverEarning?: number
+  platformFee?: number
   paymentMethod?: $Enums.PaymentMethod
   customerNote?: string | null
   deliveryAddressLine: string
@@ -1974,6 +2008,7 @@ export type OrderUncheckedCreateWithoutShopInput = {
   total: number
   commissionAmount?: number
   driverEarning?: number
+  platformFee?: number
   paymentMethod?: $Enums.PaymentMethod
   customerNote?: string | null
   addressId?: string | null
@@ -2050,6 +2085,7 @@ export type OrderCreateWithoutDriverInput = {
   total: number
   commissionAmount?: number
   driverEarning?: number
+  platformFee?: number
   paymentMethod?: $Enums.PaymentMethod
   customerNote?: string | null
   deliveryAddressLine: string
@@ -2104,6 +2140,7 @@ export type OrderUncheckedCreateWithoutDriverInput = {
   total: number
   commissionAmount?: number
   driverEarning?: number
+  platformFee?: number
   paymentMethod?: $Enums.PaymentMethod
   customerNote?: string | null
   addressId?: string | null
@@ -2180,6 +2217,7 @@ export type OrderCreateWithoutItemsInput = {
   total: number
   commissionAmount?: number
   driverEarning?: number
+  platformFee?: number
   paymentMethod?: $Enums.PaymentMethod
   customerNote?: string | null
   deliveryAddressLine: string
@@ -2235,6 +2273,7 @@ export type OrderUncheckedCreateWithoutItemsInput = {
   total: number
   commissionAmount?: number
   driverEarning?: number
+  platformFee?: number
   paymentMethod?: $Enums.PaymentMethod
   customerNote?: string | null
   addressId?: string | null
@@ -2300,6 +2339,7 @@ export type OrderUpdateWithoutItemsInput = {
   total?: Prisma.IntFieldUpdateOperationsInput | number
   commissionAmount?: Prisma.IntFieldUpdateOperationsInput | number
   driverEarning?: Prisma.IntFieldUpdateOperationsInput | number
+  platformFee?: Prisma.IntFieldUpdateOperationsInput | number
   paymentMethod?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
   customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deliveryAddressLine?: Prisma.StringFieldUpdateOperationsInput | string
@@ -2355,6 +2395,7 @@ export type OrderUncheckedUpdateWithoutItemsInput = {
   total?: Prisma.IntFieldUpdateOperationsInput | number
   commissionAmount?: Prisma.IntFieldUpdateOperationsInput | number
   driverEarning?: Prisma.IntFieldUpdateOperationsInput | number
+  platformFee?: Prisma.IntFieldUpdateOperationsInput | number
   paymentMethod?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
   customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   addressId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2404,6 +2445,7 @@ export type OrderCreateWithoutStatusEventsInput = {
   total: number
   commissionAmount?: number
   driverEarning?: number
+  platformFee?: number
   paymentMethod?: $Enums.PaymentMethod
   customerNote?: string | null
   deliveryAddressLine: string
@@ -2459,6 +2501,7 @@ export type OrderUncheckedCreateWithoutStatusEventsInput = {
   total: number
   commissionAmount?: number
   driverEarning?: number
+  platformFee?: number
   paymentMethod?: $Enums.PaymentMethod
   customerNote?: string | null
   addressId?: string | null
@@ -2524,6 +2567,7 @@ export type OrderUpdateWithoutStatusEventsInput = {
   total?: Prisma.IntFieldUpdateOperationsInput | number
   commissionAmount?: Prisma.IntFieldUpdateOperationsInput | number
   driverEarning?: Prisma.IntFieldUpdateOperationsInput | number
+  platformFee?: Prisma.IntFieldUpdateOperationsInput | number
   paymentMethod?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
   customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deliveryAddressLine?: Prisma.StringFieldUpdateOperationsInput | string
@@ -2579,6 +2623,7 @@ export type OrderUncheckedUpdateWithoutStatusEventsInput = {
   total?: Prisma.IntFieldUpdateOperationsInput | number
   commissionAmount?: Prisma.IntFieldUpdateOperationsInput | number
   driverEarning?: Prisma.IntFieldUpdateOperationsInput | number
+  platformFee?: Prisma.IntFieldUpdateOperationsInput | number
   paymentMethod?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
   customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   addressId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2628,6 +2673,7 @@ export type OrderCreateWithoutScansInput = {
   total: number
   commissionAmount?: number
   driverEarning?: number
+  platformFee?: number
   paymentMethod?: $Enums.PaymentMethod
   customerNote?: string | null
   deliveryAddressLine: string
@@ -2683,6 +2729,7 @@ export type OrderUncheckedCreateWithoutScansInput = {
   total: number
   commissionAmount?: number
   driverEarning?: number
+  platformFee?: number
   paymentMethod?: $Enums.PaymentMethod
   customerNote?: string | null
   addressId?: string | null
@@ -2748,6 +2795,7 @@ export type OrderUpdateWithoutScansInput = {
   total?: Prisma.IntFieldUpdateOperationsInput | number
   commissionAmount?: Prisma.IntFieldUpdateOperationsInput | number
   driverEarning?: Prisma.IntFieldUpdateOperationsInput | number
+  platformFee?: Prisma.IntFieldUpdateOperationsInput | number
   paymentMethod?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
   customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deliveryAddressLine?: Prisma.StringFieldUpdateOperationsInput | string
@@ -2803,6 +2851,7 @@ export type OrderUncheckedUpdateWithoutScansInput = {
   total?: Prisma.IntFieldUpdateOperationsInput | number
   commissionAmount?: Prisma.IntFieldUpdateOperationsInput | number
   driverEarning?: Prisma.IntFieldUpdateOperationsInput | number
+  platformFee?: Prisma.IntFieldUpdateOperationsInput | number
   paymentMethod?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
   customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   addressId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2852,6 +2901,7 @@ export type OrderCreateWithoutDeliveryInput = {
   total: number
   commissionAmount?: number
   driverEarning?: number
+  platformFee?: number
   paymentMethod?: $Enums.PaymentMethod
   customerNote?: string | null
   deliveryAddressLine: string
@@ -2907,6 +2957,7 @@ export type OrderUncheckedCreateWithoutDeliveryInput = {
   total: number
   commissionAmount?: number
   driverEarning?: number
+  platformFee?: number
   paymentMethod?: $Enums.PaymentMethod
   customerNote?: string | null
   addressId?: string | null
@@ -2972,6 +3023,7 @@ export type OrderUpdateWithoutDeliveryInput = {
   total?: Prisma.IntFieldUpdateOperationsInput | number
   commissionAmount?: Prisma.IntFieldUpdateOperationsInput | number
   driverEarning?: Prisma.IntFieldUpdateOperationsInput | number
+  platformFee?: Prisma.IntFieldUpdateOperationsInput | number
   paymentMethod?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
   customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deliveryAddressLine?: Prisma.StringFieldUpdateOperationsInput | string
@@ -3027,6 +3079,7 @@ export type OrderUncheckedUpdateWithoutDeliveryInput = {
   total?: Prisma.IntFieldUpdateOperationsInput | number
   commissionAmount?: Prisma.IntFieldUpdateOperationsInput | number
   driverEarning?: Prisma.IntFieldUpdateOperationsInput | number
+  platformFee?: Prisma.IntFieldUpdateOperationsInput | number
   paymentMethod?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
   customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   addressId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3076,6 +3129,7 @@ export type OrderCreateWithoutOffersInput = {
   total: number
   commissionAmount?: number
   driverEarning?: number
+  platformFee?: number
   paymentMethod?: $Enums.PaymentMethod
   customerNote?: string | null
   deliveryAddressLine: string
@@ -3131,6 +3185,7 @@ export type OrderUncheckedCreateWithoutOffersInput = {
   total: number
   commissionAmount?: number
   driverEarning?: number
+  platformFee?: number
   paymentMethod?: $Enums.PaymentMethod
   customerNote?: string | null
   addressId?: string | null
@@ -3196,6 +3251,7 @@ export type OrderUpdateWithoutOffersInput = {
   total?: Prisma.IntFieldUpdateOperationsInput | number
   commissionAmount?: Prisma.IntFieldUpdateOperationsInput | number
   driverEarning?: Prisma.IntFieldUpdateOperationsInput | number
+  platformFee?: Prisma.IntFieldUpdateOperationsInput | number
   paymentMethod?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
   customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deliveryAddressLine?: Prisma.StringFieldUpdateOperationsInput | string
@@ -3251,6 +3307,7 @@ export type OrderUncheckedUpdateWithoutOffersInput = {
   total?: Prisma.IntFieldUpdateOperationsInput | number
   commissionAmount?: Prisma.IntFieldUpdateOperationsInput | number
   driverEarning?: Prisma.IntFieldUpdateOperationsInput | number
+  platformFee?: Prisma.IntFieldUpdateOperationsInput | number
   paymentMethod?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
   customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   addressId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3300,6 +3357,7 @@ export type OrderCreateWithoutReviewsInput = {
   total: number
   commissionAmount?: number
   driverEarning?: number
+  platformFee?: number
   paymentMethod?: $Enums.PaymentMethod
   customerNote?: string | null
   deliveryAddressLine: string
@@ -3355,6 +3413,7 @@ export type OrderUncheckedCreateWithoutReviewsInput = {
   total: number
   commissionAmount?: number
   driverEarning?: number
+  platformFee?: number
   paymentMethod?: $Enums.PaymentMethod
   customerNote?: string | null
   addressId?: string | null
@@ -3420,6 +3479,7 @@ export type OrderUpdateWithoutReviewsInput = {
   total?: Prisma.IntFieldUpdateOperationsInput | number
   commissionAmount?: Prisma.IntFieldUpdateOperationsInput | number
   driverEarning?: Prisma.IntFieldUpdateOperationsInput | number
+  platformFee?: Prisma.IntFieldUpdateOperationsInput | number
   paymentMethod?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
   customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deliveryAddressLine?: Prisma.StringFieldUpdateOperationsInput | string
@@ -3475,6 +3535,7 @@ export type OrderUncheckedUpdateWithoutReviewsInput = {
   total?: Prisma.IntFieldUpdateOperationsInput | number
   commissionAmount?: Prisma.IntFieldUpdateOperationsInput | number
   driverEarning?: Prisma.IntFieldUpdateOperationsInput | number
+  platformFee?: Prisma.IntFieldUpdateOperationsInput | number
   paymentMethod?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
   customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   addressId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3524,6 +3585,7 @@ export type OrderCreateWithoutWalletTxsInput = {
   total: number
   commissionAmount?: number
   driverEarning?: number
+  platformFee?: number
   paymentMethod?: $Enums.PaymentMethod
   customerNote?: string | null
   deliveryAddressLine: string
@@ -3579,6 +3641,7 @@ export type OrderUncheckedCreateWithoutWalletTxsInput = {
   total: number
   commissionAmount?: number
   driverEarning?: number
+  platformFee?: number
   paymentMethod?: $Enums.PaymentMethod
   customerNote?: string | null
   addressId?: string | null
@@ -3644,6 +3707,7 @@ export type OrderUpdateWithoutWalletTxsInput = {
   total?: Prisma.IntFieldUpdateOperationsInput | number
   commissionAmount?: Prisma.IntFieldUpdateOperationsInput | number
   driverEarning?: Prisma.IntFieldUpdateOperationsInput | number
+  platformFee?: Prisma.IntFieldUpdateOperationsInput | number
   paymentMethod?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
   customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deliveryAddressLine?: Prisma.StringFieldUpdateOperationsInput | string
@@ -3699,6 +3763,7 @@ export type OrderUncheckedUpdateWithoutWalletTxsInput = {
   total?: Prisma.IntFieldUpdateOperationsInput | number
   commissionAmount?: Prisma.IntFieldUpdateOperationsInput | number
   driverEarning?: Prisma.IntFieldUpdateOperationsInput | number
+  platformFee?: Prisma.IntFieldUpdateOperationsInput | number
   paymentMethod?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
   customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   addressId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3748,6 +3813,7 @@ export type OrderCreateWithoutNotificationsInput = {
   total: number
   commissionAmount?: number
   driverEarning?: number
+  platformFee?: number
   paymentMethod?: $Enums.PaymentMethod
   customerNote?: string | null
   deliveryAddressLine: string
@@ -3803,6 +3869,7 @@ export type OrderUncheckedCreateWithoutNotificationsInput = {
   total: number
   commissionAmount?: number
   driverEarning?: number
+  platformFee?: number
   paymentMethod?: $Enums.PaymentMethod
   customerNote?: string | null
   addressId?: string | null
@@ -3868,6 +3935,7 @@ export type OrderUpdateWithoutNotificationsInput = {
   total?: Prisma.IntFieldUpdateOperationsInput | number
   commissionAmount?: Prisma.IntFieldUpdateOperationsInput | number
   driverEarning?: Prisma.IntFieldUpdateOperationsInput | number
+  platformFee?: Prisma.IntFieldUpdateOperationsInput | number
   paymentMethod?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
   customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deliveryAddressLine?: Prisma.StringFieldUpdateOperationsInput | string
@@ -3923,6 +3991,7 @@ export type OrderUncheckedUpdateWithoutNotificationsInput = {
   total?: Prisma.IntFieldUpdateOperationsInput | number
   commissionAmount?: Prisma.IntFieldUpdateOperationsInput | number
   driverEarning?: Prisma.IntFieldUpdateOperationsInput | number
+  platformFee?: Prisma.IntFieldUpdateOperationsInput | number
   paymentMethod?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
   customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   addressId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3974,6 +4043,7 @@ export type OrderCreateManyCustomerInput = {
   total: number
   commissionAmount?: number
   driverEarning?: number
+  platformFee?: number
   paymentMethod?: $Enums.PaymentMethod
   customerNote?: string | null
   addressId?: string | null
@@ -4016,6 +4086,7 @@ export type OrderUpdateWithoutCustomerInput = {
   total?: Prisma.IntFieldUpdateOperationsInput | number
   commissionAmount?: Prisma.IntFieldUpdateOperationsInput | number
   driverEarning?: Prisma.IntFieldUpdateOperationsInput | number
+  platformFee?: Prisma.IntFieldUpdateOperationsInput | number
   paymentMethod?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
   customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deliveryAddressLine?: Prisma.StringFieldUpdateOperationsInput | string
@@ -4070,6 +4141,7 @@ export type OrderUncheckedUpdateWithoutCustomerInput = {
   total?: Prisma.IntFieldUpdateOperationsInput | number
   commissionAmount?: Prisma.IntFieldUpdateOperationsInput | number
   driverEarning?: Prisma.IntFieldUpdateOperationsInput | number
+  platformFee?: Prisma.IntFieldUpdateOperationsInput | number
   paymentMethod?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
   customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   addressId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4122,6 +4194,7 @@ export type OrderUncheckedUpdateManyWithoutCustomerInput = {
   total?: Prisma.IntFieldUpdateOperationsInput | number
   commissionAmount?: Prisma.IntFieldUpdateOperationsInput | number
   driverEarning?: Prisma.IntFieldUpdateOperationsInput | number
+  platformFee?: Prisma.IntFieldUpdateOperationsInput | number
   paymentMethod?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
   customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   addressId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4167,6 +4240,7 @@ export type OrderCreateManyAddressInput = {
   total: number
   commissionAmount?: number
   driverEarning?: number
+  platformFee?: number
   paymentMethod?: $Enums.PaymentMethod
   customerNote?: string | null
   deliveryAddressLine: string
@@ -4208,6 +4282,7 @@ export type OrderUpdateWithoutAddressInput = {
   total?: Prisma.IntFieldUpdateOperationsInput | number
   commissionAmount?: Prisma.IntFieldUpdateOperationsInput | number
   driverEarning?: Prisma.IntFieldUpdateOperationsInput | number
+  platformFee?: Prisma.IntFieldUpdateOperationsInput | number
   paymentMethod?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
   customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deliveryAddressLine?: Prisma.StringFieldUpdateOperationsInput | string
@@ -4263,6 +4338,7 @@ export type OrderUncheckedUpdateWithoutAddressInput = {
   total?: Prisma.IntFieldUpdateOperationsInput | number
   commissionAmount?: Prisma.IntFieldUpdateOperationsInput | number
   driverEarning?: Prisma.IntFieldUpdateOperationsInput | number
+  platformFee?: Prisma.IntFieldUpdateOperationsInput | number
   paymentMethod?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
   customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deliveryAddressLine?: Prisma.StringFieldUpdateOperationsInput | string
@@ -4315,6 +4391,7 @@ export type OrderUncheckedUpdateManyWithoutAddressInput = {
   total?: Prisma.IntFieldUpdateOperationsInput | number
   commissionAmount?: Prisma.IntFieldUpdateOperationsInput | number
   driverEarning?: Prisma.IntFieldUpdateOperationsInput | number
+  platformFee?: Prisma.IntFieldUpdateOperationsInput | number
   paymentMethod?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
   customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deliveryAddressLine?: Prisma.StringFieldUpdateOperationsInput | string
@@ -4358,6 +4435,7 @@ export type OrderCreateManyShopInput = {
   total: number
   commissionAmount?: number
   driverEarning?: number
+  platformFee?: number
   paymentMethod?: $Enums.PaymentMethod
   customerNote?: string | null
   addressId?: string | null
@@ -4400,6 +4478,7 @@ export type OrderUpdateWithoutShopInput = {
   total?: Prisma.IntFieldUpdateOperationsInput | number
   commissionAmount?: Prisma.IntFieldUpdateOperationsInput | number
   driverEarning?: Prisma.IntFieldUpdateOperationsInput | number
+  platformFee?: Prisma.IntFieldUpdateOperationsInput | number
   paymentMethod?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
   customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deliveryAddressLine?: Prisma.StringFieldUpdateOperationsInput | string
@@ -4454,6 +4533,7 @@ export type OrderUncheckedUpdateWithoutShopInput = {
   total?: Prisma.IntFieldUpdateOperationsInput | number
   commissionAmount?: Prisma.IntFieldUpdateOperationsInput | number
   driverEarning?: Prisma.IntFieldUpdateOperationsInput | number
+  platformFee?: Prisma.IntFieldUpdateOperationsInput | number
   paymentMethod?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
   customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   addressId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4506,6 +4586,7 @@ export type OrderUncheckedUpdateManyWithoutShopInput = {
   total?: Prisma.IntFieldUpdateOperationsInput | number
   commissionAmount?: Prisma.IntFieldUpdateOperationsInput | number
   driverEarning?: Prisma.IntFieldUpdateOperationsInput | number
+  platformFee?: Prisma.IntFieldUpdateOperationsInput | number
   paymentMethod?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
   customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   addressId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4550,6 +4631,7 @@ export type OrderCreateManyDriverInput = {
   total: number
   commissionAmount?: number
   driverEarning?: number
+  platformFee?: number
   paymentMethod?: $Enums.PaymentMethod
   customerNote?: string | null
   addressId?: string | null
@@ -4592,6 +4674,7 @@ export type OrderUpdateWithoutDriverInput = {
   total?: Prisma.IntFieldUpdateOperationsInput | number
   commissionAmount?: Prisma.IntFieldUpdateOperationsInput | number
   driverEarning?: Prisma.IntFieldUpdateOperationsInput | number
+  platformFee?: Prisma.IntFieldUpdateOperationsInput | number
   paymentMethod?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
   customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deliveryAddressLine?: Prisma.StringFieldUpdateOperationsInput | string
@@ -4646,6 +4729,7 @@ export type OrderUncheckedUpdateWithoutDriverInput = {
   total?: Prisma.IntFieldUpdateOperationsInput | number
   commissionAmount?: Prisma.IntFieldUpdateOperationsInput | number
   driverEarning?: Prisma.IntFieldUpdateOperationsInput | number
+  platformFee?: Prisma.IntFieldUpdateOperationsInput | number
   paymentMethod?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
   customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   addressId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4698,6 +4782,7 @@ export type OrderUncheckedUpdateManyWithoutDriverInput = {
   total?: Prisma.IntFieldUpdateOperationsInput | number
   commissionAmount?: Prisma.IntFieldUpdateOperationsInput | number
   driverEarning?: Prisma.IntFieldUpdateOperationsInput | number
+  platformFee?: Prisma.IntFieldUpdateOperationsInput | number
   paymentMethod?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
   customerNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   addressId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4828,6 +4913,7 @@ export type OrderSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   total?: boolean
   commissionAmount?: boolean
   driverEarning?: boolean
+  platformFee?: boolean
   paymentMethod?: boolean
   customerNote?: boolean
   addressId?: boolean
@@ -4886,6 +4972,7 @@ export type OrderSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   total?: boolean
   commissionAmount?: boolean
   driverEarning?: boolean
+  platformFee?: boolean
   paymentMethod?: boolean
   customerNote?: boolean
   addressId?: boolean
@@ -4935,6 +5022,7 @@ export type OrderSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   total?: boolean
   commissionAmount?: boolean
   driverEarning?: boolean
+  platformFee?: boolean
   paymentMethod?: boolean
   customerNote?: boolean
   addressId?: boolean
@@ -4984,6 +5072,7 @@ export type OrderSelectScalar = {
   total?: boolean
   commissionAmount?: boolean
   driverEarning?: boolean
+  platformFee?: boolean
   paymentMethod?: boolean
   customerNote?: boolean
   addressId?: boolean
@@ -5017,7 +5106,7 @@ export type OrderSelectScalar = {
   updatedAt?: boolean
 }
 
-export type OrderOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "code" | "customerId" | "shopId" | "driverId" | "status" | "subtotal" | "deliveryFee" | "total" | "commissionAmount" | "driverEarning" | "paymentMethod" | "customerNote" | "addressId" | "deliveryAddressLine" | "deliveryCity" | "deliveryLatitude" | "deliveryLongitude" | "customerPhone" | "distanceMeters" | "rejectionReason" | "cancelReason" | "cancelledBy" | "offerAttempts" | "acceptedAt" | "preparingAt" | "readyAt" | "assignedAt" | "pickedUpAt" | "outForDeliveryAt" | "deliveredAt" | "closedAt" | "stockReserved" | "clientRequestId" | "pickupToken" | "deliveryToken" | "pickupVerifiedAt" | "deliveryVerifiedAt" | "deliveryPin" | "deliveryPinAttempts" | "createdAt" | "updatedAt", ExtArgs["result"]["order"]>
+export type OrderOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "code" | "customerId" | "shopId" | "driverId" | "status" | "subtotal" | "deliveryFee" | "total" | "commissionAmount" | "driverEarning" | "platformFee" | "paymentMethod" | "customerNote" | "addressId" | "deliveryAddressLine" | "deliveryCity" | "deliveryLatitude" | "deliveryLongitude" | "customerPhone" | "distanceMeters" | "rejectionReason" | "cancelReason" | "cancelledBy" | "offerAttempts" | "acceptedAt" | "preparingAt" | "readyAt" | "assignedAt" | "pickedUpAt" | "outForDeliveryAt" | "deliveredAt" | "closedAt" | "stockReserved" | "clientRequestId" | "pickupToken" | "deliveryToken" | "pickupVerifiedAt" | "deliveryVerifiedAt" | "deliveryPin" | "deliveryPinAttempts" | "createdAt" | "updatedAt", ExtArgs["result"]["order"]>
 export type OrderInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   customer?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   shop?: boolean | Prisma.ShopDefaultArgs<ExtArgs>
@@ -5086,6 +5175,10 @@ export type $OrderPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
      * نصيب الموصل من رسوم التوصيل
      */
     driverEarning: number
+    /**
+     * حصة قفة الثابتة من رسوم التوصيل — تُثبَّت عند إنشاء الطلب (لا تتأثر بتغيير الإدارة لاحقًا)
+     */
+    platformFee: number
     paymentMethod: $Enums.PaymentMethod
     customerNote: string | null
     addressId: string | null
@@ -5590,6 +5683,7 @@ export interface OrderFieldRefs {
   readonly total: Prisma.FieldRef<"Order", 'Int'>
   readonly commissionAmount: Prisma.FieldRef<"Order", 'Int'>
   readonly driverEarning: Prisma.FieldRef<"Order", 'Int'>
+  readonly platformFee: Prisma.FieldRef<"Order", 'Int'>
   readonly paymentMethod: Prisma.FieldRef<"Order", 'PaymentMethod'>
   readonly customerNote: Prisma.FieldRef<"Order", 'String'>
   readonly addressId: Prisma.FieldRef<"Order", 'String'>

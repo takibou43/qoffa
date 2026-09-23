@@ -10,7 +10,7 @@ type TxClient = Prisma.TransactionClient;
  * ليمكن لاحقًا حساب التصفية بين المنصة والمحل والموصّل.
  *
  *   قيمة المنتجات  → استحقاق المحل ناقص عمولة المنصة
- *   رسوم التوصيل   → استحقاق الموصّل (بنسبة driverFeeShareBps)
+ *   رسوم التوصيل   → استحقاق الموصّل = رسوم التوصيل − حصة قفة الثابتة المثبّتة في الطلب
  */
 export async function settleDeliveredOrder(
   tx: TxClient,
@@ -21,13 +21,14 @@ export async function settleDeliveredOrder(
     driverId: string | null;
     subtotal: number;
     deliveryFee: number;
+    platformFee: number;
   },
-  options: { commissionBps: number; driverFeeShareBps: number },
+  options: { commissionBps: number },
 ) {
   const commission = applyBps(order.subtotal, options.commissionBps);
   const shopNet = order.subtotal - commission;
   const driverEarning = order.driverId
-    ? applyBps(order.deliveryFee, options.driverFeeShareBps)
+    ? order.deliveryFee - Math.min(Math.max(0, order.platformFee), order.deliveryFee)
     : 0;
 
   // محفظة المحل

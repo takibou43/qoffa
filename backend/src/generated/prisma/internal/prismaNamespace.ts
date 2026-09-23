@@ -2105,6 +2105,7 @@ export const OrderScalarFieldEnum = {
   total: 'total',
   commissionAmount: 'commissionAmount',
   driverEarning: 'driverEarning',
+  platformFee: 'platformFee',
   paymentMethod: 'paymentMethod',
   customerNote: 'customerNote',
   addressId: 'addressId',

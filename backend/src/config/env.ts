@@ -24,7 +24,6 @@ const schema = z.object({
 
   PLATFORM_COMMISSION_BPS: intFromEnv(1000),
   DEFAULT_DELIVERY_FEE: intFromEnv(150),
-  DRIVER_FEE_SHARE_BPS: intFromEnv(8000),
   SEARCH_RADIUS_KM: intFromEnv(10),
   DRIVER_OFFER_TIMEOUT_SECONDS: intFromEnv(45),
   MAX_DRIVER_OFFERS: intFromEnv(6),

@@ -27,6 +27,8 @@ async function readyOrder() {
       status: 'READY_FOR_PICKUP',
       subtotal: 300,
       deliveryFee: 150,
+      // حصة قفة المثبّتة عند الإنشاء (الافتراضي 30 دج)
+      platformFee: 30,
       total: 450,
       addressId: customer.address.id,
       deliveryAddressLine: customer.address.addressLine,

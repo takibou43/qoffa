@@ -419,6 +419,7 @@ export async function listOrders(
         total: true,
         commissionAmount: true,
         driverEarning: true,
+        platformFee: true,
         createdAt: true,
         acceptedAt: true,
         readyAt: true,

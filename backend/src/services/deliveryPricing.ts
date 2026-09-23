@@ -19,7 +19,12 @@ export interface DeliveryPricingConfig {
   maxKm: number;
   /** معامل تحويل المسافة المستقيمة إلى مسافة طريق تقريبية */
   roadFactor: number;
+  /** حصة قفة الثابتة من رسوم التوصيل لكل طلبية (دج) — الباقي للموصّل */
+  platformFee: number;
 }
+
+/** حصة قفة الافتراضية من رسوم التوصيل لكل طلبية */
+export const DEFAULT_PLATFORM_FEE = 30;
 
 export const PRICING_SETTING_KEYS = {
   baseFee: 'delivery.baseFee',
@@ -27,6 +32,7 @@ export const PRICING_SETTING_KEYS = {
   perKmFee: 'delivery.perKmFee',
   maxKm: 'delivery.maxKm',
   roadFactor: 'delivery.roadFactor',
+  platformFee: 'delivery.platformFee',
 } as const;
 
 const PRICING_LABELS: Record<keyof DeliveryPricingConfig, string> = {
@@ -35,6 +41,7 @@ const PRICING_LABELS: Record<keyof DeliveryPricingConfig, string> = {
   perKmFee: 'سعر الكيلومتر الإضافي (دج)',
   maxKm: 'أقصى مسافة توصيل (كم)',
   roadFactor: 'معامل تقريب مسافة الطريق',
+  platformFee: 'حصة قفة من رسوم التوصيل (دج)',
 };
 
 export function defaultPricingConfig(): DeliveryPricingConfig {
@@ -44,6 +51,7 @@ export function defaultPricingConfig(): DeliveryPricingConfig {
     perKmFee: 30,
     maxKm: 15,
     roadFactor: 1.3,
+    platformFee: DEFAULT_PLATFORM_FEE,
   };
 }
 
@@ -91,6 +99,10 @@ export interface DeliveryQuote {
   /** false إن تجاوزت المسافة الحد الأقصى فلا يُقبل الطلب */
   withinRange: boolean;
 }
+
+/** حصة قفة الفعلية لطلب: لا تتجاوز رسوم التوصيل نفسها */
+export const platformFeeFor = (config: DeliveryPricingConfig, deliveryFee: number) =>
+  Math.min(Math.max(0, Math.round(config.platformFee)), deliveryFee);
 
 /** دالة نقية — تُختبر دون قاعدة بيانات */
 export function computeDeliveryFee(

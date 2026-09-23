@@ -133,6 +133,7 @@ export async function getCurrentDelivery(driverProfileId: string) {
       total: true,
       deliveryFee: true,
       subtotal: true,
+      platformFee: true,
       paymentMethod: true,
       customerNote: true,
       customerPhone: true,

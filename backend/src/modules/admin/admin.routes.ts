@@ -389,14 +389,16 @@ adminRouter.put(
   validate(deliveryPricingSchema),
   async (req, res) => {
     const before = await loadPricingConfig();
-    await savePricingConfig(req.body, req.auth!.userId);
+    // حقل غير مُرسَل (مثل حصة قفة) يحتفظ بقيمته الحالية
+    const next = { ...before, ...req.body };
+    await savePricingConfig(next, req.auth!.userId);
 
     await audit({
       actorId: req.auth!.userId,
       action: 'SETTING_CHANGED',
       targetType: 'setting',
       targetId: 'delivery.pricing',
-      metadata: { from: before, to: req.body },
+      metadata: { from: before, to: next },
       ipAddress: clientIp(req),
     });
 

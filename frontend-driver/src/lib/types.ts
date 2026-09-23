@@ -127,6 +127,9 @@ export interface Settlement {
   total: number;
   driverPaysShop: number;
   driverCollectsFromCustomer: number;
+  /** حصة قفة من رسوم التوصيل */
+  platformFee: number;
+  /** أجرتك = رسوم التوصيل − حصة قفة */
   driverKeeps: number;
 }
 

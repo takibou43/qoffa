@@ -485,7 +485,7 @@ describe('التسوية المالية عند التسليم', () => {
 
     const order = await prisma.order.findUniqueOrThrow({ where: { id: orderId } });
     expect(order.commissionAmount).toBe(34); // 10% من 340
-    expect(order.driverEarning).toBe(120); // 80% من 150
+    expect(order.driverEarning).toBe(120); // 150 − حصة قفة 30
 
     const shopWallet = await prisma.wallet.findUniqueOrThrow({
       where: { shopId: shop.shop.id },

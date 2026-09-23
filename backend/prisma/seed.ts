@@ -13,6 +13,9 @@ import { haversineMeters } from '../src/lib/geo.js';
 import { applyBps } from '../src/lib/money.js';
 import { seedPlatformOwner } from './seed-owner.js';
 
+/** حصة قفة الافتراضية من رسوم التوصيل (نفس DEFAULT_PLATFORM_FEE في services/deliveryPricing.ts) */
+const DEFAULT_PLATFORM_FEE = 30;
+
 const prisma = new PrismaClient({
   adapter: new PrismaPg({ connectionString: env.DATABASE_URL }),
 });
@@ -352,8 +355,9 @@ async function main() {
         deliveryFee: shop.deliveryFee,
         total,
         commissionAmount: delivered ? applyBps(subtotal, shop.commissionBps) : 0,
+        platformFee: Math.min(DEFAULT_PLATFORM_FEE, shop.deliveryFee),
         driverEarning: delivered
-          ? applyBps(shop.deliveryFee, env.DRIVER_FEE_SHARE_BPS)
+          ? shop.deliveryFee - Math.min(DEFAULT_PLATFORM_FEE, shop.deliveryFee)
           : 0,
         customerNote: i % 2 === 0 ? 'الرجاء الاتصال عند الوصول' : null,
         addressId: address.id,
@@ -391,7 +395,7 @@ async function main() {
           pickedUpAt: new Date(now - 15 * 60_000),
           deliveredAt: delivered ? new Date(now - 5 * 60_000) : null,
           distanceMeters: distance,
-          earning: delivered ? applyBps(shop.deliveryFee, env.DRIVER_FEE_SHARE_BPS) : 0,
+          earning: delivered ? shop.deliveryFee - Math.min(DEFAULT_PLATFORM_FEE, shop.deliveryFee) : 0,
         },
       });
       if (!delivered) {
@@ -418,7 +422,7 @@ async function main() {
   const settings = [
     { key: 'platform.commissionBps', value: env.PLATFORM_COMMISSION_BPS, label: 'عمولة المنصة (نقاط أساسية)', group: 'finance' },
     { key: 'platform.defaultDeliveryFee', value: env.DEFAULT_DELIVERY_FEE, label: 'رسوم التوصيل الافتراضية (دج)', group: 'finance' },
-    { key: 'platform.driverFeeShareBps', value: env.DRIVER_FEE_SHARE_BPS, label: 'نصيب الموصّل من رسوم التوصيل', group: 'finance' },
+    { key: 'delivery.platformFee', value: DEFAULT_PLATFORM_FEE, label: 'حصة قفة من رسوم التوصيل (دج)', group: 'delivery' },
     { key: 'platform.searchRadiusKm', value: env.SEARCH_RADIUS_KM, label: 'نصف قطر البحث (كم)', group: 'matching' },
     { key: 'platform.driverOfferTimeoutSeconds', value: env.DRIVER_OFFER_TIMEOUT_SECONDS, label: 'مهلة قبول الموصّل (ثانية)', group: 'matching' },
     { key: 'platform.maxDriverOffers', value: env.MAX_DRIVER_OFFERS, label: 'أقصى عدد عروض قبل NO_DRIVER', group: 'matching' },

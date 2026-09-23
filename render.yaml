@@ -34,8 +34,6 @@ services:
         value: 1000
       - key: DEFAULT_DELIVERY_FEE
         value: 150
-      - key: DRIVER_FEE_SHARE_BPS
-        value: 8000
       - key: SEARCH_RADIUS_KM
         value: 10
       - key: DRIVER_OFFER_TIMEOUT_SECONDS

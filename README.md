@@ -120,7 +120,6 @@ npm run dev:admin        # http://localhost:5176
 | `CORS_ORIGINS` | **في الإنتاج** | نطاقات الواجهات مفصولة بفاصلة |
 | `PLATFORM_COMMISSION_BPS` | — | عمولة المنصة بالنقاط الأساسية (1000 = 10%) |
 | `DEFAULT_DELIVERY_FEE` | — | رسوم التوصيل الافتراضية بالدينار |
-| `DRIVER_FEE_SHARE_BPS` | — | نصيب الموصّل من رسوم التوصيل (8000 = 80%) |
 | `SEARCH_RADIUS_KM` | — | نصف قطر البحث عن المحلات/الموصّلين |
 | `DRIVER_OFFER_TIMEOUT_SECONDS` | — | مهلة قبول الموصّل للعرض |
 | `MAX_DRIVER_OFFERS` | — | أقصى عدد عروض قبل `NO_DRIVER` |

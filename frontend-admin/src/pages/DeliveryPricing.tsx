@@ -15,6 +15,7 @@ const toDraft = (p: DeliveryPricing): Draft => ({
   perKmFee: String(p.perKmFee),
   maxKm: String(p.maxKm),
   roadFactor: String(p.roadFactor),
+  platformFee: String(p.platformFee),
 });
 
 function parse(draft: Draft): { value: DeliveryPricing | null; error: string | null } {
@@ -24,6 +25,7 @@ function parse(draft: Draft): { value: DeliveryPricing | null; error: string | n
     perKmFee: Number(draft.perKmFee),
     maxKm: Number(draft.maxKm),
     roadFactor: Number(draft.roadFactor),
+    platformFee: Number(draft.platformFee),
   };
   if (Object.values(n).some((v) => draft.baseFee === '' || !Number.isFinite(v))) {
     return { value: null, error: 'أدخل أرقامًا صحيحة في كل الحقول.' };
@@ -33,6 +35,9 @@ function parse(draft: Draft): { value: DeliveryPricing | null; error: string | n
   }
   if (!Number.isInteger(n.perKmFee) || n.perKmFee < 0 || n.perKmFee > 5_000) {
     return { value: null, error: 'سعر الكيلومتر عدد صحيح بين 0 و5000 دج.' };
+  }
+  if (!Number.isInteger(n.platformFee) || n.platformFee < 0 || n.platformFee > 20_000) {
+    return { value: null, error: 'حصة قفة عدد صحيح بين 0 و20000 دج.' };
   }
   if (n.baseKm < 0 || n.baseKm > 50) return { value: null, error: 'المسافة المشمولة بين 0 و50 كم.' };
   if (n.maxKm < 1 || n.maxKm > 100) return { value: null, error: 'أقصى مسافة بين 1 و100 كم.' };
@@ -114,6 +119,11 @@ export default function DeliveryPricingPage() {
       hint: 'يحوّل المسافة المستقيمة إلى مسافة طريق تقريبية (المعتاد 1.3)',
       step: '0.05',
     },
+    {
+      key: 'platformFee',
+      label: 'حصة قفة من رسوم التوصيل (دج)',
+      hint: 'مبلغ ثابت لكل طلبية؛ الباقي أجرة الموصّل. يُثبَّت في الطلب عند إنشائه.',
+    },
   ];
 
   return (
@@ -180,6 +190,7 @@ export default function DeliveryPricingPage() {
                     <th className="py-2 font-medium">مسافة مستقيمة</th>
                     <th className="py-2 font-medium">مسافة الطريق</th>
                     <th className="py-2 font-medium">رسم التوصيل</th>
+                    <th className="py-2 font-medium">الموصّل / قفة</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -193,6 +204,11 @@ export default function DeliveryPricingPage() {
                         ) : (
                           <span className="text-red-600">خارج النطاق</span>
                         )}
+                      </td>
+                      <td className="py-2 text-xs text-slate-600">
+                        {row.withinRange && parsed?.value
+                          ? `${formatDzd(row.fee - Math.min(parsed.value.platformFee, row.fee))} / ${formatDzd(Math.min(parsed.value.platformFee, row.fee))}`
+                          : '—'}
                       </td>
                     </tr>
                   ))}

@@ -1,4 +1,3 @@
-import { env } from '../../config/env.js';
 import { generateOrderCode } from '../../lib/code.js';
 import { timingSafeEqual } from 'node:crypto';
 import { AppError, badRequest, conflict, forbidden, notFound } from '../../lib/errors.js';
@@ -16,6 +15,7 @@ import {
 import {
   computeDeliveryFee,
   loadPricingConfig,
+  platformFeeFor,
   type DeliveryQuote,
 } from '../../services/deliveryPricing.js';
 import { buildQrPayload, parseQrPayload, qrVisible } from '../../services/orderQr.js';
@@ -242,6 +242,8 @@ export async function createOrder(customerId: string, input: CreateOrderInput) {
     });
   }
   const deliveryFee = quote.fee;
+  // حصة قفة تُثبَّت الآن في الطلب؛ تغييرها لاحقًا من الإدارة لا يمسّ هذا الطلب
+  const platformFee = platformFeeFor(pricing, deliveryFee);
   const customer = await prisma.user.findUniqueOrThrow({
     where: { id: customerId },
     select: { phone: true },
@@ -269,6 +271,7 @@ export async function createOrder(customerId: string, input: CreateOrderInput) {
         status: 'PENDING',
         subtotal,
         deliveryFee,
+        platformFee,
         total: subtotal + deliveryFee,
         paymentMethod: input.paymentMethod,
         customerNote: input.customerNote ?? null,
@@ -363,6 +366,7 @@ type OrderForTransition = {
   driverId: string | null;
   subtotal: number;
   deliveryFee: number;
+  platformFee: number;
   shop: { ownerId: string; commissionBps: number };
   driver: { userId: string } | null;
 };
@@ -384,6 +388,7 @@ async function runTransition(
       driverId: true,
       subtotal: true,
       deliveryFee: true,
+      platformFee: true,
       shop: { select: { ownerId: true, commissionBps: true } },
       driver: { select: { userId: true } },
     },
@@ -463,11 +468,9 @@ async function runTransition(
         driverId: driverIdNow,
         subtotal: order.subtotal,
         deliveryFee: order.deliveryFee,
+        platformFee: order.platformFee,
       },
-      {
-        commissionBps: order.shop.commissionBps,
-        driverFeeShareBps: env.DRIVER_FEE_SHARE_BPS,
-      },
+      { commissionBps: order.shop.commissionBps },
     );
     await tx.order.update({
       where: { id: orderId },
@@ -634,6 +637,7 @@ export async function getOrderForUser(
       ...shopOrderSelect,
       customerId: true,
       driverId: true,
+      platformFee: true,
       shop: { select: { ...shopOrderSelect.shop.select, ownerId: true } },
     },
   });
@@ -641,7 +645,8 @@ export async function getOrderForUser(
 
   const viewer = await resolveViewer(order, userId, role);
 
-  const { shop, customerId: _c, driverId: _d, ...rest } = order;
+  // حصة قفة لا تُعرض إلا ضمن التسوية للموصّل والإدارة
+  const { shop, customerId: _c, driverId: _d, platformFee: _pf, ...rest } = order;
   const { ownerId: _ownerId, ...publicShop } = shop;
   const base = { ...rest, shop: publicShop };
   const active = qrVisible(order.status);
@@ -729,6 +734,7 @@ export async function getOrderInvoice(orderId: string, userId: string, role: str
       deliveredAt: true,
       subtotal: true,
       deliveryFee: true,
+      platformFee: true,
       total: true,
       paymentMethod: true,
       customerId: true,
@@ -835,6 +841,7 @@ export async function pickupOrderWithQr(
       subtotal: true,
       deliveryFee: true,
       total: true,
+      platformFee: true,
       shop: { select: { ownerId: true } },
       scans: { where: { stage: 'PICKUP' }, select: { id: true } },
     },
@@ -933,6 +940,7 @@ export async function confirmDelivery(
       subtotal: true,
       deliveryFee: true,
       total: true,
+      platformFee: true,
     },
   });
   if (!order || order.driverId !== driver.profileId) throw notFound('هذا الطلب غير مُسند إليك');

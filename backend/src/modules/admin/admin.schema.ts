@@ -68,6 +68,8 @@ export const deliveryPricingSchema = z.object({
   perKmFee: z.number().int().min(0).max(5_000),
   maxKm: z.number().min(1).max(100),
   roadFactor: z.number().min(1).max(2),
+  /** حصة قفة الثابتة من رسوم التوصيل لكل طلبية (دج) */
+  platformFee: z.number().int().min(0).max(20_000).optional(),
 });
 
 export const settingSchema = z.object({

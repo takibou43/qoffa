@@ -354,9 +354,13 @@ function MoneyCard({ settlement, beforePickup }: { settlement: Settlement; befor
         {settlement.discount > 0 && <Row label="الخصم" value={`− ${formatDzd(settlement.discount)}`} />}
         <Row label="المبلغ الذي تقبضه من الزبون" value={formatDzd(settlement.driverCollectsFromCustomer)} strong />
       </div>
-      <div className="flex items-center justify-between rounded-xl bg-emerald-50 p-3 font-bold text-emerald-800">
-        <span>أجرة التوصيل التي تحتفظ بها</span>
-        <span>{formatDzd(settlement.driverKeeps)}</span>
+      <div className="space-y-1 rounded-xl bg-emerald-50 p-3">
+        <Row label="رسوم التوصيل" value={formatDzd(settlement.deliveryFee)} />
+        <Row label="حصة قفة (تُسلَّم للمنصة)" value={`− ${formatDzd(settlement.platformFee)}`} />
+        <div className="flex items-center justify-between font-bold text-emerald-800">
+          <span>أجرة التوصيل التي تحتفظ بها</span>
+          <span>{formatDzd(settlement.driverKeeps)}</span>
+        </div>
       </div>
     </section>
   );
